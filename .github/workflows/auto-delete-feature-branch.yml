@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete feature branch
-        uses: peter-evans/delete-branch@v3
+        uses: peter-evans/delete-branch-action@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branches: ${{ github.event.pull_request.head.ref }}
