@@ -137,3 +137,7 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+#DOCUMENTS
+HISTORY_PROMPT*
+001-myfintonic_features*
