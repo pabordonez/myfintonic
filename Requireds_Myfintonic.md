@@ -1,4 +1,4 @@
-<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" style="height:64px;margin-right:32px"/>
+
 
 # quiero que este "Analisis de requisitos" me lo pases a un formato md para poder añadirlo a mi repositorio
 
@@ -53,94 +53,17 @@ Crear una aplicación web para el seguimiento de finanzas personales: fondos ind
 
 ```
 
-users (
-id INT PK,
-username VARCHAR UNIQUE,
-password_hash VARCHAR,
-email VARCHAR UNIQUE,
-created_at DATETIME,
-updated_at DATETIME
-)
-
-asset_types (
-id INT PK,
-name VARCHAR,
-description VARCHAR,
-created_at DATETIME
-)
-
-assets (
-id INT PK,
-user_id INT FK,
-asset_type_id INT FK,
-name VARCHAR,
-identifier VARCHAR,
-initial_value DECIMAL,
-start_date DATE,
-is_active BOOLEAN,
-created_at DATETIME,
-updated_at DATETIME
-)
-
-value_history (
-id INT PK,
-asset_id INT FK,
-value_date DATE,
-amount DECIMAL,
-notes VARCHAR,
-created_at DATETIME
-)
-
 ```
 
 ## 6. Estructura de la Aplicación
 
 ```
 
-/
-├── src/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── services/
-│   ├── utils/
-│   └── index.ts
-├── tests/
-├── docker/
-│   ├── Dockerfile
-│   └── docker-compose.yml
-├── .env.example
-├── .gitignore
-├── tsconfig.json
-├── package.json
-└── README.md
-
 ```
 
 ## 7. Endpoints API
 
 ```
-
-POST   /api/auth/login
-GET    /api/auth/me
-
-GET    /api/asset-types
-POST   /api/asset-types
-
-GET    /api/assets
-GET    /api/assets/:id
-POST   /api/assets
-PUT    /api/assets/:id
-DELETE /api/assets/:id
-
-POST   /api/assets/:id/values
-GET    /api/assets/:id/values?from\&to
-GET    /api/assets/:id/history
-
-GET    /api/dashboard/summary
-GET    /api/dashboard/chart-data?period
 
 ```
 
