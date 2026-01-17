@@ -1,5 +1,6 @@
 # Proyecto: myfintonic
 
+
 ## Resumen del Proyecto
 
 Este proyecto es una aplicación de finanzas personales diseñada para rastrear una variedad de activos, incluyendo fondos indexados, depósitos a plazo fijo, robo-advisors, acciones y cuentas corrientes. El backend se está construyendo con Node.js y TypeScript, con planes de contenerización usando Docker e integración futura de CI/CD.
