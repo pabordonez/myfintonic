@@ -7,7 +7,9 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "vitest"
+    "test": "vitest",
+    "db:generate": "prisma generate --schema=src/infrastructure/persistence/prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=src/infrastructure/persistence/prisma/schema.prisma"
   },
   "author": "",
   "license": "ISC",
@@ -15,12 +17,18 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.5",
     "@types/supertest": "^6.0.2",
+    "prisma": "^6.2.1",
     "supertest": "^7.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.17"
   },
   "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "dotenv": "^16.4.7",
     "express": "^5.2.1"
+  },
+  "prisma": {
+    "schema": "src/infrastructure/persistence/prisma/schema.prisma"
   }
 }

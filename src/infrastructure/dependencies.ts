@@ -1,10 +1,10 @@
-import { InMemoryProductRepository } from './persistence/inMemoryProductRepository';
+import { PrismaProductRepository } from './persistence/PrismaProductRepository';
 import { ProductUseCases } from '../application/useCases/productUseCases';
 import { ProductController } from './http/controllers/productController';
 import { HealthController } from './http/controllers/healthController';
-import { ProductFactory } from '../domain/factories/product.factory';
+import { ProductFactory } from '../domain/factories/productFactory';
 
-const productRepository = new InMemoryProductRepository();
+export const productRepository = new PrismaProductRepository();
 const productFactory = new ProductFactory();
 const productUseCases = new ProductUseCases(productRepository, productFactory);
 

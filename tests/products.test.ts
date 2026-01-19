@@ -1,6 +1,79 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import { describe, it, expect, beforeEach } from 'vitest';
 import { app } from '../src/app';
+
+// 1. Variable hoisted para simular la BD en memoria dentro del mock
+const { mockDb } = vi.hoisted(() => ({ mockDb: [] as any[] }));
+
+// 2. Mock del cliente de Prisma (Infraestructura)
+// Esto permite que PrismaProductRepository se ejecute realmente, pero "engañado"
+vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual as any,
+    default: {
+      financialProduct: {
+        create: vi.fn().mockImplementation(async ({ data }) => {
+          const newEntry = {
+            ...data,
+            // Simulamos campos automáticos de BD
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            valueHistory: [],
+            transactions: []
+          };
+          // Simulamos el 'connect' de Prisma para relaciones
+          if (data.client?.connect?.id) {
+            newEntry.clientId = data.client.connect.id;
+            delete newEntry.client;
+          }
+          mockDb.push(newEntry);
+          return newEntry;
+        }),
+        findMany: vi.fn().mockImplementation(async ({ where }) => {
+          let results = [...mockDb];
+          // Implementación básica de filtros de Prisma
+          if (where) {
+            if (where.status) results = results.filter(p => p.status === where.status);
+            if (where.type) results = results.filter(p => p.type === where.type);
+            if (where.financialEntity) results = results.filter(p => p.financialEntity === where.financialEntity);
+          }
+          return results;
+        }),
+        findUnique: vi.fn().mockImplementation(async ({ where }) => {
+          return mockDb.find(p => p.id === where.id) || null;
+        }),
+        update: vi.fn().mockImplementation(async ({ where, data }) => {
+          const index = mockDb.findIndex(p => p.id === where.id);
+          if (index === -1) throw new Error('Record not found');
+          
+          const current = mockDb[index];
+          const updated = { ...current, ...data };
+          
+          // Manejo de relación en update
+          if (data.client?.connect?.id) {
+            updated.clientId = data.client.connect.id;
+            delete updated.client;
+          }
+          
+          mockDb[index] = updated;
+          return updated;
+        }),
+        delete: vi.fn().mockImplementation(async ({ where }) => {
+          const index = mockDb.findIndex(p => p.id === where.id);
+          if (index === -1) throw new Error('Record not found');
+          const deleted = mockDb.splice(index, 1);
+          return deleted[0];
+        }),
+      },
+      // Mocks auxiliares para evitar errores si se llaman métodos de limpieza
+      productTransaction: { deleteMany: vi.fn() },
+      valueHistory: { deleteMany: vi.fn() },
+      client: { deleteMany: vi.fn(), create: vi.fn() },
+      $disconnect: vi.fn(),
+    }
+  };
+});
 
 describe('Financial Products API', () => {
   // Datos de prueba base
@@ -16,6 +89,10 @@ describe('Financial Products API', () => {
   let productId: string;
 
   beforeEach(async () => {
+    // Limpiamos el array en memoria (simulando reset de BD)
+    mockDb.length = 0;
+    
+    // Creamos un producto base para los tests que lo necesiten
     const response = await request(app).post('/products').send(baseProduct);
     productId = response.body?.id || 'dummy-id';
   });

@@ -1,7 +1,7 @@
-import { IFinancialProduct } from '../../domain/entities/financial-product';
-import { IProductFactory } from '../../domain/factories/product.factory';
-import { IProductRepository } from '../../domain/productRepository';
-import { CreateProductDto, UpdateProductDto } from '../dtos/product.dto';
+import { IFinancialProduct } from '../../domain/entities/IFinancialProduct';
+import { IProductFactory } from '../../domain/factories/productFactory';
+import { IProductRepository } from '../../domain/IProductRepository';
+import { CreateProductDto, UpdateProductDto } from '../dtos/productDto';
 
 export class ProductUseCases {
   constructor(
