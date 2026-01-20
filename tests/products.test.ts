@@ -2,11 +2,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app';
 
-// 1. Variable hoisted para simular la BD en memoria dentro del mock
+// 1. Hoisted variable to simulate in-memory DB within the mock
 const { mockDb } = vi.hoisted(() => ({ mockDb: [] as any[] }));
 
-// 2. Mock del cliente de Prisma (Infraestructura)
-// Esto permite que PrismaProductRepository se ejecute realmente, pero "engañado"
+// 2. Mock Prisma client (Infrastructure)
 vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal) => {
   const actual = await importOriginal();
   return {
@@ -16,13 +15,13 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal
         create: vi.fn().mockImplementation(async ({ data }) => {
           const newEntry = {
             ...data,
-            // Simulamos campos automáticos de BD
+            // Simulate automatic DB fields
             createdAt: new Date(),
             updatedAt: new Date(),
             valueHistory: [],
             transactions: []
           };
-          // Simulamos el 'connect' de Prisma para relaciones
+          // Simulate Prisma 'connect' for relations
           if (data.client?.connect?.id) {
             newEntry.clientId = data.client.connect.id;
             delete newEntry.client;
@@ -32,7 +31,7 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal
         }),
         findMany: vi.fn().mockImplementation(async ({ where }) => {
           let results = [...mockDb];
-          // Implementación básica de filtros de Prisma
+          // Basic implementation of Prisma filters
           if (where) {
             if (where.status) results = results.filter(p => p.status === where.status);
             if (where.type) results = results.filter(p => p.type === where.type);
@@ -50,7 +49,7 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal
           const current = mockDb[index];
           const updated = { ...current, ...data };
           
-          // Manejo de relación en update
+          // Handle relation in update
           if (data.client?.connect?.id) {
             updated.clientId = data.client.connect.id;
             delete updated.client;
@@ -66,7 +65,7 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal
           return deleted[0];
         }),
       },
-      // Mocks auxiliares para evitar errores si se llaman métodos de limpieza
+      // Auxiliary mocks to avoid errors if cleanup methods are called
       productTransaction: { deleteMany: vi.fn() },
       valueHistory: { deleteMany: vi.fn() },
       client: { deleteMany: vi.fn(), create: vi.fn() },
@@ -76,7 +75,7 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal
 });
 
 describe('Financial Products API', () => {
-  // Datos de prueba base
+  // Base test data
   const baseProduct = {
     type: 'CURRENT_ACCOUNT',
     name: 'Cuenta Nómina Test',
@@ -89,10 +88,10 @@ describe('Financial Products API', () => {
   let productId: string;
 
   beforeEach(async () => {
-    // Limpiamos el array en memoria (simulando reset de BD)
+    // Clear in-memory array (simulating DB reset)
     mockDb.length = 0;
     
-    // Creamos un producto base para los tests que lo necesiten
+    // Create a base product for tests that need it
     const response = await request(app).post('/products').send(baseProduct);
     productId = response.body?.id || 'dummy-id';
   });
@@ -105,7 +104,7 @@ describe('Financial Products API', () => {
     });
 
     it('should allow filtering by status', async () => {
-      // Creamos un producto inactivo para probar el filtro
+      // Create an inactive product to test filtering
       const inactiveProduct = { ...baseProduct, status: 'INACTIVE', name: 'Inactive Product' };
       await request(app).post('/products').send(inactiveProduct);
 
@@ -165,7 +164,7 @@ describe('Financial Products API', () => {
     it('should return 200 and the product if found', async () => {
       const response = await request(app).get(`/products/${productId}`);
       
-      // En la fase inicial de TDD, esto fallará con 404
+      // In the initial TDD phase, this will fail with 404
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('id', productId);
     });
