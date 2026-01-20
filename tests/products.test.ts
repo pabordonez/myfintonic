@@ -6,7 +6,6 @@ import { app } from '../src/app';
 const { mockDb } = vi.hoisted(() => ({ mockDb: [] as any[] }));
 
 // 2. Mock del cliente de Prisma (Infraestructura)
-// Esto permite que PrismaProductRepository se ejecute realmente, pero "engañado"
 vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal) => {
   const actual = await importOriginal();
   return {
