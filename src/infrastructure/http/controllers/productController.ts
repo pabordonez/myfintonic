@@ -26,7 +26,7 @@ export class ProductController {
 
       const products = await this.productUseCases.getProducts(filters);
       res.status(200).json(products);
-    } catch (error) {
+    } catch {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   };
@@ -39,7 +39,7 @@ export class ProductController {
       } else {
         res.status(404).json({ error: 'Product not found' });
       }
-    } catch (error) {
+    } catch {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   };
@@ -52,7 +52,7 @@ export class ProductController {
       } else {
         res.status(404).json({ error: 'Product not found' });
       }
-    } catch (error) {
+    } catch {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   };
