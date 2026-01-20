@@ -1,1 +1,1 @@
-npm test
+npm run lint-quiet && npm run test-silent
