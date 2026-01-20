@@ -18,5 +18,5 @@ jobs:
               sourceBranch !== "develop" &&
               !sourceBranch.startsWith("hotfix/")
             ) {
-              core.setFailed("Solo se puede hacer merge a master desde develop o hotfix/*");
+              core.setFailed("Merge to master is only allowed from develop or hotfix/* branches");
             }

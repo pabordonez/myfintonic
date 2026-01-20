@@ -15,5 +15,5 @@ jobs:
             const sourceBranch = context.payload.pull_request.head.ref;
             const targetBranch = context.payload.pull_request.base.ref;
             if (sourceBranch.startsWith("feature/") && targetBranch !== "develop") {
-              core.setFailed("PR desde feature/* debe ir solo a develop!");
+              core.setFailed("PR from feature/* must target develop only!");
             }
