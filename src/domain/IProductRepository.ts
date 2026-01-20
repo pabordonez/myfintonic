@@ -1,5 +1,5 @@
 // Domain Repository Interface
-import { IFinancialProduct } from './entities/financial-product';
+import { IFinancialProduct } from './entities/IFinancialProduct';
 
 export interface IProductRepository {
   findAll(filters?: Partial<IFinancialProduct>): Promise<IFinancialProduct[]>;

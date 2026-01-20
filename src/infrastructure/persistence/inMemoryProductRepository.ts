@@ -1,5 +1,5 @@
-import { IFinancialProduct } from '../../domain/entities/financial-product';
-import { IProductRepository } from '../../domain/productRepository';
+import { IFinancialProduct } from '../../domain/entities/IFinancialProduct';
+import { IProductRepository } from '../../domain/IProductRepository';
 
 export class InMemoryProductRepository implements IProductRepository {
   private products: IFinancialProduct[] = [];
@@ -38,5 +38,10 @@ export class InMemoryProductRepository implements IProductRepository {
     if (index !== -1) {
       this.products.splice(index, 1);
     }
+  }
+
+  // Método para limpiar el repositorio en los tests
+  public async clear(): Promise<void> {
+    this.products = [];
   }
 }

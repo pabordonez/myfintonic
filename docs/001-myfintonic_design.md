@@ -24,8 +24,10 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 
 **Client**
 - `id` (UUID): Identificador único del cliente.
-- `username` (String): Nombre de usuario.
-- `role` (Role): Rol del usuario (ADMIN o USER).
+- `firstName` (String): Nombre.
+- `lastName` (String): Apellidos.
+- `nickname` (String): Apodo.
+- `createdAt` / `updatedAt`: Fechas de auditoría.
 
 ### Entidad Base
 
@@ -317,4 +319,4 @@ classDiagram
     }
 
     ProductoFinanciero --> EstadoProducto
-```
+``` 

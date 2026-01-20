@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums basados en tu diseño
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  PAUSED
+  EXPIRED
+}
+
+enum ProductType {
+  CURRENT_ACCOUNT
+  SAVINGS_ACCOUNT
+  FIXED_TERM_DEPOSIT
+  INVESTMENT_FUND
+  STOCKS
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  nickname  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  products  FinancialProduct[]
+}
+
+// Modelo principal usando Single Table Inheritance
+model FinancialProduct {
+  id              String        @id // PREFIJO-UUID
+  type            ProductType
+  name            String
+  financialEntity String
+  status          ProductStatus @default(ACTIVE)
+  clientId        String        // UUID del cliente
+  client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Campos específicos (Opcionales dependiendo del tipo)
+  // Cuentas y Depósitos
+  currentBalance       Decimal?  @db.Decimal(15, 2)
+  monthlyInterestRate  Decimal?  @db.Decimal(5, 4)
+  initialCapital       Decimal?  @db.Decimal(15, 2)
+  annualInterestRate   Decimal?  @db.Decimal(5, 4)
+  maturityDate         DateTime?
+  interestPaymentFreq  String?
+
+  // Fondos y Acciones
+  numberOfUnits        Decimal?  @db.Decimal(15, 6) // Participaciones pueden tener muchos decimales
+  netAssetValue        Decimal?  @db.Decimal(15, 2)
+  totalPurchaseValue   Decimal?  @db.Decimal(15, 2)
+  numberOfShares       Decimal?  @db.Decimal(15, 2) // A veces hay acciones fraccionarias
+  unitPurchasePrice    Decimal?  @db.Decimal(15, 2)
+  currentMarketPrice   Decimal?  @db.Decimal(15, 2)
+
+  // JSON para objetos complejos (fees)
+  fees                 Json?
+
+  // Relaciones
+  valueHistory         ValueHistory[]
+  transactions         ProductTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([type])
+}
+
+model ValueHistory {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  value     Decimal  @db.Decimal(15, 2)
+  
+  productId String
+  product   FinancialProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([date])
+}
+
+model ProductTransaction {
+  id          String   @id @default(uuid())
+  date        DateTime
+  description String
+  amount      Decimal  @db.Decimal(15, 2)
+  
+  productId   String
+  product     FinancialProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([date])
+}

@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { IFinancialProduct } from '../entities/financial-product';
+import { IFinancialProduct } from '../entities/IFinancialProduct';
 import { ProductType } from '../types';
 
 export interface IProductFactory {
