@@ -319,4 +319,4 @@ classDiagram
     }
 
     ProductoFinanciero --> EstadoProducto
-```
+``` 
