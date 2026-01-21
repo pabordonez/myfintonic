@@ -7,7 +7,7 @@
 
 ## 1. Contexto y Objetivos
 
-Crear una aplicación web para el seguimiento de finanzas personales: fondos indexados, depósitos a plazo fijo, robo-advisor, acciones y cuentas corrientes. Utilizando **Node.js + TypeScript** como backend, lista para poner en producción con **Docker** y futura integración con **CI/CD**.
+Crear una aplicación web para el seguimiento de finanzas personales: fondos indexados, depósitos a plazo fijo, robot-advisor, acciones y cuentas corrientes. Utilizando **Node.js + TypeScript** como backend, lista para poner en producción con **Docker** y futura integración con **CI/CD**.
 
 ## 2. Requisitos Funcionales
 
@@ -16,7 +16,7 @@ Crear una aplicación web para el seguimiento de finanzas personales: fondos ind
   - Gestión de sesión con JWT
 
 - **RF-002: Tipos de activos**
-  - CRUD de categorías (fondos indexados, depósito, robo-advisor, acciones, cuentas)
+  - CRUD de categorías (fondos indexados, depósito, robot-advisor, acciones, cuentas)
   - Atributos: nombre, descripción, categoría
 
 - **RF-003: Gestión de activos**
