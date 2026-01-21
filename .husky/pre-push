@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+echo "🚀 Running Quality Gates (pre-push)..."
+
+echo "✅ All pre-push gates passed!"

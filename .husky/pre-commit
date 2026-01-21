@@ -1,1 +1,28 @@
-npm run lint-quiet && npm run test-silent
+#!/usr/bin/env sh
+
+echo "🔍 Running Quality Gates (pre-commit)..."
+
+# Gate 1: Linting
+echo "📝 Checking code style..."
+npm run lint-quiet || {
+  echo "❌ ESLint failed! Fix errors before committing."
+  npm run lint
+  exit 1
+}
+
+# Gate 2: Unit Tests
+echo "🧪 Running unit tests..."
+npm run test-silent || {
+  echo "❌ Tests failed! All must pass."
+  npm run test
+  exit 1
+}
+
+# Gate 3: TypeScript Build
+echo "🔧 Checking TypeScript..."
+npm run build || {
+  echo "❌ Build failed! Fix type errors."
+  exit 1
+}
+
+echo "✅ All pre-commit gates passed!"
