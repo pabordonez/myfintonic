@@ -141,6 +141,7 @@ vite.config.ts.timestamp-*
 #DOCUMENTS
 HISTORY_PROMPT*
 001-myfintonic_features*
+001-myfintonic_requireds*
 
 #IDE
 .DS_Store
