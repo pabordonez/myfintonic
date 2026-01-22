@@ -145,3 +145,6 @@ HISTORY_PROMPT*
 
 #IDE
 .DS_Store
+
+# Local Seeds
+src/infrastructure/persistence/prisma/local-seed.ts
