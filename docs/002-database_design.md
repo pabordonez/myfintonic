@@ -8,6 +8,9 @@ Este documento detalla la estructura de la base de datos relacional (MySQL 8) ut
 ```mermaid
 erDiagram
     Client ||--o{ FinancialProduct : "owns"
+    Client ||--o{ FinancialEntity : "has"
+    FinancialEntity ||--o{ FinancialProduct : "contains"
+    FinancialEntity ||--o{ FinancialEntityValueHistory : "has history"
     FinancialProduct ||--o{ ValueHistory : "has history"
     FinancialProduct ||--o{ Transaction : "has transactions"
 
@@ -20,11 +23,20 @@ erDiagram
         datetime updatedAt
     }
 
+    FinancialEntity {
+        string id PK "UUID"
+        string name
+        decimal balance "Valor total manual"
+        string clientId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
     FinancialProduct {
         string id PK "UUID"
         enum type "Tipo de producto"
         string name
-        string financialEntity
+        string financialEntityId FK
         enum status "ACTIVE, INACTIVE, etc"
         string clientId FK "Owner ID"
         decimal currentBalance "Nullable"
@@ -49,6 +61,13 @@ erDiagram
         datetime date
         decimal value
         string productId FK
+    }
+
+    FinancialEntityValueHistory {
+        int id PK "Auto-increment"
+        datetime date
+        decimal value
+        string financialEntityId FK
     }
 
     Transaction {
@@ -90,12 +109,21 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 | `lastName` | VARCHAR(191) | Apellidos del cliente. |
 | `nickname` | VARCHAR(191) | Apodo o nombre de usuario para mostrar. |
 
+### Tabla `FinancialEntity`
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | VARCHAR(191) | Identificador único (UUID). |
+| `name` | VARCHAR(191) | Nombre de la entidad financiera. |
+| `balance` | DECIMAL(15, 2) | Valor total acumulado en esta entidad (campo manual para ahorro de tiempo). |
+| `clientId` | VARCHAR(191) | ID del cliente. |
+
 ### Tabla `FinancialProduct`
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `id` | VARCHAR(191) | Identificador único (UUID). Clave primaria. |
 | `type` | ENUM | Tipo de producto: `CURRENT_ACCOUNT`, `SAVINGS_ACCOUNT`, `FIXED_TERM_DEPOSIT`, `INVESTMENT_FUND`, `STOCKS`. |
 | `status` | ENUM | Estado del producto: `ACTIVE`, `INACTIVE`, `PAUSED`, `EXPIRED`. |
+| `financialEntityId` | VARCHAR(191) | ID de la entidad financiera a la que pertenece. |
 | `clientId` | VARCHAR(191) | ID del usuario propietario del producto. Indexado para búsquedas rápidas. |
 | `fees` | JSON | Objeto JSON con las comisiones. Ej: `{"maintenance": 10.0}`. |
 

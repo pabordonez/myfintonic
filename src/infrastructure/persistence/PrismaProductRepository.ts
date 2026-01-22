@@ -20,7 +20,7 @@ export class PrismaProductRepository implements IProductRepository {
 
     // 1. Campos directos (1:1)
     const directFields = [
-      'name', 'type', 'financialEntity', 'status',
+      'name', 'type', 'status',
       'currentBalance', 'monthlyInterestRate', 'initialCapital', 'annualInterestRate',
       'maturityDate', 'interestPaymentFreq', 'numberOfUnits', 'netAssetValue',
       'totalPurchaseValue', 'numberOfShares', 'unitPurchasePrice', 'currentMarketPrice'
@@ -36,6 +36,27 @@ export class PrismaProductRepository implements IProductRepository {
     if (p.clientId !== undefined) data.client = { connect: { id: p.clientId } };
     if (p.fees !== undefined) data.fees = p.fees ?? Prisma.JsonNull;
     
+    // Generar histórico si cambia el saldo (Cuentas) o Capital Inicial (Depósitos)
+    const newValue = p.currentBalance ?? p.initialCapital;
+    if (newValue !== undefined && newValue !== null) {
+      data.valueHistory = {
+        create: {
+          date: new Date(),
+          value: new Prisma.Decimal(newValue)
+        }
+      };
+    }
+
+    // Manejo de la relación con FinancialEntity en update
+    if (p.financialEntity !== undefined && p.clientId !== undefined) {
+      data.financialEntity = {
+        connectOrCreate: {
+          where: { name_clientId: { name: p.financialEntity, clientId: p.clientId } },
+          create: { name: p.financialEntity, clientId: p.clientId, balance: 0 }
+        }
+      };
+    }
+    
     await prisma.financialProduct.update({
       where: { id },
       data: data
@@ -46,6 +67,7 @@ export class PrismaProductRepository implements IProductRepository {
     const prismaProduct = await prisma.financialProduct.findUnique({
       where: { id },
       include: {
+        financialEntity: true,
         valueHistory: true,
         transactions: true
       }
@@ -61,11 +83,12 @@ export class PrismaProductRepository implements IProductRepository {
 
     if (filters?.status) where.status = filters.status as ProductStatus;
     if (filters?.type) where.type = filters.type as ProductType;
-    if (filters?.financialEntity) where.financialEntity = filters.financialEntity;
+    if (filters?.financialEntity) where.financialEntity = { name: filters.financialEntity };
 
     const prismaProducts = await prisma.financialProduct.findMany({
       where,
       include: {
+        financialEntity: true,
         valueHistory: true,
         transactions: true
       }
@@ -90,17 +113,27 @@ export class PrismaProductRepository implements IProductRepository {
     if (!product.id) {
       throw new Error('Product ID is required');
     }
+    if (!product.clientId) {
+      throw new Error('Client ID is required');
+    }
+    if (!product.financialEntity) {
+      throw new Error('Financial Entity is required');
+    }
 
     return {
       id: product.id,
       name: product.name,
       type: product.type as ProductType,
-      financialEntity: product.financialEntity,
+      // Conectamos o creamos la entidad financiera basada en el nombre y el cliente
+      financialEntity: {
+        connectOrCreate: {
+          where: { name_clientId: { name: product.financialEntity, clientId: product.clientId } },
+          create: { name: product.financialEntity, clientId: product.clientId, balance: 0 }
+        }
+      },
       status: product.status as ProductStatus,
-      // Conectamos con el cliente (asumiendo que clientId viene en la entidad)
       client: { connect: { id: product.clientId } },
       
-      // Campos específicos (se guardan como NULL si no existen en el objeto)
       currentBalance: p.currentBalance ?? null,
       monthlyInterestRate: p.monthlyInterestRate ?? null,
       initialCapital: p.initialCapital ?? null,
@@ -127,7 +160,7 @@ export class PrismaProductRepository implements IProductRepository {
       id: prismaProduct.id,
       type: prismaProduct.type,
       name: prismaProduct.name,
-      financialEntity: prismaProduct.financialEntity,
+      financialEntity: prismaProduct.financialEntity?.name || 'Unknown Entity', 
       status: prismaProduct.status,
       clientId: prismaProduct.clientId,
       createdAt: prismaProduct.createdAt,

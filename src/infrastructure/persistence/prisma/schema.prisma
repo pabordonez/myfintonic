@@ -34,6 +34,24 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   products  FinancialProduct[]
+  financialEntities FinancialEntity[]
+}
+
+model FinancialEntity {
+  id        String   @id @default(uuid())
+  name      String
+  balance   Decimal? @db.Decimal(15, 2) // Valor total manual
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  products  FinancialProduct[]
+  valueHistory FinancialEntityValueHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, clientId]) // Evita duplicar entidades para el mismo cliente
+  @@index([clientId])
 }
 
 // Modelo principal usando Single Table Inheritance
@@ -41,7 +59,8 @@ model FinancialProduct {
   id              String        @id // PREFIJO-UUID
   type            ProductType
   name            String
-  financialEntity String
+  financialEntityId String
+  financialEntity FinancialEntity @relation(fields: [financialEntityId], references: [id])
   status          ProductStatus @default(ACTIVE)
   clientId        String        // UUID del cliente
   client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -75,6 +94,7 @@ model FinancialProduct {
 
   @@index([clientId])
   @@index([type])
+  @@index([financialEntityId])
 }
 
 model ValueHistory {
@@ -86,6 +106,18 @@ model ValueHistory {
   product   FinancialProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
+  @@index([date])
+}
+
+model FinancialEntityValueHistory {
+  id                Int      @id @default(autoincrement())
+  date              DateTime
+  value             Decimal  @db.Decimal(15, 2)
+  
+  financialEntityId String
+  financialEntity   FinancialEntity @relation(fields: [financialEntityId], references: [id], onDelete: Cascade)
+
+  @@index([financialEntityId])
   @@index([date])
 }
 

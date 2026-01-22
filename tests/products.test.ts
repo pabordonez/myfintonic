@@ -26,6 +26,11 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal
             newEntry.clientId = data.client.connect.id;
             delete newEntry.client;
           }
+          // Simulate Prisma 'connectOrCreate' for financialEntity relation
+          if (data.financialEntity?.connectOrCreate?.create) {
+            // We store the created entity object so mapToDomain can read .name from it
+            newEntry.financialEntity = data.financialEntity.connectOrCreate.create;
+          }
           mockDb.push(newEntry);
           return newEntry;
         }),
@@ -35,7 +40,10 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal
           if (where) {
             if (where.status) results = results.filter(p => p.status === where.status);
             if (where.type) results = results.filter(p => p.type === where.type);
-            if (where.financialEntity) results = results.filter(p => p.financialEntity === where.financialEntity);
+            // Updated filter logic for relation object
+            if (where.financialEntity?.name) {
+              results = results.filter(p => p.financialEntity?.name === where.financialEntity.name);
+            }
           }
           return results;
         }),
@@ -55,6 +63,11 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async (importOriginal
             delete updated.client;
           }
           
+          // Handle financialEntity relation in update
+          if (data.financialEntity?.connectOrCreate?.create) {
+            updated.financialEntity = data.financialEntity.connectOrCreate.create;
+          }
+
           mockDb[index] = updated;
           return updated;
         }),

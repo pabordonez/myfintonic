@@ -29,12 +29,19 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `nickname` (String): Apodo.
 - `createdAt` / `updatedAt`: Fechas de auditoría.
 
+**FinancialEntity**
+- `id` (UUID): Identificador único.
+- `name` (String): Nombre de la entidad (e.g., "Banco Santander").
+- `balance` (Number): Valor total del patrimonio en esta entidad (introducido manualmente o calculado).
+- `clientId` (UUID): Cliente propietario.
+- `valueHistory` (Array<Object>): Histórico de valoraciones de la entidad.
+
 ### Entidad Base
 
 **FinancialProduct**
 - `id` (String): Identificador único formado por `PREFIJO-UUID` (e.g., `CUR-550e8400...`).
 - `name` (String): Nombre descriptivo del producto (e.g., "Cuenta Nómina Premium").
-- `financialEntity` (String): Nombre de la entidad (e.g., "Banco Central").
+- `financialEntityId` (UUID): Referencia a la entidad financiera.
 - `status` (ProductStatus): Estado actual del producto.
 - `clientId` (UUID): Identificador del cliente propietario.
 - `valueHistory` (Array<Object>): Histórico de valoraciones para trazabilidad.
@@ -198,6 +205,35 @@ La API seguirá los principios REST, utilizando sustantivos en plural para las c
     - `204 No Content`: Producto eliminado.
     - `404 Not Found`: Producto no encontrado.
 
+### Endpoints de Entidades Financieras
+
+- **`GET /financial-entities`**: Obtiene una lista de entidades financieras.
+  - **Filtros (Query Params)**:
+    - `?clientId={uuid}`
+    - `?name={string}`
+  - **Respuestas**:
+    - `200 OK`: Lista obtenida correctamente.
+
+- **`POST /financial-entities`**: Crea una nueva entidad financiera.
+  - **Respuestas**:
+    - `201 Created`: Entidad creada exitosamente.
+    - `500 Internal Server Error`: Error del servidor.
+
+- **`GET /financial-entities/{id}`**: Obtiene los detalles de una entidad financiera.
+  - **Respuestas**:
+    - `200 OK`: Detalle de la entidad.
+    - `404 Not Found`: Entidad no encontrada.
+
+- **`PUT /financial-entities/{id}`** y **`PATCH /financial-entities/{id}`**: Actualiza la información de una entidad financiera.
+  - **Respuestas**:
+    - `204 No Content`: Entidad actualizada correctamente.
+    - `404 Not Found`: Entidad no encontrada.
+
+- **`DELETE /financial-entities/{id}`**: Elimina una entidad financiera.
+  - **Respuestas**:
+    - `204 No Content`: Entidad eliminada.
+    - `404 Not Found`: Entidad no encontrada.
+
 ### Endpoints de Lógica de Negocio
 
 - **`GET /products/{id}/history`**: Obtiene el histórico de valoraciones de un producto.
@@ -265,11 +301,18 @@ Se definen los siguientes códigos de error para estandarizar las respuestas de 
 
 ```mermaid
 classDiagram
+    class FinancialEntity {
+        +UUID id
+        +String name
+        +Number balance
+        +HistoricoValor[] historicoValor
+    }
+
     class ProductoFinanciero {
         +UUID id
         +String id
         +String nombre
-        +String entidadFinanciera
+        +FinancialEntity entidadFinanciera
         +EstadoProducto estado
         +HistoricoValor[] historicoValor
         +actualizarHistorico()
@@ -319,4 +362,5 @@ classDiagram
     }
 
     ProductoFinanciero --> EstadoProducto
+    ProductoFinanciero --> FinancialEntity
 ``` 
