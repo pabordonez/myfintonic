@@ -8,12 +8,13 @@ import { HealthController } from './http/controllers/healthController';
 import { ProductFactory } from '../domain/factories/productFactory';
 
 export const productRepository = new PrismaProductRepository();
-export const financialEntityRepository = new PrismaFinancialEntityRepository();
 
 const productFactory = new ProductFactory();
 const productUseCases = new ProductUseCases(productRepository, productFactory);
-const financialEntityUseCases = new FinancialEntityUseCases(financialEntityRepository);
-
 export const productController = new ProductController(productUseCases);
+
+export const financialEntityRepository = new PrismaFinancialEntityRepository();
+const financialEntityUseCases = new FinancialEntityUseCases(financialEntityRepository);
 export const financialEntityController = new FinancialEntityController(financialEntityUseCases);
+
 export const healthController = new HealthController();

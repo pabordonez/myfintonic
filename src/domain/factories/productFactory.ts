@@ -1,10 +1,56 @@
 import { randomUUID } from 'crypto';
+import { z } from 'zod';
 import { IFinancialProduct } from '../entities/IFinancialProduct';
 import { ProductType } from '../types';
 
 export interface IProductFactory {
   create(data: Omit<IFinancialProduct, 'id'>): IFinancialProduct;
 }
+
+const currentAccountSchema = z.object({
+  currentBalance: z.number({ required_error: "Missing required field: currentBalance" }),
+});
+
+const savingsAccountSchema = z.object({
+  currentBalance: z.number({ required_error: "Missing required field: currentBalance" }),
+  monthlyInterestRate: z.number({ required_error: "Missing required field: monthlyInterestRate" }),
+});
+
+const fixedTermDepositSchema = z.object({
+  initialCapital: z.number({ required_error: "Missing required field: initialCapital" }),
+  maturityDate: z.coerce.date({ required_error: "Missing required field: maturityDate" }),
+  annualInterestRate: z.number({ required_error: "Missing required field: annualInterestRate" }),
+  interestPaymentFrequency: z.enum(['Monthly', 'Quarterly', 'Annual', 'AtMaturity'], { required_error: "Missing required field: interestPaymentFrequency" }),
+});
+
+const investmentFundSchema = z.object({
+  numberOfUnits: z.number({ required_error: "Missing required field: numberOfUnits" }),
+  netAssetValue: z.number({ required_error: "Missing required field: netAssetValue" }),
+  totalPurchaseValue: z.number({ required_error: "Missing required field: totalPurchaseValue" }),
+  fees: z.object({
+    opening: z.number(),
+    closing: z.number(),
+    maintenance: z.number(),
+  }, { required_error: "Missing required field: fees" }),
+});
+
+const stocksSchema = z.object({
+  numberOfShares: z.number({ required_error: "Missing required field: numberOfShares" }),
+  unitPurchasePrice: z.number({ required_error: "Missing required field: unitPurchasePrice" }),
+  currentMarketPrice: z.number({ required_error: "Missing required field: currentMarketPrice" }),
+  fees: z.object({
+    buying: z.number(),
+    selling: z.number(),
+  }, { required_error: "Missing required field: fees" }),
+});
+
+const productSchemas: Record<ProductType, z.ZodType<any>> = {
+  'CURRENT_ACCOUNT': currentAccountSchema,
+  'SAVINGS_ACCOUNT': savingsAccountSchema,
+  'FIXED_TERM_DEPOSIT': fixedTermDepositSchema,
+  'INVESTMENT_FUND': investmentFundSchema,
+  'STOCKS': stocksSchema
+};
 
 export class ProductFactory implements IProductFactory {
   create<IFinancialProductCreate extends IFinancialProduct>(data: Omit<IFinancialProductCreate, 'id'>): IFinancialProductCreate {
@@ -24,32 +70,14 @@ export class ProductFactory implements IProductFactory {
   }
 
   private validate<IFinancialProductValidate extends IFinancialProduct>(data: Omit<IFinancialProductValidate, 'id'>): void {
-    switch (data.type) {
-      case 'CURRENT_ACCOUNT':
-        if (data['currentBalance'] === undefined) throw new Error('Missing required field: currentBalance');
-        break;
-      case 'SAVINGS_ACCOUNT':
-        if (data['currentBalance'] === undefined) throw new Error('Missing required field: currentBalance');
-        if (data['monthlyInterestRate'] === undefined) throw new Error('Missing required field: monthlyInterestRate');
-        break;
-      case 'FIXED_TERM_DEPOSIT':
-        if (data['initialCapital'] === undefined) throw new Error('Missing required field: initialCapital');
-        if (data['maturityDate'] === undefined) throw new Error('Missing required field: maturityDate');
-        if (data['annualInterestRate'] === undefined) throw new Error('Missing required field: annualInterestRate');
-        if (data['interestPaymentFrequency'] === undefined) throw new Error('Missing required field: interestPaymentFrequency');
-        break;
-      case 'INVESTMENT_FUND':
-        if (data['numberOfUnits'] === undefined) throw new Error('Missing required field: numberOfUnits');
-        if (data['netAssetValue'] === undefined) throw new Error('Missing required field: netAssetValue');
-        if (data['totalPurchaseValue'] === undefined) throw new Error('Missing required field: totalPurchaseValue');
-        if (data['fees'] === undefined) throw new Error('Missing required field: fees');
-        break;
-      case 'STOCKS':
-        if (data['numberOfShares'] === undefined) throw new Error('Missing required field: numberOfShares');
-        if (data['unitPurchasePrice'] === undefined) throw new Error('Missing required field: unitPurchasePrice');
-        if (data['currentMarketPrice'] === undefined) throw new Error('Missing required field: currentMarketPrice');
-        if (data['fees'] === undefined) throw new Error('Missing required field: fees');
-        break;
+    const schema = productSchemas[data.type];
+
+    if (schema) {
+      const result = schema.safeParse(data);
+      if (!result.success) {
+        const errorMessages = result.error.errors.map(e => e.message).join(', ');
+        throw new Error(`Validation failed: ${errorMessages}`);
+      }
     }
   }
 
