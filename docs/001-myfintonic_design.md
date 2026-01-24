@@ -11,18 +11,21 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 ### Enumeraciones
 
 **ProductStatus**: Define los posibles estados de cualquier producto.
+
 - `ACTIVE`
 - `INACTIVE`
 - `PAUSED`
 - `EXPIRED`
 
 **Role**: Define los roles de usuario para el control de acceso.
+
 - `ADMIN`
 - `USER`
 
 ### Entidad de Usuario
 
 **Client**
+
 - `id` (UUID): Identificador único del cliente.
 - `firstName` (String): Nombre.
 - `lastName` (String): Apellidos.
@@ -30,6 +33,7 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `createdAt` / `updatedAt`: Fechas de auditoría.
 
 **FinancialEntity**
+
 - `id` (UUID): Identificador único.
 - `name` (String): Nombre de la entidad (e.g., "Banco Santander").
 - `balance` (Number): Valor total del patrimonio en esta entidad (introducido manualmente o calculado).
@@ -39,6 +43,7 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 ### Entidad Base
 
 **FinancialProduct**
+
 - `id` (String): Identificador único formado por `PREFIJO-UUID` (e.g., `CUR-550e8400...`).
 - `name` (String): Nombre descriptivo del producto (e.g., "Cuenta Nómina Premium").
 - `financialEntityId` (UUID): Referencia a la entidad financiera.
@@ -46,12 +51,12 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `clientId` (UUID): Identificador del cliente propietario.
 - `valueHistory` (Array<Object>): Histórico de valoraciones para trazabilidad.
   - `date` (Date)
-  
   - `value` (Number)
 
 ### Entidades Específicas
 
 **CurrentAccount** (hereda de `FinancialProduct`)
+
 - `currentBalance` (Number): Saldo monetario actual.
 - `transactions` (Array<Object>): Historial de transacciones.
   - `date` (Date)
@@ -59,16 +64,19 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
   - `amount` (Number)
 
 **SavingsAccount** (hereda de `FinancialProduct`)
+
 - `currentBalance` (Number): Saldo monetario actual.
 - `monthlyInterestRate` (Number): Porcentaje de interés (e.g., 0.01 para 1%).
 
 **FixedTermDeposit** (hereda de `FinancialProduct`)
+
 - `initialCapital` (Number): Importe inicial del depósito.
 - `maturityDate` (Date): Fecha de finalización del depósito.
 - `annualInterestRate` (Number): Tasa de interés nominal anual (e.g., 0.05 para 5%).
 - `interestPaymentFrequency` (String): "Monthly", "Quarterly", "Annual", "AtMaturity".
 
 **InvestmentFund** (hereda de `FinancialProduct`)
+
 - `numberOfUnits` (Number): Cantidad de participaciones del cliente.
 - `netAssetValue` (Number): Valor actual de una participación.
 - `totalPurchaseValue` (Number): Coste total de adquisición de las participaciones.
@@ -78,6 +86,7 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
   - `maintenance` (Number)
 
 **Stocks** (hereda de `FinancialProduct`)
+
 - `numberOfShares` (Number): Cantidad de acciones.
 - `unitPurchasePrice` (Number): Precio medio de compra por acción.
 - `currentMarketPrice` (Number): Precio actual de mercado por acción.
@@ -90,6 +99,7 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 A continuación se detallan los esquemas JSON esperados en el cuerpo de las peticiones `POST` y `PUT` para la gestión de productos.Se utiliza un código en el campo `type` para referenciar el tipo de producto.
 
 **Cuenta Corriente**
+
 ```json
 {
   "type": "CURRENT_ACCOUNT",
@@ -97,30 +107,32 @@ A continuación se detallan los esquemas JSON esperados en el cuerpo de las peti
   "financialEntity": "Central Bank",
   "status": "ACTIVE",
   "clientId": "550e8400-e29b-41d4-a716-446655440000",
-  "currentBalance": 2500.50
+  "currentBalance": 2500.5
 }
 ```
 
 **Cuenta Remunerada**
+
 ```json
 {
   "type": "SAVINGS_ACCOUNT",
   "name": "Savings Plus Account",
   "financialEntity": "Central Bank",
   "status": "ACTIVE",
-  "currentBalance": 10000.00,
+  "currentBalance": 10000.0,
   "monthlyInterestRate": 0.02
 }
 ```
 
 **Depósito a Plazo Fijo**
+
 ```json
 {
   "type": "FIXED_TERM_DEPOSIT",
   "name": "Depósito 12 Meses",
   "financialEntity": "Banco Central",
   "status": "ACTIVE",
-  "initialCapital": 5000.00,
+  "initialCapital": 5000.0,
   "maturityDate": "2024-12-31T23:59:59Z",
   "annualInterestRate": 0.035,
   "interestPaymentFrequency": "Quarterly"
@@ -128,6 +140,7 @@ A continuación se detallan los esquemas JSON esperados en el cuerpo de las peti
 ```
 
 **Fondo de Inversión**
+
 ```json
 {
   "type": "INVESTMENT_FUND",
@@ -136,16 +149,17 @@ A continuación se detallan los esquemas JSON esperados en el cuerpo de las peti
   "status": "ACTIVE",
   "numberOfUnits": 150.5,
   "netAssetValue": 210.45,
-  "totalPurchaseValue": 30000.00,
+  "totalPurchaseValue": 30000.0,
   "fees": {
-    "opening": 15.00,
-    "closing": 15.00,
-    "maintenance": 10.00
+    "opening": 15.0,
+    "closing": 15.0,
+    "maintenance": 10.0
   }
 }
 ```
 
 **Acciones**
+
 ```json
 {
   "type": "STOCKS",
@@ -153,11 +167,11 @@ A continuación se detallan los esquemas JSON esperados en el cuerpo de las peti
   "financialEntity": "Broker Online",
   "status": "ACTIVE",
   "numberOfShares": 25,
-  "unitPurchasePrice": 145.00,
-  "currentMarketPrice": 178.20,
+  "unitPurchasePrice": 145.0,
+  "currentMarketPrice": 178.2,
   "fees": {
-    "buying": 5.00,
-    "selling": 5.00
+    "buying": 5.0,
+    "selling": 5.0
   }
 }
 ```
@@ -257,9 +271,11 @@ La API seguirá los principios REST, utilizando sustantivos en plural para las c
 ## 4. Lógica de Negocio
 
 ### Actualización del Histórico de Valor
+
 Cualquier operación que modifique el valor principal de un producto (un movimiento en cuenta corriente, una actualización del valor liquidativo, etc.) deberá generar una nueva entrada en el array `valueHistory` del producto correspondiente. Esta lógica se encapsulará en los servicios de cada producto.
 
 ### Motor de Cálculo Fiscal (Retenciones)
+
 Esta lógica se aplicará principalmente en el servicio asociado al endpoint `POST /investment-funds/{id}/redeem`.
 
 1.  **Calcular Plusvalía**:
@@ -282,6 +298,7 @@ Esta lógica se aplicará principalmente en el servicio asociado al endpoint `PO
 Se definen los siguientes códigos de error para estandarizar las respuestas de fallo (400/404/500).
 
 **Estructura de Error:**
+
 ```json
 {
   "code": "ERR_INSUFFICIENT_FUNDS",
@@ -363,4 +380,4 @@ classDiagram
 
     ProductoFinanciero --> EstadoProducto
     ProductoFinanciero --> FinancialEntity
-``` 
+```

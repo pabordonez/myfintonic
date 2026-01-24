@@ -79,23 +79,23 @@ components:
         id:
           type: string
           description: Identificador único formado por PREFIJO-UUID.
-          example: "CUR-550e8400-e29b-41d4-a716-446655440000"
+          example: 'CUR-550e8400-e29b-41d4-a716-446655440000'
           readOnly: true
         type:
           type: string
           description: Tipo de producto (Discriminador).
         name:
           type: string
-          example: "Cuenta Nómina Premium"
+          example: 'Cuenta Nómina Premium'
         financialEntity:
           type: string
-          example: "Banco Central"
+          example: 'Banco Central'
         status:
           $ref: '#/components/schemas/ProductStatus'
         clientId:
           type: string
           format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          example: '550e8400-e29b-41d4-a716-446655440000'
         valueHistory:
           type: array
           readOnly: true

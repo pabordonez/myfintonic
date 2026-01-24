@@ -1,50 +1,59 @@
-import { IFinancialProduct } from '@domain/entities/IFinancialProduct';
-import { IProductRepository } from '@domain/IProductRepository';
-import prisma from '@infrastructure/persistence/prisma/client';
-import { ProductType, ProductStatus, Prisma } from '@prisma/client';
+import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
+import { IProductRepository } from '@domain/IProductRepository'
+import prisma from '@infrastructure/persistence/prisma/client'
+import { ProductType, ProductStatus, Prisma } from '@prisma/client'
 
 export class PrismaProductRepository implements IProductRepository {
-  
   async create(product: IFinancialProduct): Promise<IFinancialProduct> {
-    const data = this.mapToPrisma(product);
+    const data = this.mapToPrisma(product)
     const createdProduct = await prisma.financialProduct.create({
-      data: data
-    });
-    return this.mapToDomain(createdProduct);
+      data: data,
+    })
+    return this.mapToDomain(createdProduct)
   }
 
   async update(id: string, product: Partial<IFinancialProduct>): Promise<void> {
-
-    const p = product as any;
-    const data: any = {};
+    const p = product as any
+    const data: any = {}
 
     // 1. Campos directos (1:1)
     const directFields = [
-      'name', 'type', 'status',
-      'currentBalance', 'monthlyInterestRate', 'initialCapital', 'annualInterestRate',
-      'maturityDate', 'interestPaymentFreq', 'numberOfUnits', 'netAssetValue',
-      'totalPurchaseValue', 'numberOfShares', 'unitPurchasePrice', 'currentMarketPrice'
-    ];
+      'name',
+      'type',
+      'status',
+      'currentBalance',
+      'monthlyInterestRate',
+      'initialCapital',
+      'annualInterestRate',
+      'maturityDate',
+      'interestPaymentFreq',
+      'numberOfUnits',
+      'netAssetValue',
+      'totalPurchaseValue',
+      'numberOfShares',
+      'unitPurchasePrice',
+      'currentMarketPrice',
+    ]
 
     directFields.forEach(field => {
       if (p[field] !== undefined) {
-        data[field] = p[field];
+        data[field] = p[field]
       }
-    });
+    })
 
     // 2. Campos especiales (Relaciones y JSON)
-    if (p.clientId !== undefined) data.client = { connect: { id: p.clientId } };
-    if (p.fees !== undefined) data.fees = p.fees ?? Prisma.JsonNull;
-    
+    if (p.clientId !== undefined) data.client = { connect: { id: p.clientId } }
+    if (p.fees !== undefined) data.fees = p.fees ?? Prisma.JsonNull
+
     // Generar histórico si cambia el saldo (Cuentas) o Capital Inicial (Depósitos)
-    const newValue = p.currentBalance ?? p.initialCapital;
+    const newValue = p.currentBalance ?? p.initialCapital
     if (newValue !== undefined && newValue !== null) {
       data.valueHistory = {
         create: {
           date: new Date(),
-          value: new Prisma.Decimal(newValue)
-        }
-      };
+          value: new Prisma.Decimal(newValue),
+        },
+      }
     }
 
     // Manejo de la relación con FinancialEntity en update
@@ -52,15 +61,15 @@ export class PrismaProductRepository implements IProductRepository {
       data.financialEntity = {
         connectOrCreate: {
           where: { name_clientId: { name: p.financialEntity, clientId: p.clientId } },
-          create: { name: p.financialEntity, clientId: p.clientId, balance: 0 }
-        }
-      };
+          create: { name: p.financialEntity, clientId: p.clientId, balance: 0 },
+        },
+      }
     }
-    
+
     await prisma.financialProduct.update({
       where: { id },
-      data: data
-    });
+      data: data,
+    })
   }
 
   async findById(id: string): Promise<IFinancialProduct | null> {
@@ -69,38 +78,38 @@ export class PrismaProductRepository implements IProductRepository {
       include: {
         financialEntity: true,
         valueHistory: true,
-        transactions: true
-      }
-    });
+        transactions: true,
+      },
+    })
 
-    if (!prismaProduct) return null;
+    if (!prismaProduct) return null
 
-    return this.mapToDomain(prismaProduct);
+    return this.mapToDomain(prismaProduct)
   }
 
   async findAll(filters?: Partial<IFinancialProduct>): Promise<IFinancialProduct[]> {
-    const where: Prisma.FinancialProductWhereInput = {};
+    const where: Prisma.FinancialProductWhereInput = {}
 
-    if (filters?.status) where.status = filters.status as ProductStatus;
-    if (filters?.type) where.type = filters.type as ProductType;
-    if (filters?.financialEntity) where.financialEntity = { name: filters.financialEntity };
+    if (filters?.status) where.status = filters.status as ProductStatus
+    if (filters?.type) where.type = filters.type as ProductType
+    if (filters?.financialEntity) where.financialEntity = { name: filters.financialEntity }
 
     const prismaProducts = await prisma.financialProduct.findMany({
       where,
       include: {
         financialEntity: true,
         valueHistory: true,
-        transactions: true
-      }
-    });
+        transactions: true,
+      },
+    })
 
-    return prismaProducts.map((p: any) => this.mapToDomain(p));
+    return prismaProducts.map((p: any) => this.mapToDomain(p))
   }
 
   async delete(id: string): Promise<void> {
     await prisma.financialProduct.delete({
-      where: { id }
-    });
+      where: { id },
+    })
   }
 
   // --- Mappers Privados ---
@@ -108,16 +117,16 @@ export class PrismaProductRepository implements IProductRepository {
   private mapToPrisma(product: IFinancialProduct): Prisma.FinancialProductCreateInput {
     // Mapeo de la Entidad de Dominio -> Objeto de Base de Datos (Prisma)
     // Usamos 'as any' para acceder a propiedades que pueden ser específicas de subclases
-    const p = product as any;
+    const p = product as any
 
     if (!product.id) {
-      throw new Error('Product ID is required');
+      throw new Error('Product ID is required')
     }
     if (!product.clientId) {
-      throw new Error('Client ID is required');
+      throw new Error('Client ID is required')
     }
     if (!product.financialEntity) {
-      throw new Error('Financial Entity is required');
+      throw new Error('Financial Entity is required')
     }
 
     return {
@@ -128,12 +137,12 @@ export class PrismaProductRepository implements IProductRepository {
       financialEntity: {
         connectOrCreate: {
           where: { name_clientId: { name: product.financialEntity, clientId: product.clientId } },
-          create: { name: product.financialEntity, clientId: product.clientId, balance: 0 }
-        }
+          create: { name: product.financialEntity, clientId: product.clientId, balance: 0 },
+        },
       },
       status: product.status as ProductStatus,
       client: { connect: { id: product.clientId } },
-      
+
       currentBalance: p.currentBalance ?? null,
       monthlyInterestRate: p.monthlyInterestRate ?? null,
       initialCapital: p.initialCapital ?? null,
@@ -146,29 +155,29 @@ export class PrismaProductRepository implements IProductRepository {
       numberOfShares: p.numberOfShares ?? null,
       unitPurchasePrice: p.unitPurchasePrice ?? null,
       currentMarketPrice: p.currentMarketPrice ?? null,
-      
+
       fees: p.fees ?? Prisma.JsonNull,
-    };
+    }
   }
 
   private mapToDomain(prismaProduct: any): IFinancialProduct {
     // Mapeo de Objeto de Base de Datos (Prisma) -> Entidad de Dominio
     // Aquí reconstruimos el objeto. Si usas clases específicas (CurrentAccount, Stocks),
     // deberías instanciar la clase correcta según prismaProduct.type.
-    
+
     const base = {
       id: prismaProduct.id,
       type: prismaProduct.type,
       name: prismaProduct.name,
-      financialEntity: prismaProduct.financialEntity?.name || 'Unknown Entity', 
+      financialEntity: prismaProduct.financialEntity?.name || 'Unknown Entity',
       status: prismaProduct.status,
       clientId: prismaProduct.clientId,
       createdAt: prismaProduct.createdAt,
       updatedAt: prismaProduct.updatedAt,
       valueHistory: prismaProduct.valueHistory || [],
       transactions: prismaProduct.transactions || [],
-      fees: prismaProduct.fees
-    };
+      fees: prismaProduct.fees,
+    }
 
     // Retornamos un objeto que cumple con la interfaz/clase FinancialProduct
     // combinando los datos base con los específicos que no sean nulos.
@@ -186,6 +195,6 @@ export class PrismaProductRepository implements IProductRepository {
       numberOfShares: prismaProduct.numberOfShares,
       unitPurchasePrice: prismaProduct.unitPurchasePrice,
       currentMarketPrice: prismaProduct.currentMarketPrice,
-    } as unknown as IFinancialProduct;
+    } as unknown as IFinancialProduct
   }
 }

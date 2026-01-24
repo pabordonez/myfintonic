@@ -1,5 +1,3 @@
-
-
 # quiero que este "Analisis de requisitos" me lo pases a un formato md para poder añadirlo a mi repositorio
 
 ```markdown
@@ -50,7 +48,6 @@ Crear una aplicación web para el seguimiento de finanzas personales: fondos ind
 - **Deploy:** Local vía `docker-compose up`. CI/CD preparado para futuro, con pipelines en GitHub Actions.
 
 ## 5. Modelo de Datos (Simplificado)
-
 ```
 
 ```
@@ -80,22 +77,24 @@ environment:
 MYSQL_ROOT_PASSWORD: \${DB_ROOT_PASSWORD}
 MYSQL_DATABASE: \${DB_NAME}
 volumes:
+
 - mysql_data:/var/lib/mysql
-ports:
+  ports:
 - "3306:3306"
 
 api:
 build: ./
 depends_on:
+
 - db
-environment:
-NODE_ENV: development
-DB_HOST: db
-ports:
+  environment:
+  NODE_ENV: development
+  DB_HOST: db
+  ports:
 - "3000:3000"
-volumes:
+  volumes:
 - ./src:/app/src
-command: npm run dev
+  command: npm run dev
 
 volumes:
 mysql_data:
@@ -115,4 +114,3 @@ mysql_data:
 
 **Tiempo estimado MVP:** 3-4 semanas (parcial).
 ```
-
