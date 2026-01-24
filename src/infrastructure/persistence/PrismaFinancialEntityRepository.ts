@@ -72,8 +72,10 @@ export class PrismaFinancialEntityRepository implements IFinancialEntityReposito
       createdAt: prismaEntity.createdAt,
       updatedAt: prismaEntity.updatedAt,
       valueHistory: prismaEntity.valueHistory?.map((h: any) => ({
+        id: h.id,
         date: h.date,
-        value: Number(h.value)
+        value: Number(h.value),
+        financialEntityId: h.financialEntityId
       })) || []
     };
   }

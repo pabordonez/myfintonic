@@ -131,7 +131,11 @@ describe('Financial Products API', () => {
       const investmentFund = {
         ...baseProduct,
         type: 'INVESTMENT_FUND',
-        name: 'My Fund'
+        name: 'My Fund',
+        numberOfUnits: 50,
+        netAssetValue: 200,
+        totalPurchaseValue: 10000,
+        fees: { opening: 0, closing: 0, maintenance: 10 }
       };
       await request(app).post('/products').send(investmentFund);
 

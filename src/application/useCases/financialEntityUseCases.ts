@@ -1,13 +1,16 @@
 import { IFinancialEntity } from '../../domain/entities/IFinancialEntity';
 import { IFinancialEntityRepository } from '../../domain/IFinancialEntityRepository';
+import { CreateFinancialEntityDto, UpdateFinancialEntityDto } from '../dtos/financialEntityDto';
 import { randomUUID } from 'crypto';
 
 export class FinancialEntityUseCases {
   constructor(private repository: IFinancialEntityRepository) {}
 
-  async createEntity(data: Omit<IFinancialEntity, 'id' | 'createdAt' | 'updatedAt'>): Promise<IFinancialEntity> {
+  async createEntity(data: CreateFinancialEntityDto): Promise<IFinancialEntity> {
     const newEntity: IFinancialEntity = {
       id: randomUUID(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
       ...data
     };
     return this.repository.create(newEntity);
@@ -21,7 +24,7 @@ export class FinancialEntityUseCases {
     return this.repository.findById(id);
   }
 
-  async updateEntity(id: string, data: Partial<IFinancialEntity>): Promise<void> {
+  async updateEntity(id: string, data: UpdateFinancialEntityDto): Promise<void> {
     const exists = await this.repository.findById(id);
     if (!exists) throw new Error('Financial Entity not found');
     await this.repository.update(id, data);

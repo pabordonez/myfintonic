@@ -1,13 +1,17 @@
 import { ProductStatus, ProductType } from '../types';
+import { IValueHistory } from './IValueHistory';
+
 
 export interface IFinancialProduct {
-  id?: string;
+  id: string;
   type: ProductType;
   name: string;
   financialEntity: string;
   status: ProductStatus;
-  clientId?: string;
-  valueHistory?: Array<{ date: Date; value: number }>;
+  clientId: string;
+  valueHistory?: IValueHistory[];  
+  createdAt: Date;
+  updatedAt?: Date;
   [key: string]: any;
 }
 
