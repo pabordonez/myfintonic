@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ProductUseCases } from '../../../application/useCases/productUseCases'
+import { ProductUseCases } from '@application/useCases/productUseCases'
 
 export class ProductController {
   constructor(private productUseCases: ProductUseCases) {}

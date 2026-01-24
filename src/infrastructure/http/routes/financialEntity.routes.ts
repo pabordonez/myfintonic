@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { FinancialEntityController } from '../controllers/financialEntityController';
+import { FinancialEntityController } from '@infrastructure/http/controllers/financialEntityController';
 
 export const createFinancialEntityRoutes = (controller: FinancialEntityController): Router => {
   const router = Router();

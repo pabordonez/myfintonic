@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
-import { IFinancialProduct } from '../entities/IFinancialProduct';
-import { ProductType } from '../types';
+import { IFinancialProduct } from '@domain/entities/IFinancialProduct';
+import { ProductType } from '@domain/types';
 
 export interface IProductFactory {
   create(data: Omit<IFinancialProduct, 'id'>): IFinancialProduct;

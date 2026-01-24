@@ -1,6 +1,6 @@
-import { IFinancialEntity } from '../../domain/entities/IFinancialEntity';
-import { IFinancialEntityRepository } from '../../domain/IFinancialEntityRepository';
-import prisma from './prisma/client';
+import { IFinancialEntity } from '@domain/entities/IFinancialEntity';
+import { IFinancialEntityRepository } from '@domain/IFinancialEntityRepository';
+import prisma from '@infrastructure/persistence/prisma/client';
 import { Prisma } from '@prisma/client';
 
 export class PrismaFinancialEntityRepository implements IFinancialEntityRepository {

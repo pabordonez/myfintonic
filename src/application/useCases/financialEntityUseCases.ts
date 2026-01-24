@@ -1,6 +1,6 @@
-import { IFinancialEntity } from '../../domain/entities/IFinancialEntity';
-import { IFinancialEntityRepository } from '../../domain/IFinancialEntityRepository';
-import { CreateFinancialEntityDto, UpdateFinancialEntityDto } from '../dtos/financialEntityDto';
+import { IFinancialEntity } from '@domain/entities/IFinancialEntity';
+import { IFinancialEntityRepository } from '@domain/IFinancialEntityRepository';
+import { CreateFinancialEntityDto, UpdateFinancialEntityDto } from '@application/dtos/financialEntityDto';
 import { randomUUID } from 'crypto';
 
 export class FinancialEntityUseCases {

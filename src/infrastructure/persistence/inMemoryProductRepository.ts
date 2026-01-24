@@ -1,5 +1,5 @@
-import { IFinancialProduct } from '../../domain/entities/IFinancialProduct';
-import { IProductRepository } from '../../domain/IProductRepository';
+import { IFinancialProduct } from '@domain/entities/IFinancialProduct';
+import { IProductRepository } from '@domain/IProductRepository';
 
 export class InMemoryProductRepository implements IProductRepository {
   private products: IFinancialProduct[] = [];

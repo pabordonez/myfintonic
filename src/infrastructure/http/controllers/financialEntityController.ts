@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { FinancialEntityUseCases } from '../../../application/useCases/financialEntityUseCases';
+import { FinancialEntityUseCases } from '@application/useCases/financialEntityUseCases';
 
 export class FinancialEntityController {
   constructor(private useCases: FinancialEntityUseCases) {}

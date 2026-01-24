@@ -1,9 +1,9 @@
 import express from 'express';
-import { createProductRouter } from './infrastructure/http/routes/product.routes';
-import { createHealthRouter } from './infrastructure/http/routes/health.routes';
-import { createFinancialEntityRoutes } from './infrastructure/http/routes/financialEntity.routes';
-import { productController, healthController, financialEntityController } from './infrastructure/dependencies';
-import { requestLogger } from './infrastructure/http/middlewares/requestLogger';
+import { createProductRouter } from '@infrastructure/http/routes/product.routes';
+import { createHealthRouter } from '@infrastructure/http/routes/health.routes';
+import { createFinancialEntityRoutes } from '@infrastructure/http/routes/financialEntity.routes';
+import { productController, healthController, financialEntityController } from '@infrastructure/dependencies';
+import { requestLogger } from '@infrastructure/http/middlewares/requestLogger';
 
 export const app = express();
 app.use(express.json());

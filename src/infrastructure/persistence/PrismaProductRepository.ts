@@ -1,6 +1,6 @@
-import { IFinancialProduct } from '../../domain/entities/IFinancialProduct';
-import { IProductRepository } from '../../domain/IProductRepository';
-import prisma from './prisma/client';
+import { IFinancialProduct } from '@domain/entities/IFinancialProduct';
+import { IProductRepository } from '@domain/IProductRepository';
+import prisma from '@infrastructure/persistence/prisma/client';
 import { ProductType, ProductStatus, Prisma } from '@prisma/client';
 
 export class PrismaProductRepository implements IProductRepository {
