@@ -1,10 +1,10 @@
 // Domain Repository Interface
-import { IFinancialProduct } from './entities/IFinancialProduct';
+import { IFinancialProduct } from './entities/IFinancialProduct'
 
 export interface IProductRepository {
-  findAll(filters?: Partial<IFinancialProduct>): Promise<IFinancialProduct[]>;
-  findById(id: string): Promise<IFinancialProduct | null>;
-  create(product: IFinancialProduct): Promise<IFinancialProduct>;
-  update(id: string, product: Partial<IFinancialProduct>): Promise<void>;
-  delete(id: string): Promise<void>;
+  findAll(filters?: Partial<IFinancialProduct>): Promise<IFinancialProduct[]>
+  findById(id: string): Promise<IFinancialProduct | null>
+  create(product: IFinancialProduct): Promise<IFinancialProduct>
+  update(id: string, product: Partial<IFinancialProduct>): Promise<void>
+  delete(id: string): Promise<void>
 }

@@ -11,11 +11,25 @@ CREATE TABLE `Client` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `FinancialEntity` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `balance` DECIMAL(15, 2) NULL,
+    `clientId` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `FinancialEntity_clientId_idx`(`clientId`),
+    UNIQUE INDEX `FinancialEntity_name_clientId_key`(`name`, `clientId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `FinancialProduct` (
     `id` VARCHAR(191) NOT NULL,
     `type` ENUM('CURRENT_ACCOUNT', 'SAVINGS_ACCOUNT', 'FIXED_TERM_DEPOSIT', 'INVESTMENT_FUND', 'STOCKS') NOT NULL,
     `name` VARCHAR(191) NOT NULL,
-    `financialEntity` VARCHAR(191) NOT NULL,
+    `financialEntityId` VARCHAR(191) NOT NULL,
     `status` ENUM('ACTIVE', 'INACTIVE', 'PAUSED', 'EXPIRED') NOT NULL DEFAULT 'ACTIVE',
     `clientId` VARCHAR(191) NOT NULL,
     `currentBalance` DECIMAL(15, 2) NULL,
@@ -36,6 +50,7 @@ CREATE TABLE `FinancialProduct` (
 
     INDEX `FinancialProduct_clientId_idx`(`clientId`),
     INDEX `FinancialProduct_type_idx`(`type`),
+    INDEX `FinancialProduct_financialEntityId_idx`(`financialEntityId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -48,6 +63,18 @@ CREATE TABLE `ValueHistory` (
 
     INDEX `ValueHistory_productId_idx`(`productId`),
     INDEX `ValueHistory_date_idx`(`date`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `FinancialEntityValueHistory` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `date` DATETIME(3) NOT NULL,
+    `value` DECIMAL(15, 2) NOT NULL,
+    `financialEntityId` VARCHAR(191) NOT NULL,
+
+    INDEX `FinancialEntityValueHistory_financialEntityId_idx`(`financialEntityId`),
+    INDEX `FinancialEntityValueHistory_date_idx`(`date`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -65,10 +92,19 @@ CREATE TABLE `ProductTransaction` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
+ALTER TABLE `FinancialEntity` ADD CONSTRAINT `FinancialEntity_clientId_fkey` FOREIGN KEY (`clientId`) REFERENCES `Client`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `FinancialProduct` ADD CONSTRAINT `FinancialProduct_financialEntityId_fkey` FOREIGN KEY (`financialEntityId`) REFERENCES `FinancialEntity`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `FinancialProduct` ADD CONSTRAINT `FinancialProduct_clientId_fkey` FOREIGN KEY (`clientId`) REFERENCES `Client`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ValueHistory` ADD CONSTRAINT `ValueHistory_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `FinancialProduct`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `FinancialEntityValueHistory` ADD CONSTRAINT `FinancialEntityValueHistory_financialEntityId_fkey` FOREIGN KEY (`financialEntityId`) REFERENCES `FinancialEntity`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ProductTransaction` ADD CONSTRAINT `ProductTransaction_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `FinancialProduct`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

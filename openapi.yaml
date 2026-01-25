@@ -14,6 +14,8 @@ tags:
     description: Operaciones específicas para Fondos de Inversión.
   - name: Stocks
     description: Operaciones específicas para Acciones.
+  - name: Financial Entities
+    description: Gestión de Entidades Financieras.
 
 components:
   securitySchemes:
@@ -77,23 +79,23 @@ components:
         id:
           type: string
           description: Identificador único formado por PREFIJO-UUID.
-          example: "CUR-550e8400-e29b-41d4-a716-446655440000"
+          example: 'CUR-550e8400-e29b-41d4-a716-446655440000'
           readOnly: true
         type:
           type: string
           description: Tipo de producto (Discriminador).
         name:
           type: string
-          example: "Cuenta Nómina Premium"
+          example: 'Cuenta Nómina Premium'
         financialEntity:
           type: string
-          example: "Banco Central"
+          example: 'Banco Central'
         status:
           $ref: '#/components/schemas/ProductStatus'
         clientId:
           type: string
           format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          example: '550e8400-e29b-41d4-a716-446655440000'
         valueHistory:
           type: array
           readOnly: true
@@ -193,6 +195,49 @@ components:
                 selling:
                   type: number
 
+    FinancialEntity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        balance:
+          type: number
+          nullable: true
+        clientId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateFinancialEntityDto:
+      type: object
+      required:
+        - name
+        - clientId
+      properties:
+        name:
+          type: string
+        balance:
+          type: number
+        clientId:
+          type: string
+          format: uuid
+
+    UpdateFinancialEntityDto:
+      type: object
+      properties:
+        name:
+          type: string
+        balance:
+          type: number
+
     # Wrapper para Request Body polimórfico
     ProductRequest:
       oneOf:
@@ -241,6 +286,130 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /financial-entities:
+    get:
+      summary: Listar entidades financieras
+      tags:
+        - Financial Entities
+      parameters:
+        - in: query
+          name: clientId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de entidades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FinancialEntity'
+    post:
+      summary: Crear entidad financiera
+      tags:
+        - Financial Entities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFinancialEntityDto'
+      responses:
+        '201':
+          description: Entidad creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialEntity'
+        '500':
+          description: Error interno
+
+  /financial-entities/{id}:
+    get:
+      summary: Obtener entidad financiera por ID
+      tags:
+        - Financial Entities
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalle de la entidad
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialEntity'
+        '404':
+          description: Entidad no encontrada
+    put:
+      summary: Actualizar entidad financiera
+      tags:
+        - Financial Entities
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFinancialEntityDto'
+      responses:
+        '204':
+          description: Actualizado correctamente
+        '404':
+          description: Entidad no encontrada
+    patch:
+      summary: Actualizar entidad financiera (parcial)
+      tags:
+        - Financial Entities
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFinancialEntityDto'
+      responses:
+        '204':
+          description: Actualizado correctamente
+        '404':
+          description: Entidad no encontrada
+    delete:
+      summary: Eliminar entidad financiera
+      tags:
+        - Financial Entities
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Eliminado correctamente
+        '404':
+          description: Entidad no encontrada
 
     post:
       tags:
