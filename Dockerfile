@@ -1,5 +1,5 @@
-# --- Etapa 1: Builder (Construcción) ---
-FROM node:20-alpine AS builder
+# --- Etapa 1: Base (Dependencias) ---
+FROM node:20-alpine AS base
 
 WORKDIR /app
 
@@ -8,6 +8,15 @@ COPY package*.json tsconfig.json ./
 
 # Instalamos dependencias usando npm ci (requiere package-lock.json)
 RUN npm ci
+
+# --- Etapa 2: Development (Desarrollo) ---
+FROM base AS development
+COPY . .
+RUN npm run db:generate
+CMD ["npm", "run", "dev"]
+
+# --- Etapa 3: Builder (Construcción para Producción) ---
+FROM base AS builder
 
 # Copiamos el código fuente
 COPY . .
@@ -21,7 +30,7 @@ RUN npm run build
 # Limpiamos las dependencias de desarrollo antes de pasar a producción
 RUN npm prune --production
 
-# --- Etapa 2: Runner (Producción) ---
+# --- Etapa 4: Runner (Producción) ---
 FROM node:20-alpine AS runner
 
 WORKDIR /app
