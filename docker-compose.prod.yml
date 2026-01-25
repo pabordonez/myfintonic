@@ -1,0 +1,6 @@
+services:
+  api:
+    build:
+      target: runner
+    environment:
+      NODE_ENV: production

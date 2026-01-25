@@ -20,6 +20,8 @@
     "db:reset": "prisma migrate reset --schema=src/infrastructure/persistence/prisma/schema.prisma",
     "db:studio": "prisma studio --schema=src/infrastructure/persistence/prisma/schema.prisma",
     "db:seed:local": "tsx src/infrastructure/persistence/prisma/local-seed.ts",
+    "docker:dev": "docker compose up -d --build",
+    "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build",
     "prepare": "husky"
   },
   "author": "",
