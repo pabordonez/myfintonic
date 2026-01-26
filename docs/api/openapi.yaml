@@ -252,6 +252,29 @@ security:
 
 paths:
   /products:
+    post:
+      tags:
+        - Financial Products
+      summary: Crea un nuevo producto financiero
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '201':
+          description: Producto creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialProduct'
+        '400':
+          description: Datos de entrada inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'  
     get:
       tags:
         - Financial Products
@@ -286,6 +309,108 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /products/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Financial Products
+      summary: Obtiene los detalles de un producto específico
+      responses:
+        '200':
+          description: Detalle del producto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialProduct'
+        '404':
+          description: Producto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Financial Products
+      summary: Actualiza la información de un producto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '204':
+          description: Producto actualizado correctamente
+        '400':
+          description: Datos inválidos
+        '404':
+          description: Producto no encontrado
+    patch:
+      tags:
+        - Financial Products
+      summary: Actualiza parcialmente un producto (cambio de estado)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: '#/components/schemas/ProductStatus'
+              required:
+                - status
+      responses:
+        '204':
+          description: Estado actualizado correctamente
+        '400':
+          description: Transición de estado no permitida
+        '404':
+          description: Producto no encontrado
+    delete:
+      tags:
+        - Financial Products
+      summary: Elimina un producto (o lo marca como Inactivo)
+      responses:
+        '204':
+          description: Producto eliminado
+        '404':
+          description: Producto no encontrado
+
+  /products/{id}/history:
+    get:
+      tags:
+        - Financial Products
+      summary: Obtiene el histórico de valoraciones de un producto
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Histórico obtenido
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      format: date-time
+                    value:
+                      type: number
+        '404':
+          description: Producto no encontrado
 
   /financial-entities:
     get:
@@ -410,132 +535,6 @@ paths:
           description: Eliminado correctamente
         '404':
           description: Entidad no encontrada
-
-    post:
-      tags:
-        - Financial Products
-      summary: Crea un nuevo producto financiero
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProductRequest'
-      responses:
-        '201':
-          description: Producto creado exitosamente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FinancialProduct'
-        '400':
-          description: Datos de entrada inválidos
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /products/{id}:
-    parameters:
-      - in: path
-        name: id
-        required: true
-        schema:
-          type: string
-    get:
-      tags:
-        - Financial Products
-      summary: Obtiene los detalles de un producto específico
-      responses:
-        '200':
-          description: Detalle del producto
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FinancialProduct'
-        '404':
-          description: Producto no encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-    put:
-      tags:
-        - Financial Products
-      summary: Actualiza la información de un producto
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProductRequest'
-      responses:
-        '204':
-          description: Producto actualizado correctamente
-        '400':
-          description: Datos inválidos
-        '404':
-          description: Producto no encontrado
-    patch:
-      tags:
-        - Financial Products
-      summary: Actualiza parcialmente un producto (cambio de estado)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                status:
-                  $ref: '#/components/schemas/ProductStatus'
-              required:
-                - status
-      responses:
-        '204':
-          description: Estado actualizado correctamente
-        '400':
-          description: Transición de estado no permitida
-        '404':
-          description: Producto no encontrado
-    delete:
-      tags:
-        - Financial Products
-      summary: Elimina un producto (o lo marca como Inactivo)
-      responses:
-        '204':
-          description: Producto eliminado
-        '404':
-          description: Producto no encontrado
-
-  /products/{id}/history:
-    get:
-      tags:
-        - Financial Products
-      summary: Obtiene el histórico de valoraciones de un producto
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Histórico obtenido
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    date:
-                      type: string
-                      format: date-time
-                    value:
-                      type: number
-        '404':
-          description: Producto no encontrado
 
   /investment-funds/{id}/redeem:
     post:
