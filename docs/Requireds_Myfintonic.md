@@ -1,6 +1,3 @@
-# quiero que este "Analisis de requisitos" me lo pases a un formato md para poder añadirlo a mi repositorio
-
-```markdown
 # Análisis de Requisitos - Aplicación de Gestión Financiera Personal
 
 ## 1. Contexto y Objetivos
@@ -9,27 +6,27 @@ Crear una aplicación web para el seguimiento de finanzas personales: fondos ind
 
 ## 2. Requisitos Funcionales
 
-- **RF-001: Autenticación**
-  - Login con credenciales (usuario/contraseña)
-  - Gestión de sesión con JWT
-
-- **RF-002: Tipos de activos**
+- **RF-001: Tipos de activos**
   - CRUD de categorías (fondos indexados, depósito, robot-advisor, acciones, cuentas)
   - Atributos: nombre, descripción, categoría
 
-- **RF-003: Gestión de activos**
+- **RF-002: Gestión de activos**
   - Crear activos con valor inicial y metadatos
   - Fecha de inicio y vínculo a usuario
 
-- **RF-004: Histórico de valores**
+- **RF-003: Histórico de valores**
   - Formulario para actualizar valor en fechas específicas
   - Registro inmutable (solo nuevas entradas, no sobrescribir)
   - Múltiples actualizaciones por activo con timestamp
 
-- **RF-005: Visualización y reportes**
+- **RF-004: Visualización y reportes**
   - Dashboard de patrimonio actual
   - Gráficas de evolución temporal total y por activo
   - Cálculo de rentabilidades y variaciones
+
+- **RF-005: Autenticación**
+  - Login con credenciales (usuario/contraseña)
+  - Gestión de sesión con JWT
 
 ## 3. Requisitos No Funcionales
 
@@ -68,49 +65,17 @@ Crear una aplicación web para el seguimiento de finanzas personales: fondos ind
 
 ```
 
-version: '3.8'
-
-services:
-db:
-image: mysql:8.0
-environment:
-MYSQL_ROOT_PASSWORD: \${DB_ROOT_PASSWORD}
-MYSQL_DATABASE: \${DB_NAME}
-volumes:
-
-- mysql_data:/var/lib/mysql
-  ports:
-- "3306:3306"
-
-api:
-build: ./
-depends_on:
-
-- db
-  environment:
-  NODE_ENV: development
-  DB_HOST: db
-  ports:
-- "3000:3000"
-  volumes:
-- ./src:/app/src
-  command: npm run dev
-
-volumes:
-mysql_data:
-
 ```
 
 ## 9. Fases de Implementación (MVP)
 
 1. Setup inicial: Node.js + TypeScript, Express, Docker Compose
 2. Capa de datos: diseño SQL, modelos ORM, migraciones
-3. Autenticación: login, JWT, middleware
-4. API Core: CRUD asset_types y assets, endpoint históricos
+3. API Core: CRUD asset_types y assets, endpoint históricos
+4. Autenticación: login, JWT, middleware
 5. Frontend básico: dashboard, formularios, gráficas
 6. Testing y refinamiento: tests, docs, UX
 
 ---
 
 **Tiempo estimado MVP:** 3-4 semanas (parcial).
-```

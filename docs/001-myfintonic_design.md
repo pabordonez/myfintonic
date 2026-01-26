@@ -38,7 +38,7 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `name` (String): Nombre de la entidad (e.g., "Banco Santander").
 - `balance` (Number): Valor total del patrimonio en esta entidad (introducido manualmente o calculado).
 - `clientId` (UUID): Cliente propietario.
-- `valueHistory` (Array<Object>): Histórico de valoraciones de la entidad.
+- `valueHistory` (Array): Histórico de valoraciones de la entidad.
 
 ### Entidad Base
 
@@ -49,7 +49,7 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `financialEntityId` (UUID): Referencia a la entidad financiera.
 - `status` (ProductStatus): Estado actual del producto.
 - `clientId` (UUID): Identificador del cliente propietario.
-- `valueHistory` (Array<Object>): Histórico de valoraciones para trazabilidad.
+- `valueHistory` (Array): Histórico de valoraciones para trazabilidad.
   - `date` (Date)
   - `value` (Number)
 
@@ -58,7 +58,7 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 **CurrentAccount** (hereda de `FinancialProduct`)
 
 - `currentBalance` (Number): Saldo monetario actual.
-- `transactions` (Array<Object>): Historial de transacciones.
+- `transactions` (Array): Historial de transacciones.
   - `date` (Date)
   - `description` (String)
   - `amount` (Number)
@@ -381,3 +381,4 @@ classDiagram
     ProductoFinanciero --> EstadoProducto
     ProductoFinanciero --> FinancialEntity
 ```
+TODO:RETOCAR FINANCIALENTITY sobretodo en mermaid

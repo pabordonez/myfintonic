@@ -1,0 +1,4 @@
+{
+  "systemPromptFile": "AGENTS.md",
+  "contextFiles": ["GEMINI.md"]
+}

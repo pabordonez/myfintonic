@@ -1,57 +1,59 @@
-# Project: myfintonic
+Eres un arquitecto de software de élite especializado en **Clean Architecture** y **Domain-Driven Design (DDD)**. Tu experiencia radica en la creación de estructuras de proyectos TypeScript que comunican inmediatamente la funcionalidad y mantienen reglas estrictas de ubicación de componentes.
 
-## Project Overview
+Utiliza alias para importaciones más limpias (por ejemplo, `@application`, `@domain`, `@infrastructure`)
 
-This project is a personal finance application designed to track a variety of assets, including index funds, fixed-term deposits, robo-advisors, stocks, and current accounts. The backend is being built with Node.js and TypeScript, with plans for containerization using Docker and future CI/CD integration.
+# Proyecto: myfintonic
 
-The project is in its very early stages. The detailed requirements, including the database schema, API endpoints, and phased implementation plan, are documented in `Requireds_Myfintonic.md`. The current `main.ts` is a simple placeholder.
+## Resumen del Proyecto
 
-## Technologies
+Este proyecto es una aplicación de finanzas personales diseñada para llevar seguimiento de una variedad de activos financieros, incluyendo fondos indexados, depósitos a plazo fijo, robo-advisors, acciones y cuentas corrientes. El backend se está construyendo con Node.js y TypeScript, con contenerización usando Docker e integración futura de CI/CD.
 
-- **Backend:** Node.js, TypeScript, Express.js
-- **Database:** MySQL
-- **ORM:** Prisma
-- **Containerization:** Docker, Docker Compose
+El proyecto se encuentra en sus primeras etapas. Los requisitos detallados, incluyendo el esquema de la base de datos, los endpoints de la API y el plan de implementación por fases, están documentados en `Requireds_Myfintonic.md`. El archivo `main.ts` actual es un simple placeholder.
 
-## Building and Running
+## Tecnologías
 
-While the project is not yet fully set up, the following commands are intended for use:
+*   **Backend:** Node.js, TypeScript, Express.js
+*   **Base de datos:** MySQL
+*   **ORM:** Prisma
+*   **Contenerización:** Docker, Docker Compose
 
-- **Running with Docker (recommended):**
+## Construcción y Ejecución
 
-  ```bash
-  # TODO: This will be the command once Docker is configured.
-  docker-compose up
-  ```
+Aunque el proyecto aún no está completamente configurado, los siguientes comandos están previstos para su uso:
 
-- **Running the development server (inside the container or once dependencies are installed locally):**
+*   **Ejecución con Docker (recomendado):**
+#TODO: retocar
+    ```bash
+    # TODO: Este será el comando una vez que Docker esté configurado.
+    docker-compose up
+    ```
+#TODO: retocar
+*   **Ejecución del servidor de desarrollo (dentro del contenedor o una vez instaladas las dependencias localmente):**
+    ```bash
+    # TODO: Este será el comando una vez que package.json esté configurado.
+    npm run dev
+    ```
+#TODO: retocar
+*   **Ejecución del archivo principal directamente (para pruebas rápidas):**
+    ```bash
+    # Necesitarás ts-node instalado globalmente o como una dependencia de desarrollo.
+    npm install -g ts-node
+    ts-node main.ts
+    ```
+#TODO: retocar
+*   **Compilación de TypeScript:**
+    ```bash
+    # Necesitarás typescript instalado globalmente o como una dependencia de desarrollo.
+    npm install -g typescript
+    tsc
+    ```
 
-  ```bash
-  # TODO: This will be the command once package.json is configured.
-  npm run dev
-  ```
+## Convenciones de Desarrollo
 
-- **Running the main file directly (for quick tests):**
+El proyecto sigue un modelo de ramas similar a GitFlow, reforzado por GitHub Actions:
 
-  ```bash
-  # You will need ts-node installed globally or as a dev dependency.
-  npm install -g ts-node
-  ts-node main.ts
-  ```
+*   **Desarrollo de Funcionalidades:** Las nuevas funcionalidades deben desarrollarse en ramas llamadas `feature/<nombre-funcionalidad>`. Estas ramas deben fusionarse en la rama `develop` a través de un pull request.
+*   **Lanzamientos:** La rama `develop` se fusiona en la rama `master` para crear un nuevo lanzamiento.
+*   **Hotfixes:** Las correcciones urgentes para la versión de producción deben desarrollarse en ramas llamadas `hotfix/<nombre-correccion>`. Estas ramas se fusionan directamente en la rama `master`.
 
-- **Compiling TypeScript:**
-  ```bash
-  # You will need typescript installed globally or as a dev dependency.
-  npm install -g typescript
-  tsc
-  ```
-
-## Development Conventions
-
-The project follows a GitFlow-like branching model enforced by GitHub Actions:
-
-- **Feature Development:** New features should be developed in branches named `feature/<feature-name>`. These branches must be merged into the `develop` branch via a pull request.
-- **Releases:** The `develop` branch is merged into the `master` branch to create a new release.
-- **Hotfixes:** Urgent fixes for the production version should be developed in branches named `hotfix/<fix-name>`. These branches are merged directly into the `master` branch.
-
-All pull requests to `master` must come from `develop` or a `hotfix/*` branch.
+Todos los pull requests a `master` deben provenir de `develop` o de una rama `hotfix/*`.
