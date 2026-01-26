@@ -47,6 +47,7 @@ CREATE TABLE `FinancialProduct` (
     `clientId` VARCHAR(191) NOT NULL,
     `currentBalance` DECIMAL(15, 2) NULL,
     `monthlyInterestRate` DECIMAL(5, 4) NULL,
+    `initialBalance` DECIMAL(15, 2) NULL,
     `initialCapital` DECIMAL(15, 2) NULL,
     `annualInterestRate` DECIMAL(5, 4) NULL,
     `maturityDate` DATETIME(3) NULL,
@@ -72,6 +73,7 @@ CREATE TABLE `ValueHistory` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `date` DATETIME(3) NOT NULL,
     `value` DECIMAL(15, 2) NOT NULL,
+    `previousValue` DECIMAL(15, 2) NULL,
     `productId` VARCHAR(191) NOT NULL,
 
     INDEX `ValueHistory_productId_idx`(`productId`),

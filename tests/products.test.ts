@@ -55,7 +55,19 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
           if (index === -1) throw new Error('Record not found')
 
           const current = mockDb[index]
-          const updated = { ...current, ...data }
+          
+          // Handle valueHistory nested write (simulation)
+          const { valueHistory, ...restData } = data
+          
+          if (valueHistory?.create) {
+            if (!current.valueHistory) current.valueHistory = []
+            current.valueHistory.push({
+              ...valueHistory.create,
+              date: valueHistory.create.date || new Date()
+            })
+          }
+
+          const updated = { ...current, ...restData }
 
           // Handle relation in update
           if (data.client?.connect?.id) {
@@ -96,6 +108,7 @@ describe('Financial Products API', () => {
     status: 'ACTIVE',
     clientId: '550e8400-e29b-41d4-a716-446655440000',
     currentBalance: 1000.5,
+    initialBalance: 1000.5,
   }
 
   let productId: string
@@ -198,6 +211,20 @@ describe('Financial Products API', () => {
       const response = await request(app).put(`/products/${productId}`).send(updatedProduct)
 
       expect(response.status).toBe(204)
+    })
+
+    it('should update balance and create history entry with previousValue', async () => {
+      const newBalance = 1500.0
+      const response = await request(app).put(`/products/${productId}`).send({ currentBalance: newBalance })
+
+      expect(response.status).toBe(204)
+
+      // Verify history via GET
+      const getResponse = await request(app).get(`/products/${productId}`)
+      expect(Number(getResponse.body.currentBalance)).toBe(newBalance)
+      expect(getResponse.body.valueHistory).toHaveLength(1)
+      expect(Number(getResponse.body.valueHistory[0].value)).toBe(newBalance)
+      expect(Number(getResponse.body.valueHistory[0].previousValue)).toBe(baseProduct.currentBalance)
     })
   })
 

@@ -84,6 +84,7 @@ model FinancialProduct {
   // Cuentas y Depósitos
   currentBalance       Decimal?  @db.Decimal(15, 2)
   monthlyInterestRate  Decimal?  @db.Decimal(5, 4)
+  initialBalance       Decimal?  @db.Decimal(15, 2)
   initialCapital       Decimal?  @db.Decimal(15, 2)
   annualInterestRate   Decimal?  @db.Decimal(5, 4)
   maturityDate         DateTime?
@@ -116,6 +117,7 @@ model ValueHistory {
   id        Int      @id @default(autoincrement())
   date      DateTime
   value     Decimal  @db.Decimal(15, 2)
+  previousValue Decimal? @db.Decimal(15, 2)
   
   productId String
   product   FinancialProduct @relation(fields: [productId], references: [id], onDelete: Cascade)

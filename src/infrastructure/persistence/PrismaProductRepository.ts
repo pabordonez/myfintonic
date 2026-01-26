@@ -22,7 +22,7 @@ export class PrismaProductRepository implements IProductRepository {
     // 1. Campos directos (1:1)
     const directFields = [
       'name', 'type', 'status',
-      'currentBalance', 'monthlyInterestRate', 'initialCapital', 'annualInterestRate',
+      'currentBalance', 'monthlyInterestRate', 'initialBalance', 'initialCapital', 'annualInterestRate',
       'maturityDate', 'interestPaymentFreq', 'numberOfUnits', 'netAssetValue',
       'totalPurchaseValue', 'numberOfShares', 'unitPurchasePrice', 'currentMarketPrice'
     ];
@@ -40,10 +40,15 @@ export class PrismaProductRepository implements IProductRepository {
     // Generar histórico si cambia el saldo (Cuentas) o Capital Inicial (Depósitos)
     const newValue = p.currentBalance ?? p.initialCapital;
     if (newValue !== undefined && newValue !== null) {
+      // Obtener valor anterior para el histórico
+      const currentProduct = await prisma.financialProduct.findUnique({ where: { id } });
+      const previousValue = currentProduct?.currentBalance ?? currentProduct?.initialCapital;
+
       data.valueHistory = {
         create: {
           date: new Date(),
-          value: new Prisma.Decimal(newValue)
+          value: new Prisma.Decimal(newValue),
+          previousValue: previousValue ? new Prisma.Decimal(previousValue) : null
         }
       };
     }
@@ -137,6 +142,7 @@ export class PrismaProductRepository implements IProductRepository {
       
       currentBalance: p.currentBalance ?? null,
       monthlyInterestRate: p.monthlyInterestRate ?? null,
+      initialBalance: p.initialBalance ?? null,
       initialCapital: p.initialCapital ?? null,
       annualInterestRate: p.annualInterestRate ?? null,
       maturityDate: p.maturityDate ?? null,
@@ -166,7 +172,12 @@ export class PrismaProductRepository implements IProductRepository {
       clientId: prismaProduct.clientId,
       createdAt: prismaProduct.createdAt,
       updatedAt: prismaProduct.updatedAt,
-      valueHistory: prismaProduct.valueHistory || [],
+      valueHistory: prismaProduct.valueHistory?.map((h: any) => ({
+        id: h.id,
+        date: h.date,
+        value: Number(h.value),
+        previousValue: h.previousValue ? Number(h.previousValue) : undefined
+      })) || [],
       transactions: prismaProduct.transactions || [],
       fees: prismaProduct.fees
     };
@@ -176,6 +187,7 @@ export class PrismaProductRepository implements IProductRepository {
     return {
       ...base,
       currentBalance: prismaProduct.currentBalance,
+      initialBalance: prismaProduct.initialBalance,
       monthlyInterestRate: prismaProduct.monthlyInterestRate,
       initialCapital: prismaProduct.initialCapital,
       annualInterestRate: prismaProduct.annualInterestRate,

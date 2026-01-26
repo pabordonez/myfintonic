@@ -17,12 +17,15 @@ export interface IFinancialProduct {
 export interface ICurrentAccount extends IFinancialProduct {
   type: 'CURRENT_ACCOUNT'
   currentBalance: number
+  initialBalance?: number
+  //TODO CAMBIAR ESTO POR UNA INTERFAZ
   transactions: Array<{ date: Date; description: string; amount: number }>
 }
 
 export interface ISavingsAccount extends IFinancialProduct {
   type: 'SAVINGS_ACCOUNT'
   currentBalance: number
+  initialBalance?: number
   monthlyInterestRate: number
 }
 
