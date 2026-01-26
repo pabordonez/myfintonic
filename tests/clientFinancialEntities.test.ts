@@ -29,6 +29,7 @@ vi.mock('../src/infrastructure/persistence/prisma/client', () => {
           const newEntry = {
             id: `cfe-${Math.random()}`,
             balance: data.balance,
+            initialBalance: data.initialBalance || data.balance,
             clientId: data.clientId,
             financialEntityId: data.financialEntityId,
             financialEntity: catalogEntity,
@@ -84,12 +85,14 @@ describe('Client Financial Entity Association API', () => {
         .send({
           clientId: clientId,
           balance: 5000,
+          initialBalance: 5000,
         })
 
       expect(response.status).toBe(201)
       expect(response.body).toHaveProperty('clientId', clientId)
       expect(response.body).toHaveProperty('financialEntityId', santanderId)
       expect(response.body.balance).toBe(5000)
+      expect(response.body.initialBalance).toBe(5000)
     })
 
     it('should return 404 if the financial entity does not exist in catalog', async () => {

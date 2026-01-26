@@ -12,11 +12,13 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
         clientId: dto.clientId,
         financialEntityId: dto.financialEntityId,
         balance: (dto.balance !== null && dto.balance !== undefined) ? new Prisma.Decimal(dto.balance) : null,
+        initialBalance: (dto.initialBalance !== null && dto.initialBalance !== undefined) ? new Prisma.Decimal(dto.initialBalance) : ((dto.balance !== null && dto.balance !== undefined) ? new Prisma.Decimal(dto.balance) : null),
         // Crear histórico inicial si hay balance
         valueHistory: (dto.balance !== null && dto.balance !== undefined) ? {
           create: {
             date: new Date(),
-            value: new Prisma.Decimal(dto.balance)
+            value: new Prisma.Decimal(dto.balance),
+            previousValue: null
           }
         } : undefined
       },
@@ -30,12 +32,17 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     const data: Prisma.ClientFinancialEntityUpdateInput = {};
     
     if (entity.balance !== undefined) {
+      // Obtener el valor anterior para el histórico
+      const currentEntity = await prisma.clientFinancialEntity.findUnique({ where: { id } });
+      const previousValue = currentEntity?.balance;
+
       data.balance = (entity.balance !== null) ? new Prisma.Decimal(entity.balance) : null;
       if (entity.balance !== null && entity.balance !== undefined) {
         data.valueHistory = {
           create: {
             date: new Date(),
-            value: new Prisma.Decimal(entity.balance)
+            value: new Prisma.Decimal(entity.balance),
+            previousValue: previousValue
           }
         };
       }
@@ -77,6 +84,7 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     return {
       id: prismaEntity.id,
       balance: prismaEntity.balance ? Number(prismaEntity.balance) : 0,
+      initialBalance: prismaEntity.initialBalance ? Number(prismaEntity.initialBalance) : undefined,
       clientId: prismaEntity.clientId,
       financialEntityId: prismaEntity.financialEntityId,
       financialEntity: prismaEntity.financialEntity ? {
@@ -91,6 +99,7 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
         id: h.id,
         date: h.date,
         value: Number(h.value),
+        previousValue: h.previousValue ? Number(h.previousValue) : undefined,
         clientFinancialEntityId: h.clientFinancialEntityId
       })) || []
     };

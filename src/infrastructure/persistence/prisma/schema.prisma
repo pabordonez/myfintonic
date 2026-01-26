@@ -51,6 +51,7 @@ model FinancialEntity {
 model ClientFinancialEntity {
   id                String   @id @default(uuid())
   balance           Decimal? @db.Decimal(15, 2)
+  initialBalance    Decimal? @db.Decimal(15, 2)
   
   clientId          String
   client            Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -127,6 +128,7 @@ model ClientFinancialEntityValueHistory {
   id                      Int      @id @default(autoincrement())
   date                    DateTime
   value                   Decimal  @db.Decimal(15, 2)
+  previousValue           Decimal? @db.Decimal(15, 2)
   
   clientFinancialEntityId String
   clientFinancialEntity   ClientFinancialEntity @relation(fields: [clientFinancialEntityId], references: [id], onDelete: Cascade)

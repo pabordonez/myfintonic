@@ -4,6 +4,7 @@ import { IClientFinancialEntityValueHistory } from './IClientFinancialEntityHist
 export interface IClientFinancialEntity {
   id: string;
   balance: number;
+  initialBalance?: number;
   clientId: string;
   financialEntityId: string;
   financialEntity?: IFinancialEntity;

@@ -1,6 +1,7 @@
 export interface IClientFinancialEntityValueHistory {
-  id: number;
+  id?: number;
   date: Date;
   value: number;
-  clientFinancialEntityId: string;
+  previousValue?: number;
+  clientFinancialEntityId?: string;
 }
