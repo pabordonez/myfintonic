@@ -6,6 +6,7 @@ import {
   productController,
   healthController,
   financialEntityController,
+  clientFinancialEntityController
 } from '@infrastructure/dependencies'
 import { requestLogger } from '@infrastructure/http/middlewares/requestLogger'
 
@@ -15,4 +16,4 @@ app.use(requestLogger)
 
 app.use('/health', createHealthRouter(healthController))
 app.use('/products', createProductRouter(productController))
-app.use('/financial-entities', createFinancialEntityRoutes(financialEntityController))
+app.use('/financial-entities', createFinancialEntityRoutes(financialEntityController,clientFinancialEntityController))

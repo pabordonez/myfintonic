@@ -11,7 +11,7 @@ erDiagram
     Client ||--o{ FinancialProduct : "owns"
     Client ||--o{ FinancialEntity : "has"
     FinancialEntity ||--o{ FinancialProduct : "contains"
-    FinancialEntity ||--o{ FinancialEntityValueHistory : "has history"
+    ClientFinancialEntity ||--o{ ClientFinancialEntityValueHistory : "has history"
     FinancialProduct ||--o{ ValueHistory : "has history"
     FinancialProduct ||--o{ Transaction : "has transactions"
 
@@ -27,8 +27,15 @@ erDiagram
     FinancialEntity {
         string id PK "UUID"
         string name
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    ClientFinancialEntity {
+        string id PK "UUID"
         decimal balance "Valor total manual"
         string clientId FK
+        string financialEntityId FK
         datetime createdAt
         datetime updatedAt
     }
@@ -64,11 +71,11 @@ erDiagram
         string productId FK
     }
 
-    FinancialEntityValueHistory {
+    ClientFinancialEntityValueHistory {
         int id PK "Auto-increment"
         datetime date
         decimal value
-        string financialEntityId FK
+        string clientFinancialEntityId FK
     }
 
     Transaction {
@@ -123,8 +130,15 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 | ---------- | -------------- | --------------------------------------------------------------------------- |
 | `id`       | VARCHAR(191)   | Identificador único (UUID).                                                 |
 | `name`     | VARCHAR(191)   | Nombre de la entidad financiera.                                            |
-| `balance`  | DECIMAL(15, 2) | Valor total acumulado en esta entidad (campo manual para ahorro de tiempo). |
-| `clientId` | VARCHAR(191)   | ID del cliente.                                                             |
+
+### Tabla `ClientFinancialEntity`
+
+| Campo               | Tipo           | Descripción                                                                 |
+| ------------------- | -------------- | --------------------------------------------------------------------------- |
+| `id`                | VARCHAR(191)   | Identificador único (UUID).                                                 |
+| `balance`           | DECIMAL(15, 2) | Valor total acumulado en esta entidad (campo manual para ahorro de tiempo). |
+| `clientId`          | VARCHAR(191)   | ID del cliente.                                                             |
+| `financialEntityId` | VARCHAR(191)   | ID de la entidad financiera del catálogo.                                   |
 
 ### Tabla `FinancialProduct`
 
