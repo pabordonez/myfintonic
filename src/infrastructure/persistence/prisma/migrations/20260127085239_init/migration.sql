@@ -14,13 +14,26 @@ CREATE TABLE `Client` (
 CREATE TABLE `FinancialEntity` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
-    `balance` DECIMAL(15, 2) NULL,
-    `clientId` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
-    INDEX `FinancialEntity_clientId_idx`(`clientId`),
-    UNIQUE INDEX `FinancialEntity_name_clientId_key`(`name`, `clientId`),
+    UNIQUE INDEX `FinancialEntity_name_key`(`name`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ClientFinancialEntity` (
+    `id` VARCHAR(191) NOT NULL,
+    `balance` DECIMAL(15, 2) NULL,
+    `initialBalance` DECIMAL(15, 2) NULL,
+    `clientId` VARCHAR(191) NOT NULL,
+    `financialEntityId` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `ClientFinancialEntity_clientId_idx`(`clientId`),
+    INDEX `ClientFinancialEntity_financialEntityId_idx`(`financialEntityId`),
+    UNIQUE INDEX `ClientFinancialEntity_clientId_financialEntityId_key`(`clientId`, `financialEntityId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -34,6 +47,7 @@ CREATE TABLE `FinancialProduct` (
     `clientId` VARCHAR(191) NOT NULL,
     `currentBalance` DECIMAL(15, 2) NULL,
     `monthlyInterestRate` DECIMAL(5, 4) NULL,
+    `initialBalance` DECIMAL(15, 2) NULL,
     `initialCapital` DECIMAL(15, 2) NULL,
     `annualInterestRate` DECIMAL(5, 4) NULL,
     `maturityDate` DATETIME(3) NULL,
@@ -59,6 +73,7 @@ CREATE TABLE `ValueHistory` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `date` DATETIME(3) NOT NULL,
     `value` DECIMAL(15, 2) NOT NULL,
+    `previousValue` DECIMAL(15, 2) NULL,
     `productId` VARCHAR(191) NOT NULL,
 
     INDEX `ValueHistory_productId_idx`(`productId`),
@@ -67,14 +82,15 @@ CREATE TABLE `ValueHistory` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `FinancialEntityValueHistory` (
+CREATE TABLE `ClientFinancialEntityValueHistory` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `date` DATETIME(3) NOT NULL,
     `value` DECIMAL(15, 2) NOT NULL,
-    `financialEntityId` VARCHAR(191) NOT NULL,
+    `previousValue` DECIMAL(15, 2) NULL,
+    `clientFinancialEntityId` VARCHAR(191) NOT NULL,
 
-    INDEX `FinancialEntityValueHistory_financialEntityId_idx`(`financialEntityId`),
-    INDEX `FinancialEntityValueHistory_date_idx`(`date`),
+    INDEX `ClientFinancialEntityValueHistory_clientFinancialEntityId_idx`(`clientFinancialEntityId`),
+    INDEX `ClientFinancialEntityValueHistory_date_idx`(`date`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -92,7 +108,10 @@ CREATE TABLE `ProductTransaction` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `FinancialEntity` ADD CONSTRAINT `FinancialEntity_clientId_fkey` FOREIGN KEY (`clientId`) REFERENCES `Client`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ClientFinancialEntity` ADD CONSTRAINT `ClientFinancialEntity_clientId_fkey` FOREIGN KEY (`clientId`) REFERENCES `Client`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ClientFinancialEntity` ADD CONSTRAINT `ClientFinancialEntity_financialEntityId_fkey` FOREIGN KEY (`financialEntityId`) REFERENCES `FinancialEntity`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `FinancialProduct` ADD CONSTRAINT `FinancialProduct_financialEntityId_fkey` FOREIGN KEY (`financialEntityId`) REFERENCES `FinancialEntity`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -104,7 +123,7 @@ ALTER TABLE `FinancialProduct` ADD CONSTRAINT `FinancialProduct_clientId_fkey` F
 ALTER TABLE `ValueHistory` ADD CONSTRAINT `ValueHistory_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `FinancialProduct`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `FinancialEntityValueHistory` ADD CONSTRAINT `FinancialEntityValueHistory_financialEntityId_fkey` FOREIGN KEY (`financialEntityId`) REFERENCES `FinancialEntity`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ClientFinancialEntityValueHistory` ADD CONSTRAINT `ClientFinancialEntityValueHistory_clientFinancialEntityId_fkey` FOREIGN KEY (`clientFinancialEntityId`) REFERENCES `ClientFinancialEntity`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ProductTransaction` ADD CONSTRAINT `ProductTransaction_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `FinancialProduct`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

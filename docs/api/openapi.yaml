@@ -96,6 +96,9 @@ components:
           type: string
           format: uuid
           example: '550e8400-e29b-41d4-a716-446655440000'
+        initialBalance:
+          type: number
+          nullable: true
         valueHistory:
           type: array
           readOnly: true
@@ -107,6 +110,9 @@ components:
                 format: date-time
               value:
                 type: number
+              previousValue:
+                type: number
+                nullable: true
 
     CurrentAccount:
       allOf:
@@ -216,25 +222,74 @@ components:
           type: string
           format: date-time
 
+    ClientFinancialEntity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        balance:
+          type: number
+        initialBalance:
+          type: number
+          nullable: true
+        clientId:
+          type: string
+          format: uuid
+        financialEntityId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        valueHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date-time
+              value:
+                type: number
+              previousValue:
+                type: number
+                nullable: true
+
     CreateFinancialEntityDto:
       type: object
       required:
         - name
-        - clientId
       properties:
         name:
           type: string
-        balance:
-          type: number
-        clientId:
-          type: string
-          format: uuid
 
     UpdateFinancialEntityDto:
       type: object
       properties:
         name:
           type: string
+
+    CreateClientFinancialEntityDto:
+      type: object
+      required:
+        - clientId
+        - balance
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        balance:
+          type: number
+        initialBalance:
+          type: number
+
+    UpdateClientFinancialEntityDto:
+      type: object
+      properties:
         balance:
           type: number
 
@@ -411,29 +466,110 @@ paths:
         '404':
           description: Entidad no encontrada
 
+  /clients/{clientId}/financial-entities:
     post:
       tags:
-        - Financial Products
-      summary: Crea un nuevo producto financiero
+        - Client Financial Entities
+      summary: Asociar una entidad financiera a un cliente
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProductRequest'
+              $ref: '#/components/schemas/CreateClientFinancialEntityDto'
       responses:
         '201':
-          description: Producto creado exitosamente
+          description: Asociación creada
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FinancialProduct'
-        '400':
-          description: Datos de entrada inválidos
+                $ref: '#/components/schemas/ClientFinancialEntity'
+        '404':
+          description: Entidad financiera no encontrada
+        '500':
+          description: Error interno
+    get:
+      tags:
+        - Client Financial Entities
+      summary: Listar entidades financieras de un cliente
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de asociaciones
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientFinancialEntity'
+
+  /clients/{clientId}/financial-entities/{id}:
+    get:
+      tags:
+        - Client Financial Entities
+      summary: Obtener asociación por ID
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalle de la asociación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientFinancialEntity'
+        '404':
+          description: Asociación no encontrada
+    put:
+      tags:
+        - Client Financial Entities
+      summary: Actualizar saldo de la asociación
+      parameters:
+        - in: path
+          name: clientId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClientFinancialEntityDto'
+      responses:
+        '204':
+          description: Saldo actualizado correctamente
+        '404':
+          description: Asociación no encontrada
 
   /products/{id}:
     parameters:

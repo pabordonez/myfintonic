@@ -34,24 +34,39 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   products  FinancialProduct[]
-  financialEntities FinancialEntity[]
+  clientFinancialEntities ClientFinancialEntity[]
 }
 
 model FinancialEntity {
   id        String   @id @default(uuid())
-  name      String
-  balance   Decimal? @db.Decimal(15, 2) // Valor total manual
-  clientId  String
-  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name      String   @unique
   
   products  FinancialProduct[]
-  valueHistory FinancialEntityValueHistory[]
+  clientFinancialEntities ClientFinancialEntity[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
 
-  @@unique([name, clientId]) // Evita duplicar entidades para el mismo cliente
+model ClientFinancialEntity {
+  id                String   @id @default(uuid())
+  balance           Decimal? @db.Decimal(15, 2)
+  initialBalance    Decimal? @db.Decimal(15, 2)
+  
+  clientId          String
+  client            Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  financialEntityId String
+  financialEntity   FinancialEntity @relation(fields: [financialEntityId], references: [id], onDelete: Cascade)
+  
+  valueHistory      ClientFinancialEntityValueHistory[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([clientId, financialEntityId])
   @@index([clientId])
+  @@index([financialEntityId])
 }
 
 // Modelo principal usando Single Table Inheritance
@@ -69,6 +84,7 @@ model FinancialProduct {
   // Cuentas y Depósitos
   currentBalance       Decimal?  @db.Decimal(15, 2)
   monthlyInterestRate  Decimal?  @db.Decimal(5, 4)
+  initialBalance       Decimal?  @db.Decimal(15, 2)
   initialCapital       Decimal?  @db.Decimal(15, 2)
   annualInterestRate   Decimal?  @db.Decimal(5, 4)
   maturityDate         DateTime?
@@ -101,6 +117,7 @@ model ValueHistory {
   id        Int      @id @default(autoincrement())
   date      DateTime
   value     Decimal  @db.Decimal(15, 2)
+  previousValue Decimal? @db.Decimal(15, 2)
   
   productId String
   product   FinancialProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -109,15 +126,16 @@ model ValueHistory {
   @@index([date])
 }
 
-model FinancialEntityValueHistory {
-  id                Int      @id @default(autoincrement())
-  date              DateTime
-  value             Decimal  @db.Decimal(15, 2)
+model ClientFinancialEntityValueHistory {
+  id                      Int      @id @default(autoincrement())
+  date                    DateTime
+  value                   Decimal  @db.Decimal(15, 2)
+  previousValue           Decimal? @db.Decimal(15, 2)
   
-  financialEntityId String
-  financialEntity   FinancialEntity @relation(fields: [financialEntityId], references: [id], onDelete: Cascade)
+  clientFinancialEntityId String
+  clientFinancialEntity   ClientFinancialEntity @relation(fields: [clientFinancialEntityId], references: [id], onDelete: Cascade)
 
-  @@index([financialEntityId])
+  @@index([clientFinancialEntityId])
   @@index([date])
 }
 

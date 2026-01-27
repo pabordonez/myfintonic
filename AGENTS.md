@@ -56,3 +56,9 @@ Las dependencias **solo** pueden apuntar hacia adentro:
 2.  **Seguridad**: Nunca hardcodear secretos. Usar siempre `env.ts`.
 3.  **Tests**: Al modificar lógica, actualizar o crear tests que verifiquen el cambio.
 4.  **Alias**: Verifica que los imports usen `@alias` y no rutas relativas largas (`../../`).
+
+## 6. Instrucciones Específicas para Generación de Código con una nueva feature
+1. Revisa los endpoints si se ha creado una nueva entidad de domino 
+2. Revisa si para esta nueva feature hemos creado los test necesarios, se encuentran en la carpeta test
+3. Revisa la documentación que esta en la carpeta docs para evaluar si los cambios de la feaute estan reflejados en los documentos
+4. Revisa y recrea en el fichero de local-seed que se encuentar en infraestructure/persistence/prisma con los nuevos datos de la feature si fuese necesario

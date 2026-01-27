@@ -34,11 +34,18 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 
 **FinancialEntity**
 
-- `id` (UUID): Identificador único.
+- `id` (UUID): Identificador único (Catálogo).
 - `name` (String): Nombre de la entidad (e.g., "Banco Santander").
-- `balance` (Number): Valor total del patrimonio en esta entidad (introducido manualmente o calculado).
-- `clientId` (UUID): Cliente propietario.
-- `valueHistory` (Array): Histórico de valoraciones de la entidad.
+
+**ClientFinancialEntity** (Vinculación)
+
+- `id` (UUID): Identificador único de la relación.
+- `clientId` (UUID): Cliente.
+- `financialEntityId` (UUID): Entidad del catálogo.
+- `balance` (Number): Valor total del patrimonio en esta entidad.
+- `initialBalance` (Number): Valor inicial al crear la relación.
+- `valueHistory` (Array): Histórico de valoraciones.
+  - `previousValue` (Number): Valor anterior.
 
 ### Entidad Base
 
@@ -48,10 +55,12 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `name` (String): Nombre descriptivo del producto (e.g., "Cuenta Nómina Premium").
 - `financialEntityId` (UUID): Referencia a la entidad financiera.
 - `status` (ProductStatus): Estado actual del producto.
+- `initialBalance` (Number): Saldo inicial (opcional).
 - `clientId` (UUID): Identificador del cliente propietario.
 - `valueHistory` (Array): Histórico de valoraciones para trazabilidad.
   - `date` (Date)
   - `value` (Number)
+  - `previousValue` (Number)
 
 ### Entidades Específicas
 
@@ -248,6 +257,17 @@ La API seguirá los principios REST, utilizando sustantivos en plural para las c
     - `204 No Content`: Entidad eliminada.
     - `404 Not Found`: Entidad no encontrada.
 
+### Endpoints de Vinculación (Cliente-Entidad)
+
+- **`POST /clients/{clientId}/financial-entities`**: Crea una asociación entre un cliente y una entidad financiera del catálogo.
+- **`GET /clients/{clientId}/financial-entities`**: Obtiene las asociaciones de un cliente.
+- **`GET /clients/{clientId}/financial-entities/{id}`**: Obtiene el detalle de una asociación.
+- **`PUT /clients/{clientId}/financial-entities/{id}`**: Actualiza el saldo de la asociación.
+  - **Body**: `{ "balance": 15000.00 }`
+  - **Respuestas**:
+    - `204 No Content`: Saldo actualizado (genera histórico).
+    - `404 Not Found`: Asociación no encontrada.
+
 ### Endpoints de Lógica de Negocio
 
 - **`GET /products/{id}/history`**: Obtiene el histórico de valoraciones de un producto.
@@ -321,7 +341,12 @@ classDiagram
     class FinancialEntity {
         +UUID id
         +String name
+    }
+
+    class ClientFinancialEntity {
+        +UUID id
         +Number balance
+        +Number initialBalance
         +HistoricoValor[] historicoValor
     }
 
@@ -329,6 +354,7 @@ classDiagram
         +UUID id
         +String id
         +String nombre
+        +Number initialBalance
         +FinancialEntity entidadFinanciera
         +EstadoProducto estado
         +HistoricoValor[] historicoValor
@@ -380,5 +406,7 @@ classDiagram
 
     ProductoFinanciero --> EstadoProducto
     ProductoFinanciero --> FinancialEntity
+    ClientFinancialEntity --> FinancialEntity
+    ClientFinancialEntity --> Client
 ```
 TODO:RETOCAR FINANCIALENTITY sobretodo en mermaid

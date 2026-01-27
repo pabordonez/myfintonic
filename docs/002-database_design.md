@@ -11,7 +11,7 @@ erDiagram
     Client ||--o{ FinancialProduct : "owns"
     Client ||--o{ FinancialEntity : "has"
     FinancialEntity ||--o{ FinancialProduct : "contains"
-    ClientFinancialEntity ||--o{ ClientFinancialEntityValueHistory : "has history"
+    FinancialEntity ||--o{ FinancialEntityValueHistory : "has history"
     FinancialProduct ||--o{ ValueHistory : "has history"
     FinancialProduct ||--o{ Transaction : "has transactions"
 
@@ -27,15 +27,8 @@ erDiagram
     FinancialEntity {
         string id PK "UUID"
         string name
-        datetime createdAt
-        datetime updatedAt
-    }
-
-    ClientFinancialEntity {
-        string id PK "UUID"
         decimal balance "Valor total manual"
         string clientId FK
-        string financialEntityId FK
         datetime createdAt
         datetime updatedAt
     }
@@ -49,6 +42,7 @@ erDiagram
         string clientId FK "Owner ID"
         decimal currentBalance "Nullable"
         decimal monthlyInterestRate "Nullable"
+        decimal initialBalance "Nullable"
         decimal initialCapital "Nullable"
         decimal annualInterestRate "Nullable"
         datetime maturityDate "Nullable"
@@ -68,14 +62,16 @@ erDiagram
         int id PK "Auto-increment"
         datetime date
         decimal value
+        decimal previousValue "Nullable"
         string productId FK
     }
 
-    ClientFinancialEntityValueHistory {
+    FinancialEntityValueHistory {
         int id PK "Auto-increment"
         datetime date
         decimal value
-        string clientFinancialEntityId FK
+        decimal previousValue "Nullable"
+        string financialEntityId FK
     }
 
     Transaction {
@@ -130,15 +126,8 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 | ---------- | -------------- | --------------------------------------------------------------------------- |
 | `id`       | VARCHAR(191)   | Identificador único (UUID).                                                 |
 | `name`     | VARCHAR(191)   | Nombre de la entidad financiera.                                            |
-
-### Tabla `ClientFinancialEntity`
-
-| Campo               | Tipo           | Descripción                                                                 |
-| ------------------- | -------------- | --------------------------------------------------------------------------- |
-| `id`                | VARCHAR(191)   | Identificador único (UUID).                                                 |
-| `balance`           | DECIMAL(15, 2) | Valor total acumulado en esta entidad (campo manual para ahorro de tiempo). |
-| `clientId`          | VARCHAR(191)   | ID del cliente.                                                             |
-| `financialEntityId` | VARCHAR(191)   | ID de la entidad financiera del catálogo.                                   |
+| `balance`  | DECIMAL(15, 2) | Valor total acumulado en esta entidad (campo manual para ahorro de tiempo). |
+| `clientId` | VARCHAR(191)   | ID del cliente.                                                             |
 
 ### Tabla `FinancialProduct`
 
@@ -150,6 +139,7 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 | `financialEntityId` | VARCHAR(191) | ID de la entidad financiera a la que pertenece.                                                            |
 | `clientId`          | VARCHAR(191) | ID del usuario propietario del producto. Indexado para búsquedas rápidas.                                  |
 | `fees`              | JSON         | Objeto JSON con las comisiones. Ej: `{"maintenance": 10.0}`.                                               |
+| `initialBalance`    | DECIMAL(15, 2) | Saldo inicial del producto (opcional).                                                                   |
 
 ### Tabla `ValueHistory`
 
@@ -158,6 +148,7 @@ Almacena la "foto" del valor total del producto en un momento dado. Útil para g
 |-------|------|-------------|
 | `date` | DATETIME | Fecha y hora del registro del valor. |
 | `value` | DECIMAL(15, 2) | Valor monetario total del producto en esa fecha. |
+| `previousValue` | DECIMAL(15, 2) | Valor anterior para cálculo rápido de variaciones. |
 
 ### Tabla `Transaction`
 
