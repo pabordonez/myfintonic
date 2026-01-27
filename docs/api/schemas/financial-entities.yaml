@@ -12,6 +12,11 @@ FinancialEntity:
     updatedAt:
       type: string
       format: date-time
+    deletedAt:
+      type: string
+      format: date-time
+      nullable: true
+      readOnly: true
 
 FinancialEntityCreation:
   type: object
@@ -50,6 +55,11 @@ ClientFinancialEntityResponse:
     updatedAt:
       type: string
       format: date-time
+    deletedAt:
+      type: string
+      format: date-time
+      nullable: true
+      readOnly: true
     valueHistory:
       type: array
       items:

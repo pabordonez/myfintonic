@@ -1,57 +1,63 @@
-parameters:
-  - in: path
-    name: id
-    required: true
-    schema:
-      type: string
-      format: uuid
+summary: Operaciones sobre una entidad financiera del catálogo
+description: Gestionar una entidad financiera específica por su ID.
 get:
-  summary: Obtener entidad financiera por ID
+  summary: Obtener detalle de entidad
+  operationId: getFinancialEntityById
   tags:
     - Financial Entities
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
   responses:
     '200':
-      description: Detalle de la entidad
+      description: Detalle de la entidad recuperado.
       content:
         application/json:
           schema:
             $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
     '404':
-      description: Entidad no encontrada
+      description: Entidad no encontrada.
 put:
-  summary: Actualizar entidad financiera
+  summary: Actualizar entidad
+  operationId: updateFinancialEntity
   tags:
     - Financial Entities
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
   requestBody:
+    required: true
     content:
       application/json:
         schema:
-          $ref: '../../schemas/financial-entities.yaml#/FinancialEntityUpdate'
+          $ref: '../../schemas/financial-entities.yaml#/FinancialEntityCreation'
   responses:
     '204':
-      description: Actualizado correctamente
+      description: Entidad actualizada correctamente.
     '404':
-      description: Entidad no encontrada
-patch:
-  summary: Actualizar entidad financiera (parcial)
-  tags:
-    - Financial Entities
-  requestBody:
-    content:
-      application/json:
-        schema:
-          $ref: '../../schemas/financial-entities.yaml#/FinancialEntityUpdate'
-  responses:
-    '204':
-      description: Actualizado correctamente
-    '404':
-      description: Entidad no encontrada
+      description: Entidad no encontrada.
 delete:
-  summary: Eliminar entidad financiera
+  summary: Eliminar entidad
+  operationId: deleteFinancialEntity
   tags:
     - Financial Entities
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
   responses:
     '204':
-      description: Eliminado correctamente
+      description: Entidad eliminada correctamente.
     '404':
-      description: Entidad no encontrada
+      description: Entidad no encontrada.

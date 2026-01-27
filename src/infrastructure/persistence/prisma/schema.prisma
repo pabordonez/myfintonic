@@ -33,6 +33,7 @@ model Client {
   nickname  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
   products  FinancialProduct[]
   clientFinancialEntities ClientFinancialEntity[]
 }
@@ -46,6 +47,7 @@ model FinancialEntity {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 }
 
 model ClientFinancialEntity {
@@ -63,6 +65,7 @@ model ClientFinancialEntity {
 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
 
   @@unique([clientId, financialEntityId])
   @@index([clientId])
@@ -107,6 +110,7 @@ model FinancialProduct {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   @@index([clientId])
   @@index([type])

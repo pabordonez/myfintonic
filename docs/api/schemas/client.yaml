@@ -8,3 +8,8 @@ Client:
       type: string
     role:
       $ref: './common.yaml#/Role'
+    deletedAt:
+      type: string
+      format: date-time
+      nullable: true
+      readOnly: true

@@ -6,6 +6,7 @@ CREATE TABLE `Client` (
     `nickname` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `deletedAt` DATETIME(3) NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -16,6 +17,7 @@ CREATE TABLE `FinancialEntity` (
     `name` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `deletedAt` DATETIME(3) NULL,
 
     UNIQUE INDEX `FinancialEntity_name_key`(`name`),
     PRIMARY KEY (`id`)
@@ -30,6 +32,7 @@ CREATE TABLE `ClientFinancialEntity` (
     `financialEntityId` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `deletedAt` DATETIME(3) NULL,
 
     INDEX `ClientFinancialEntity_clientId_idx`(`clientId`),
     INDEX `ClientFinancialEntity_financialEntityId_idx`(`financialEntityId`),
@@ -61,6 +64,7 @@ CREATE TABLE `FinancialProduct` (
     `fees` JSON NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `deletedAt` DATETIME(3) NULL,
 
     INDEX `FinancialProduct_clientId_idx`(`clientId`),
     INDEX `FinancialProduct_type_idx`(`type`),

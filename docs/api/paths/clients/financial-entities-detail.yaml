@@ -83,3 +83,26 @@ put:
       description: Saldo actualizado correctamente.
     '404':
       description: Vinculación no encontrada.
+delete:
+  summary: Eliminar vinculación
+  operationId: deleteClientFinancialEntity
+  tags:
+    - Client Financial Entities
+  parameters:
+    - name: clientId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    '204':
+      description: Vinculación eliminada correctamente.
+    '404':
+      description: Vinculación no encontrada.
