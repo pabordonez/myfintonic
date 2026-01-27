@@ -113,6 +113,86 @@ components:
               previousValue:
                 type: number
                 nullable: true
+    
+    # --- Esquemas de Actualización (Campos opcionales) ---
+    
+    CurrentAccountUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ProductUpdate'
+        - type: object
+          properties:
+            currentBalance:
+              type: number
+            transactions:
+              type: array
+              items:
+                type: object
+
+    SavingsAccountUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ProductUpdate'
+        - type: object
+          properties:
+            currentBalance:
+              type: number
+            monthlyInterestRate:
+              type: number
+
+    FixedTermDepositUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ProductUpdate'
+        - type: object
+          properties:
+            initialCapital:
+              type: number
+            maturityDate:
+              type: string
+              format: date-time
+            annualInterestRate:
+              type: number
+            interestPaymentFrequency:
+              type: string
+              enum: [Monthly, Quarterly, Annual, AtMaturity]
+
+    InvestmentFundUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ProductUpdate'
+        - type: object
+          properties:
+            numberOfUnits:
+              type: number
+            netAssetValue:
+              type: number
+            totalPurchaseValue:
+              type: number
+            fees:
+              type: object
+              properties:
+                opening:
+                  type: number
+                closing:
+                  type: number
+                maintenance:
+                  type: number
+
+    StocksUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ProductUpdate'
+        - type: object
+          properties:
+            numberOfShares:
+              type: number
+            unitPurchasePrice:
+              type: number
+            currentMarketPrice:
+              type: number
+            fees:
+              type: object
+              properties:
+                buying:
+                  type: number
+                selling:
+                  type: number
 
     CurrentAccount:
       allOf:
@@ -209,12 +289,6 @@ components:
           format: uuid
         name:
           type: string
-        balance:
-          type: number
-          nullable: true
-        clientId:
-          type: string
-          format: uuid
         createdAt:
           type: string
           format: date-time
@@ -259,27 +333,18 @@ components:
                 type: number
                 nullable: true
 
-    CreateFinancialEntityDto:
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          type: string
-
-    UpdateFinancialEntityDto:
+    FinancialEntityUpdate:
       type: object
       properties:
         name:
           type: string
 
-    CreateClientFinancialEntityDto:
+    ClientFinancialEntityCreation:
       type: object
       required:
-        - clientId
-        - balance
+        - financialEntityId
       properties:
-        clientId:
+        financialEntityId:
           type: string
           format: uuid
         balance:
@@ -287,7 +352,7 @@ components:
         initialBalance:
           type: number
 
-    UpdateClientFinancialEntityDto:
+    ClientFinancialEntityUpdate:
       type: object
       properties:
         balance:
@@ -301,6 +366,14 @@ components:
         - $ref: '#/components/schemas/FixedTermDeposit'
         - $ref: '#/components/schemas/InvestmentFund'
         - $ref: '#/components/schemas/Stocks'
+
+    ProductUpdateRequest:
+      oneOf:
+        - $ref: '#/components/schemas/CurrentAccountUpdate'
+        - $ref: '#/components/schemas/SavingsAccountUpdate'
+        - $ref: '#/components/schemas/FixedTermDepositUpdate'
+        - $ref: '#/components/schemas/InvestmentFundUpdate'
+        - $ref: '#/components/schemas/StocksUpdate'
 
 security:
   - bearerAuth: []
@@ -398,7 +471,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProductRequest'
+              $ref: '#/components/schemas/ProductUpdateRequest'
       responses:
         '204':
           description: Producto actualizado correctamente
@@ -500,7 +573,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateFinancialEntityDto'
+              $ref: '#/components/schemas/FinancialEntityCreation'
       responses:
         '201':
           description: Entidad creada
@@ -547,7 +620,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateFinancialEntityDto'
+              $ref: '#/components/schemas/FinancialEntityUpdate'
       responses:
         '204':
           description: Actualizado correctamente
@@ -568,7 +641,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateFinancialEntityDto'
+              $ref: '#/components/schemas/FinancialEntityUpdate'
       responses:
         '204':
           description: Actualizado correctamente
@@ -608,7 +681,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateClientFinancialEntityDto'
+              $ref: '#/components/schemas/ClientFinancialEntityCreation'
       responses:
         '201':
           description: Asociación creada
@@ -689,7 +762,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateClientFinancialEntityDto'
+              $ref: '#/components/schemas/ProductUpdateRequest'
       responses:
         '204':
           description: Saldo actualizado correctamente
