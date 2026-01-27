@@ -27,7 +27,7 @@ FinancialEntityUpdate:
     name:
       type: string
 
-ClientFinancialEntity:
+ClientFinancialEntityResponse:
   type: object
   properties:
     id:

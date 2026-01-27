@@ -34,6 +34,19 @@ get:
               financialEntityId:
                 type: string
                 format: uuid
+              valueHistory:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      format: date-time
+                    value:
+                      type: number
+                    previousValue:
+                      type: number
+                      nullable: true
     '404':
       description: Vinculación no encontrada.
 put:

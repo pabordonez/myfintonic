@@ -1,4 +1,4 @@
-FinancialProduct:
+Product:
   type: object
   required:
     - type
@@ -55,7 +55,7 @@ FinancialProduct:
 
 CurrentAccount:
   allOf:
-    - $ref: '#/FinancialProduct'
+    - $ref: '#/Product'
     - type: object
       properties:
         currentBalance:
@@ -75,7 +75,7 @@ CurrentAccount:
 
 SavingsAccount:
   allOf:
-    - $ref: '#/FinancialProduct'
+    - $ref: '#/Product'
     - type: object
       properties:
         currentBalance:
@@ -86,7 +86,7 @@ SavingsAccount:
 
 FixedTermDeposit:
   allOf:
-    - $ref: '#/FinancialProduct'
+    - $ref: '#/Product'
     - type: object
       properties:
         initialCapital:
@@ -102,7 +102,7 @@ FixedTermDeposit:
 
 InvestmentFund:
   allOf:
-    - $ref: '#/FinancialProduct'
+    - $ref: '#/Product'
     - type: object
       properties:
         numberOfUnits:
@@ -123,7 +123,7 @@ InvestmentFund:
 
 Stocks:
   allOf:
-    - $ref: '#/FinancialProduct'
+    - $ref: '#/Product'
     - type: object
       properties:
         numberOfShares:
@@ -140,72 +140,13 @@ Stocks:
             selling:
               type: number
 
-ProductCreation:
-  type: object
-  required:
-    - type
-    - name
-    - financialEntity
-    - clientId
-  properties:
-    type:
-      type: string
-      enum: [CURRENT_ACCOUNT, SAVINGS_ACCOUNT, FIXED_TERM_DEPOSIT, INVESTMENT_FUND, STOCKS]
-    name:
-      type: string
-    financialEntity:
-      type: string
-    clientId:
-      type: string
-      format: uuid
-    status:
-      type: string
-      enum: [ACTIVE, INACTIVE, PAUSED, EXPIRED]
-    currentBalance:
-      type: number
-
 ProductUpdate:
   type: object
   properties:
     name:
       type: string
-    financialEntity:
-      type: string
     status:
       $ref: './common.yaml#/ProductStatus'
-    clientId:
-      type: string
-      format: uuid
-    initialBalance:
-      type: number
-    currentBalance:
-      type: number
-    monthlyInterestRate:
-      type: number
-    initialCapital:
-      type: number
-    annualInterestRate:
-      type: number
-    maturityDate:
-      type: string
-      format: date-time
-    interestPaymentFrequency:
-      type: string
-      enum: [Monthly, Quarterly, Annual, AtMaturity]
-    numberOfUnits:
-      type: number
-    netAssetValue:
-      type: number
-    totalPurchaseValue:
-      type: number
-    numberOfShares:
-      type: number
-    unitPurchasePrice:
-      type: number
-    currentMarketPrice:
-      type: number
-    fees:
-      type: object
 
 # --- Esquemas de Actualización (Campos opcionales) ---
 
@@ -287,7 +228,7 @@ StocksUpdate:
             selling:
               type: number
 
-ProductRequest:
+ProductCreation:
   oneOf:
     - $ref: '#/CurrentAccount'
     - $ref: '#/SavingsAccount'

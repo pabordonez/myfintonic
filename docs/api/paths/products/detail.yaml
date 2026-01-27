@@ -19,21 +19,7 @@ get:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              id:
-                type: string
-                format: uuid
-              name:
-                type: string
-              type:
-                type: string
-              status:
-                type: string
-              financialEntityId:
-                type: string
-              currentBalance:
-                type: number
+            $ref: '../../schemas/products.yaml#/Product'
     '404':
       description: Producto no encontrado.
 put:
@@ -53,12 +39,7 @@ put:
     content:
       application/json:
         schema:
-          type: object
-          properties:
-            name:
-              type: string
-            status:
-              type: string
+          $ref: '../../schemas/products.yaml#/ProductUpdateRequest'
   responses:
     '204':
       description: Producto actualizado correctamente.

@@ -1,42 +1,47 @@
 get:
-  summary: Listar entidades financieras
+  summary: Listar productos financieros
+  description: Obtiene una lista de productos. Los usuarios ADMIN ven todos; los usuarios USER solo ven los suyos.
   tags:
-    - Financial Entities
+    - Financial Products
   parameters:
     - in: query
-      name: clientId
+      name: status
       schema:
-        type: string
-        format: uuid
+        $ref: '../../schemas/common.yaml#/ProductStatus'
     - in: query
-      name: name
+      name: financialEntity
       schema:
         type: string
+    - in: query
+      name: type
+      schema:
+        type: string
+        enum: [CURRENT_ACCOUNT, SAVINGS_ACCOUNT, FIXED_TERM_DEPOSIT, INVESTMENT_FUND, STOCKS]
   responses:
     '200':
-      description: Lista de entidades
+      description: Lista de productos obtenida correctamente
       content:
         application/json:
           schema:
             type: array
             items:
-              $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
+              $ref: '../../schemas/products.yaml#/Product'
 post:
-  summary: Crear entidad financiera
+  summary: Crear un nuevo producto financiero
   tags:
-    - Financial Entities
+    - Financial Products
   requestBody:
     required: true
     content:
       application/json:
         schema:
-          $ref: '../../schemas/financial-entities.yaml#/FinancialEntityCreation'
+          $ref: '../../schemas/products.yaml#/ProductCreation'
   responses:
     '201':
-      description: Entidad creada
+      description: Producto creado exitosamente
       content:
         application/json:
           schema:
-            $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
-    '500':
-      description: Error interno
+            $ref: '../../schemas/products.yaml#/Product'
+    '400':
+      description: Datos inválidos
