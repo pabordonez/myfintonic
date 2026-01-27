@@ -1,0 +1,13 @@
+get:
+  summary: Health Check
+  responses:
+    '200':
+      description: Servicio operativo
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: UP

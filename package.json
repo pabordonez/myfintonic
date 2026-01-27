@@ -22,6 +22,8 @@
     "db:seed:local": "tsx src/infrastructure/persistence/prisma/local-seed.ts",
     "docker:dev": "docker compose up -d --build",
     "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build",
+    "api:validate": "swagger-cli validate docs/api/openapi.yaml",
+    "api:bundle": "swagger-cli bundle docs/api/openapi.yaml -o docs/api/openapi-bundled.yaml -t yaml",
     "prepare": "husky"
   },
   "author": "",
@@ -29,6 +31,7 @@
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@types/express": "^5.0.0",
+    "@apidevtools/swagger-cli": "^4.0.4",
     "@types/node": "^22.10.5",
     "@types/supertest": "^6.0.2",
     "@vitest/coverage-v8": "^4.0.17",

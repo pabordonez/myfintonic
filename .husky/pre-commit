@@ -25,4 +25,21 @@ npm run build || {
   exit 1
 }
 
+
+# Validar OpenAPI solo si hay cambios en la carpeta docs/api
+# git diff --cached --name-only: lista los archivos en staging
+# grep -q "^docs/api/": busca silenciosamente si alguno empieza por docs/api/
+if git diff --cached --name-only | grep -q "^docs/api/"; then
+  echo "🔍 Cambios detectados en la documentación API. Ejecutando validación..."
+  
+  # Ejecuta el comando de validación
+  npm run api:validate
+  
+  # Captura el resultado. Si falla (código distinto de 0), aborta el commit.
+  if [ $? -ne 0 ]; then
+    echo "❌ Error: La validación de OpenAPI ha fallado. Corrige los errores antes de hacer commit."
+    exit 1
+  fi
+fi
+
 echo "✅ All pre-commit gates passed!"

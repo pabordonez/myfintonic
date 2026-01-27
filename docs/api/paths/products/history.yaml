@@ -1,0 +1,27 @@
+get:
+  tags:
+    - Financial Products
+  summary: Obtiene el histórico de valoraciones de un producto
+  parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Histórico obtenido
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date-time
+                value:
+                  type: number
+    '404':
+      description: Producto no encontrado

@@ -1,0 +1,65 @@
+summary: Gestión de vinculaciones con entidades
+description: Endpoints para gestionar la relación entre clientes y entidades financieras.
+get:
+  summary: Listar entidades de un cliente
+  operationId: getClientFinancialEntities
+  tags:
+    - Client Financial Entities
+  parameters:
+    - name: clientId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    '200':
+      description: Lista de entidades vinculadas recuperada.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                financialEntityId:
+                  type: string
+                  format: uuid
+                balance:
+                  type: number
+                financialEntityName:
+                  type: string
+post:
+  summary: Vincular nueva entidad
+  operationId: createClientFinancialEntity
+  tags:
+    - Client Financial Entities
+  parameters:
+    - name: clientId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            financialEntityId:
+              type: string
+              format: uuid
+            initialBalance:
+              type: number
+          required:
+            - financialEntityId
+  responses:
+    '201':
+      description: Vinculación creada exitosamente.
+    '400':
+      description: Datos inválidos.

@@ -1,0 +1,84 @@
+FinancialEntity:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+
+FinancialEntityCreation:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+
+FinancialEntityUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+
+ClientFinancialEntityResponse:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    balance:
+      type: number
+    initialBalance:
+      type: number
+      nullable: true
+    clientId:
+      type: string
+      format: uuid
+    financialEntityId:
+      type: string
+      format: uuid
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+    valueHistory:
+      type: array
+      items:
+        type: object
+        properties:
+          date:
+            type: string
+            format: date-time
+          value:
+            type: number
+          previousValue:
+            type: number
+            nullable: true
+
+ClientFinancialEntityCreation:
+  type: object
+  required:
+    - financialEntityId
+  properties:
+    financialEntityId:
+      type: string
+      format: uuid
+    balance:
+      type: number
+    initialBalance:
+      type: number
+
+ClientFinancialEntityUpdate:
+  type: object
+  properties:
+    balance:
+      type: number
