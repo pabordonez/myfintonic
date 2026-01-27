@@ -1,0 +1,10 @@
+Client:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    username:
+      type: string
+    role:
+      $ref: './common.yaml#/Role'

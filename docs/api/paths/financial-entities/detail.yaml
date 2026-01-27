@@ -1,0 +1,57 @@
+parameters:
+  - in: path
+    name: id
+    required: true
+    schema:
+      type: string
+      format: uuid
+get:
+  summary: Obtener entidad financiera por ID
+  tags:
+    - Financial Entities
+  responses:
+    '200':
+      description: Detalle de la entidad
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
+    '404':
+      description: Entidad no encontrada
+put:
+  summary: Actualizar entidad financiera
+  tags:
+    - Financial Entities
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: '../../schemas/financial-entities.yaml#/FinancialEntityUpdate'
+  responses:
+    '204':
+      description: Actualizado correctamente
+    '404':
+      description: Entidad no encontrada
+patch:
+  summary: Actualizar entidad financiera (parcial)
+  tags:
+    - Financial Entities
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: '../../schemas/financial-entities.yaml#/FinancialEntityUpdate'
+  responses:
+    '204':
+      description: Actualizado correctamente
+    '404':
+      description: Entidad no encontrada
+delete:
+  summary: Eliminar entidad financiera
+  tags:
+    - Financial Entities
+  responses:
+    '204':
+      description: Eliminado correctamente
+    '404':
+      description: Entidad no encontrada

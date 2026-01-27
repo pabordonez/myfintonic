@@ -1,0 +1,41 @@
+parameters:
+  - in: path
+    name: clientId
+    required: true
+    schema:
+      type: string
+      format: uuid
+post:
+  tags:
+    - Client Financial Entities
+  summary: Asociar una entidad financiera a un cliente
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../schemas/financial-entities.yaml#/ClientFinancialEntityCreation'
+  responses:
+    '201':
+      description: Asociación creada
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/financial-entities.yaml#/ClientFinancialEntity'
+    '404':
+      description: Entidad financiera no encontrada
+    '500':
+      description: Error interno
+get:
+  tags:
+    - Client Financial Entities
+  summary: Listar entidades financieras de un cliente
+  responses:
+    '200':
+      description: Lista de asociaciones
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../../schemas/financial-entities.yaml#/ClientFinancialEntity'

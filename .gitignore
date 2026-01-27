@@ -142,6 +142,7 @@ vite.config.ts.timestamp-*
 HISTORY_PROMPT*
 001-myfintonic_features*
 001-myfintonic_requireds*
+*openapi-bundled.yaml
 
 #AGENTS
 AGENTS_FUTURE*

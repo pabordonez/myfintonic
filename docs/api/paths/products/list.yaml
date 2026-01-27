@@ -1,0 +1,42 @@
+get:
+  summary: Listar entidades financieras
+  tags:
+    - Financial Entities
+  parameters:
+    - in: query
+      name: clientId
+      schema:
+        type: string
+        format: uuid
+    - in: query
+      name: name
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Lista de entidades
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
+post:
+  summary: Crear entidad financiera
+  tags:
+    - Financial Entities
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../schemas/financial-entities.yaml#/FinancialEntityCreation'
+  responses:
+    '201':
+      description: Entidad creada
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
+    '500':
+      description: Error interno

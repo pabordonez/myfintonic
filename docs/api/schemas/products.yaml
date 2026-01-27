@@ -1,0 +1,304 @@
+FinancialProduct:
+  type: object
+  required:
+    - type
+    - name
+    - financialEntity
+    - status
+    - clientId
+  discriminator:
+    propertyName: type
+    mapping:
+      CURRENT_ACCOUNT: '#/CurrentAccount'
+      SAVINGS_ACCOUNT: '#/SavingsAccount'
+      FIXED_TERM_DEPOSIT: '#/FixedTermDeposit'
+      INVESTMENT_FUND: '#/InvestmentFund'
+      STOCKS: '#/Stocks'
+  properties:
+    id:
+      type: string
+      description: Identificador único formado por PREFIJO-UUID.
+      example: 'CUR-550e8400-e29b-41d4-a716-446655440000'
+      readOnly: true
+    type:
+      type: string
+      description: Tipo de producto (Discriminador).
+    name:
+      type: string
+      example: 'Cuenta Nómina Premium'
+    financialEntity:
+      type: string
+      example: 'Banco Central'
+    status:
+      $ref: './common.yaml#/ProductStatus'
+    clientId:
+      type: string
+      format: uuid
+      example: '550e8400-e29b-41d4-a716-446655440000'
+    initialBalance:
+      type: number
+      nullable: true
+    valueHistory:
+      type: array
+      readOnly: true
+      items:
+        type: object
+        properties:
+          date:
+            type: string
+            format: date-time
+          value:
+            type: number
+          previousValue:
+            type: number
+            nullable: true
+
+CurrentAccount:
+  allOf:
+    - $ref: '#/FinancialProduct'
+    - type: object
+      properties:
+        currentBalance:
+          type: number
+        transactions:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date-time
+              description:
+                type: string
+              amount:
+                type: number
+
+SavingsAccount:
+  allOf:
+    - $ref: '#/FinancialProduct'
+    - type: object
+      properties:
+        currentBalance:
+          type: number
+        monthlyInterestRate:
+          type: number
+          example: 0.02
+
+FixedTermDeposit:
+  allOf:
+    - $ref: '#/FinancialProduct'
+    - type: object
+      properties:
+        initialCapital:
+          type: number
+        maturityDate:
+          type: string
+          format: date-time
+        annualInterestRate:
+          type: number
+        interestPaymentFrequency:
+          type: string
+          enum: [Monthly, Quarterly, Annual, AtMaturity]
+
+InvestmentFund:
+  allOf:
+    - $ref: '#/FinancialProduct'
+    - type: object
+      properties:
+        numberOfUnits:
+          type: number
+        netAssetValue:
+          type: number
+        totalPurchaseValue:
+          type: number
+        fees:
+          type: object
+          properties:
+            opening:
+              type: number
+            closing:
+              type: number
+            maintenance:
+              type: number
+
+Stocks:
+  allOf:
+    - $ref: '#/FinancialProduct'
+    - type: object
+      properties:
+        numberOfShares:
+          type: number
+        unitPurchasePrice:
+          type: number
+        currentMarketPrice:
+          type: number
+        fees:
+          type: object
+          properties:
+            buying:
+              type: number
+            selling:
+              type: number
+
+ProductCreation:
+  type: object
+  required:
+    - type
+    - name
+    - financialEntity
+    - clientId
+  properties:
+    type:
+      type: string
+      enum: [CURRENT_ACCOUNT, SAVINGS_ACCOUNT, FIXED_TERM_DEPOSIT, INVESTMENT_FUND, STOCKS]
+    name:
+      type: string
+    financialEntity:
+      type: string
+    clientId:
+      type: string
+      format: uuid
+    status:
+      type: string
+      enum: [ACTIVE, INACTIVE, PAUSED, EXPIRED]
+    currentBalance:
+      type: number
+
+ProductUpdate:
+  type: object
+  properties:
+    name:
+      type: string
+    financialEntity:
+      type: string
+    status:
+      $ref: './common.yaml#/ProductStatus'
+    clientId:
+      type: string
+      format: uuid
+    initialBalance:
+      type: number
+    currentBalance:
+      type: number
+    monthlyInterestRate:
+      type: number
+    initialCapital:
+      type: number
+    annualInterestRate:
+      type: number
+    maturityDate:
+      type: string
+      format: date-time
+    interestPaymentFrequency:
+      type: string
+      enum: [Monthly, Quarterly, Annual, AtMaturity]
+    numberOfUnits:
+      type: number
+    netAssetValue:
+      type: number
+    totalPurchaseValue:
+      type: number
+    numberOfShares:
+      type: number
+    unitPurchasePrice:
+      type: number
+    currentMarketPrice:
+      type: number
+    fees:
+      type: object
+
+# --- Esquemas de Actualización (Campos opcionales) ---
+
+CurrentAccountUpdate:
+  allOf:
+    - $ref: '#/ProductUpdate'
+    - type: object
+      properties:
+        currentBalance:
+          type: number
+        transactions:
+          type: array
+          items:
+            type: object
+
+SavingsAccountUpdate:
+  allOf:
+    - $ref: '#/ProductUpdate'
+    - type: object
+      properties:
+        currentBalance:
+          type: number
+        monthlyInterestRate:
+          type: number
+
+FixedTermDepositUpdate:
+  allOf:
+    - $ref: '#/ProductUpdate'
+    - type: object
+      properties:
+        initialCapital:
+          type: number
+        maturityDate:
+          type: string
+          format: date-time
+        annualInterestRate:
+          type: number
+        interestPaymentFrequency:
+          type: string
+          enum: [Monthly, Quarterly, Annual, AtMaturity]
+
+InvestmentFundUpdate:
+  allOf:
+    - $ref: '#/ProductUpdate'
+    - type: object
+      properties:
+        numberOfUnits:
+          type: number
+        netAssetValue:
+          type: number
+        totalPurchaseValue:
+          type: number
+        fees:
+          type: object
+          properties:
+            opening:
+              type: number
+            closing:
+              type: number
+            maintenance:
+              type: number
+
+StocksUpdate:
+  allOf:
+    - $ref: '#/ProductUpdate'
+    - type: object
+      properties:
+        numberOfShares:
+          type: number
+        unitPurchasePrice:
+          type: number
+        currentMarketPrice:
+          type: number
+        fees:
+          type: object
+          properties:
+            buying:
+              type: number
+            selling:
+              type: number
+
+ProductRequest:
+  oneOf:
+    - $ref: '#/CurrentAccount'
+    - $ref: '#/SavingsAccount'
+    - $ref: '#/FixedTermDeposit'
+    - $ref: '#/InvestmentFund'
+    - $ref: '#/Stocks'
+
+ProductUpdateRequest:
+  oneOf:
+    - $ref: '#/CurrentAccountUpdate'
+    - $ref: '#/SavingsAccountUpdate'
+    - $ref: '#/FixedTermDepositUpdate'
+    - $ref: '#/InvestmentFundUpdate'
+    - $ref: '#/StocksUpdate'

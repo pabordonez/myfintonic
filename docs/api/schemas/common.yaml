@@ -1,0 +1,19 @@
+ProductStatus:
+  type: string
+  enum: [ACTIVE, INACTIVE, PAUSED, EXPIRED]
+  description: Estado del producto financiero.
+
+Role:
+  type: string
+  enum: [ADMIN, USER]
+  description: Rol del usuario.
+
+Error:
+  type: object
+  properties:
+    code:
+      type: string
+      description: Código de error (e.g., ERR_INSUFFICIENT_FUNDS).
+    message:
+      type: string
+      description: Descripción legible del error.
