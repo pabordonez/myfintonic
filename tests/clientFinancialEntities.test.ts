@@ -78,12 +78,12 @@ describe('Client Financial Entity Association API', () => {
     })
   })
 
-  describe('POST /financial-entities/:id/client', () => {
+  describe('POST /clients/:clientId/financial-entities', () => {
     it('should create a new association for a client', async () => {
       const response = await request(app)
-        .post(`/financial-entities/${santanderId}/client`)
+        .post(`/clients/${clientId}/financial-entities`)
         .send({
-          clientId: clientId,
+          financialEntityId: santanderId,
           balance: 5000,
           initialBalance: 5000,
         })
@@ -97,9 +97,9 @@ describe('Client Financial Entity Association API', () => {
 
     it('should return 404 if the financial entity does not exist in catalog', async () => {
       const response = await request(app)
-        .post('/financial-entities/non-existent-id/client')
+        .post(`/clients/${clientId}/financial-entities`)
         .send({
-          clientId: clientId,
+          financialEntityId: 'non-existent-id',
           balance: 5000,
         })
 
@@ -107,17 +107,17 @@ describe('Client Financial Entity Association API', () => {
     })
   })
 
-  describe('PUT /financial-entities/:id/client/:associationId', () => {
+  describe('PUT /clients/:clientId/financial-entities/:id', () => {
     it('should update the balance and create a history entry', async () => {
       // First, create an association to update
       const createRes = await request(app)
-        .post(`/financial-entities/${santanderId}/client`)
-        .send({ clientId: clientId, balance: 5000 })
+        .post(`/clients/${clientId}/financial-entities`)
+        .send({ financialEntityId: santanderId, balance: 5000 })
       const associationId = createRes.body.id
 
       // Now, update it
       const updateResponse = await request(app)
-        .put(`/financial-entities/${santanderId}/client/${associationId}`)
+        .put(`/clients/${clientId}/financial-entities/${associationId}`)
         .send({ balance: 7500 })
 
       expect(updateResponse.status).toBe(204)

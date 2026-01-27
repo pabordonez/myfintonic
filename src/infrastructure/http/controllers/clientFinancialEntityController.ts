@@ -8,7 +8,7 @@ export class ClientFinancialEntityController {
     try {
       const dto = {
         ...req.body,
-        financialEntityId: req.params.id
+        clientId: req.params.clientId
       }
       const association = await this.useCases.createAssociation(dto)
       res.status(201).json(association)
@@ -24,7 +24,7 @@ export class ClientFinancialEntityController {
   getAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const filters: any = {}
-      if (req.query.clientId) filters.clientId = req.query.clientId as string
+      if (req.params.clientId) filters.clientId = req.params.clientId
       if (req.query.financialEntityId) filters.financialEntityId = req.query.financialEntityId as string
 
       const associations = await this.useCases.getAssociations(filters)
