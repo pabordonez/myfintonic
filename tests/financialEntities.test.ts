@@ -74,9 +74,19 @@ describe('Financial Entities Catalog API', () => {
   })
 
   describe('DELETE /financial-entities/:id', () => {
-    it('should delete an entity from the catalog', async () => {
+    it('should delete an entity and ensure it does not appear in queries', async () => {
+      // 1. Borrar
       const response = await request(app).delete(`/financial-entities/${entityId}`)
       expect(response.status).toBe(204)
+
+      // 2. Verificar que ya no aparece en el detalle (404)
+      const getResponse = await request(app).get(`/financial-entities/${entityId}`)
+      expect(getResponse.status).toBe(404)
+
+      // 3. Verificar que ya no aparece en el listado
+      const listResponse = await request(app).get('/financial-entities')
+      const found = listResponse.body.find((e: any) => e.id === entityId)
+      expect(found).toBeUndefined()
     })
   })
 })

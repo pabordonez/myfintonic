@@ -43,6 +43,9 @@ vi.mock('../src/infrastructure/persistence/prisma/client', () => {
         findUnique: vi.fn().mockImplementation(async ({ where }) => {
           return mockDb.find(e => e.id === where.id) || null
         }),
+        findMany: vi.fn().mockImplementation(async ({ where }) => {
+          return mockDb.filter(e => e.clientId === where.clientId)
+        }),
         update: vi.fn().mockImplementation(async ({ where, data }) => {
           const index = mockDb.findIndex(e => e.id === where.id)
           if (index === -1) throw new Error('Record not found')
@@ -54,6 +57,12 @@ vi.mock('../src/infrastructure/persistence/prisma/client', () => {
           const updated = { ...current, ...cleanData }
           mockDb[index] = updated
           return updated
+        }),
+        delete: vi.fn().mockImplementation(async ({ where }) => {
+          const index = mockDb.findIndex(e => e.id === where.id)
+          if (index === -1) throw new Error('Record not found')
+          const deleted = mockDb.splice(index, 1)
+          return deleted[0]
         }),
       },
       $disconnect: vi.fn(),
@@ -134,6 +143,29 @@ describe('Client Financial Entity Association API', () => {
           }),
         })
       )
+    })
+  })
+
+  describe('DELETE /clients/:clientId/financial-entities/:id', () => {
+    it('should delete the association and not return it afterwards', async () => {
+      // Setup: Crear una vinculación para borrar
+      const createRes = await request(app)
+        .post(`/clients/${clientId}/financial-entities`)
+        .send({ financialEntityId: santanderId, balance: 1000 })
+      const id = createRes.body.id
+
+      // 1. Borrar
+      const deleteRes = await request(app).delete(`/clients/${clientId}/financial-entities/${id}`)
+      expect(deleteRes.status).toBe(204)
+
+      // 2. Verificar detalle 404
+      const getRes = await request(app).get(`/clients/${clientId}/financial-entities/${id}`)
+      expect(getRes.status).toBe(404)
+
+      // 3. Verificar que no está en la lista del cliente
+      const listRes = await request(app).get(`/clients/${clientId}/financial-entities`)
+      const found = listRes.body.find((e: any) => e.id === id)
+      expect(found).toBeUndefined()
     })
   })
 })

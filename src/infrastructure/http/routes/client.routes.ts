@@ -9,5 +9,9 @@ export const createClientRoutes = (controller: ClientFinancialEntityController):
   router.get('/:clientId/financial-entities/:id', controller.getById)
   router.put('/:clientId/financial-entities/:id', controller.updateBalance)
 
+  router.delete('/:clientId/financial-entities/:id', controller.delete)
+
+
+
   return router
 }

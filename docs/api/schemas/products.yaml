@@ -38,6 +38,11 @@ Product:
     initialBalance:
       type: number
       nullable: true
+    deletedAt:
+      type: string
+      format: date-time
+      nullable: true
+      readOnly: true
     valueHistory:
       type: array
       readOnly: true

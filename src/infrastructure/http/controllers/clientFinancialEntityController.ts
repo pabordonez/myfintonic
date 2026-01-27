@@ -59,4 +59,17 @@ export class ClientFinancialEntityController {
       }
     }
   }
+
+  delete = async (req: Request, res: Response): Promise<void> => {
+    try {
+      await this.useCases.deleteAssociation(req.params.id as string)
+      res.status(204).send()
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        res.status(404).json({ error: error.message })
+      } else {
+        res.status(500).json({ error: 'Internal Server Error' })
+      }
+    }
+  }
 }

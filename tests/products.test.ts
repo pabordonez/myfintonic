@@ -247,9 +247,19 @@ describe('Financial Products API', () => {
   })
 
   describe('DELETE /products/:id', () => {
-    it('should return 204 on successful deletion', async () => {
+    it('should return 204 and disappear from queries', async () => {
+      // 1. Borrar
       const response = await request(app).delete(`/products/${productId}`)
       expect(response.status).toBe(204)
+
+      // 2. Verificar que el detalle da 404
+      const getResponse = await request(app).get(`/products/${productId}`)
+      expect(getResponse.status).toBe(404)
+
+      // 3. Verificar que no sale en el listado
+      const listResponse = await request(app).get('/products')
+      const found = listResponse.body.find((p: any) => p.id === productId)
+      expect(found).toBeUndefined()
     })
   })
 })

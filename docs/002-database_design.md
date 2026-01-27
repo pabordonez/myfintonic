@@ -22,6 +22,7 @@ erDiagram
         string nickname
         datetime createdAt
         datetime updatedAt
+        datetime deletedAt "Nullable"
     }
 
     FinancialEntity {
@@ -31,6 +32,7 @@ erDiagram
         string clientId FK
         datetime createdAt
         datetime updatedAt
+        datetime deletedAt "Nullable"
     }
 
     FinancialProduct {
@@ -56,6 +58,7 @@ erDiagram
         json fees "Estructuras complejas"
         datetime createdAt
         datetime updatedAt
+        datetime deletedAt "Nullable"
     }
 
     ValueHistory {
@@ -119,6 +122,7 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 | `firstName` | VARCHAR(191) | Nombre del cliente.                         |
 | `lastName`  | VARCHAR(191) | Apellidos del cliente.                      |
 | `nickname`  | VARCHAR(191) | Apodo o nombre de usuario para mostrar.     |
+| `deletedAt` | DATETIME     | Fecha de borrado lógico (si es NULL, está activo). |
 
 ### Tabla `FinancialEntity`
 
@@ -128,6 +132,15 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 | `name`     | VARCHAR(191)   | Nombre de la entidad financiera.                                            |
 | `balance`  | DECIMAL(15, 2) | Valor total acumulado en esta entidad (campo manual para ahorro de tiempo). |
 | `clientId` | VARCHAR(191)   | ID del cliente.                                                             |
+| `deletedAt`| DATETIME       | Fecha de borrado lógico.                                                    |
+
+### Tabla `ClientFinancialEntity`
+
+| Campo               | Tipo           | Descripción                                                                 |
+| ------------------- | -------------- | --------------------------------------------------------------------------- |
+| `id`                | VARCHAR(191)   | Identificador único (UUID).                                                 |
+| `balance`           | DECIMAL(15, 2) | Valor total acumulado en esta entidad.                                      |
+| `deletedAt`         | DATETIME       | Fecha de borrado lógico.                                                    |
 
 ### Tabla `FinancialProduct`
 
@@ -140,6 +153,7 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 | `clientId`          | VARCHAR(191) | ID del usuario propietario del producto. Indexado para búsquedas rápidas.                                  |
 | `fees`              | JSON         | Objeto JSON con las comisiones. Ej: `{"maintenance": 10.0}`.                                               |
 | `initialBalance`    | DECIMAL(15, 2) | Saldo inicial del producto (opcional).                                                                   |
+| `deletedAt`         | DATETIME     | Fecha de borrado lógico.                                                                                   |
 
 ### Tabla `ValueHistory`
 
@@ -162,3 +176,9 @@ Almacena movimientos específicos (ingresos, gastos) asociados principalmente a 
 
 - **DECIMAL vs FLOAT**: Se utiliza `DECIMAL` para todos los campos monetarios para evitar errores de redondeo de punto flotante inherentes a los tipos `FLOAT` o `DOUBLE`.
 - **UUID**: Se utilizan strings UUID para los IDs públicos para evitar enumeración de recursos (seguridad por oscuridad) y facilitar la generación de IDs desde el cliente o aplicación sin depender de la BD.
+
+### 6. Estrategia de Borrado (Soft Delete)
+
+Se implementa un patrón de **Soft Delete** mediante la columna `deletedAt`.
+- Las operaciones `DELETE` en la API no eliminarán filas, sino que actualizarán `deletedAt = NOW()`.
+- Las consultas `GET` filtrarán automáticamente `WHERE deletedAt IS NULL`.
