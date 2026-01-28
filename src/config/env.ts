@@ -1,5 +1,13 @@
-import { z } from 'zod'
 import 'dotenv/config'
+import { z } from 'zod'
+
+const isProduction = process.env.NODE_ENV === 'production'
+
+// Esquema reutilizable: String separado por comas -> Array de URLs
+const corsOriginSchema = z.string().transform((val) => {
+  return val.split(',').map((v) => v.trim())
+}).pipe(z.array(z.string().url()))
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3000),
@@ -15,6 +23,11 @@ const envSchema = z.object({
 
   // JWT (Uso futuro)
   JWT_SECRET: z.string().optional(),
+  
+  // En Producción es obligatorio. En Desarrollo tiene un valor por defecto.
+  CORS_ORIGIN: isProduction 
+    ? corsOriginSchema 
+    : corsOriginSchema.optional().default('http://localhost:3000')
 })
 
 const _env = envSchema.safeParse(process.env)
