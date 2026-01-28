@@ -27,7 +27,11 @@ const envSchema = z.object({
   // En Producción es obligatorio. En Desarrollo tiene un valor por defecto.
   CORS_ORIGIN: isProduction 
     ? corsOriginSchema 
-    : corsOriginSchema.optional().default('http://localhost:3000')
+    : corsOriginSchema.optional().default('http://localhost:3000'),
+
+  // Rate Limiting
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000), // 15 minutos (900000 ms)
+  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
 })
 
 const _env = envSchema.safeParse(process.env)
