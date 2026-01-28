@@ -145,7 +145,7 @@ HISTORY_PROMPT*
 *openapi-bundled.yaml
 
 #AGENTS
-AGENTS_FUTURE*
+docs/AGENTS.md
 
 #IDE
 .DS_Store
