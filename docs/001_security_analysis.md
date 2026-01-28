@@ -19,6 +19,7 @@
 ### 1.4. Infraestructura (Docker)
 - **Imágenes Base**: Se utiliza `node:20-alpine`, una imagen ligera que reduce la superficie de ataque.
 - **Separación de Entornos**: Uso de *Multi-stage builds* en Dockerfile para separar dependencias de desarrollo y producción (`npm prune --production`), evitando que herramientas de dev lleguen a la imagen final.
+- **Usuario No Privilegiado**: Se configura la directiva `USER node` para evitar la ejecución como root.
 
 ### 1.5. Calidad de Código (CI/CD Local)
 - **Husky (Git Hooks)**: Configurado para ejecutar linter y tests antes de cada commit, actuando como primera barrera de defensa.
