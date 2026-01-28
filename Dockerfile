@@ -43,6 +43,10 @@ COPY --from=builder /app/node_modules ./node_modules
 # Copiamos los artefactos construidos desde la etapa anterior
 COPY --from=builder /app/dist ./dist
 
+# Asignamos permisos al usuario 'node' y cambiamos a él por seguridad
+RUN chown -R node:node /app
+USER node
+
 # Exponemos el puerto
 EXPOSE 3000
 
