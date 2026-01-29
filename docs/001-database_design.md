@@ -49,7 +49,6 @@ erDiagram
         string clientId FK "Owner ID"
         decimal currentBalance "Nullable"
         decimal monthlyInterestRate "Nullable"
-        decimal initialCapital "Nullable"
         decimal annualInterestRate "Nullable"
         datetime maturityDate "Nullable"
         string interestPaymentFreq "Nullable"

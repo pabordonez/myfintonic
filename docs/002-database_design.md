@@ -9,11 +9,12 @@ Este documento detalla la estructura de la base de datos relacional (MySQL 8) ut
 ```mermaid
 erDiagram
     Client ||--o{ FinancialProduct : "owns"
-    Client ||--o{ FinancialEntity : "has"
+    Client ||--o{ ClientFinancialEntity : "has"
+    FinancialEntity ||--o{ ClientFinancialEntity : "has"
     FinancialEntity ||--o{ FinancialProduct : "contains"
-    FinancialEntity ||--o{ FinancialEntityValueHistory : "has history"
+    ClientFinancialEntity ||--o{ ClientFinancialEntityValueHistory : "has history"
     FinancialProduct ||--o{ ValueHistory : "has history"
-    FinancialProduct ||--o{ Transaction : "has transactions"
+    FinancialProduct ||--o{ ProductTransaction : "has transactions"
 
     Client {
         string id PK "UUID"
@@ -28,8 +29,6 @@ erDiagram
     FinancialEntity {
         string id PK "UUID"
         string name
-        decimal balance "Valor total manual"
-        string clientId FK
         datetime createdAt
         datetime updatedAt
         datetime deletedAt "Nullable"
@@ -45,13 +44,12 @@ erDiagram
         decimal currentBalance "Nullable"
         decimal monthlyInterestRate "Nullable"
         decimal initialBalance "Nullable"
-        decimal initialCapital "Nullable"
+        datetime initialDate "Nullable"
         decimal annualInterestRate "Nullable"
         datetime maturityDate "Nullable"
         string interestPaymentFreq "Nullable"
         decimal numberOfUnits "Nullable"
         decimal netAssetValue "Nullable"
-        decimal totalPurchaseValue "Nullable"
         decimal numberOfShares "Nullable"
         decimal unitPurchasePrice "Nullable"
         decimal currentMarketPrice "Nullable"
@@ -69,15 +67,15 @@ erDiagram
         string productId FK
     }
 
-    FinancialEntityValueHistory {
+    ClientFinancialEntityValueHistory {
         int id PK "Auto-increment"
         datetime date
         decimal value
         decimal previousValue "Nullable"
-        string financialEntityId FK
+        string clientFinancialEntityId FK
     }
 
-    Transaction {
+    ProductTransaction {
         string id PK "UUID"
         datetime date
         string description

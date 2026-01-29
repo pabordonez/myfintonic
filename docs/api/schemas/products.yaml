@@ -94,8 +94,11 @@ FixedTermDeposit:
     - $ref: '#/Product'
     - type: object
       properties:
-        initialCapital:
+        initialBalance:
           type: number
+        initialDate:
+          type: string
+          format: date-time
         maturityDate:
           type: string
           format: date-time
@@ -110,11 +113,11 @@ InvestmentFund:
     - $ref: '#/Product'
     - type: object
       properties:
+        currentBalance:
+          type: number
         numberOfUnits:
           type: number
         netAssetValue:
-          type: number
-        totalPurchaseValue:
           type: number
         fees:
           type: object
@@ -182,8 +185,11 @@ FixedTermDepositUpdate:
     - $ref: '#/ProductUpdate'
     - type: object
       properties:
-        initialCapital:
+        initialBalance:
           type: number
+        initialDate:
+          type: string
+          format: date-time
         maturityDate:
           type: string
           format: date-time
@@ -198,11 +204,11 @@ InvestmentFundUpdate:
     - $ref: '#/ProductUpdate'
     - type: object
       properties:
+        currentBalance:
+          type: number
         numberOfUnits:
           type: number
         netAssetValue:
-          type: number
-        totalPurchaseValue:
           type: number
         fees:
           type: object
