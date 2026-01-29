@@ -59,6 +59,9 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
           }
           return results
         }),
+        findFirst: vi.fn().mockImplementation(async ({ where }) => {
+          return mockDb.find(p => p.id === where.id) || null
+        }),
         findUnique: vi.fn().mockImplementation(async ({ where }) => {
           return mockDb.find(p => p.id === where.id) || null
         }),

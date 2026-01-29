@@ -8,7 +8,12 @@ export class PrismaProductRepository implements IProductRepository {
   async create(product: IFinancialProduct): Promise<IFinancialProduct> {
     const data = this.mapToPrisma(product);
     const createdProduct = await prisma.financialProduct.create({
-      data: data
+      data: data,
+      include: {
+        financialEntity: true,
+        valueHistory: true,
+        transactions: true
+      }
     });
     return this.mapToDomain(createdProduct);
   }
@@ -53,7 +58,7 @@ export class PrismaProductRepository implements IProductRepository {
     }
 
     // Manejo de la relación con FinancialEntity en update
-    if (p.financialEntity !== undefined && p.clientId !== undefined) {
+    if (p.financialEntity !== undefined) {
       data.financialEntity = {
         connectOrCreate: {
           where: { name: p.financialEntity },
@@ -69,7 +74,7 @@ export class PrismaProductRepository implements IProductRepository {
   }
 
   async findById(id: string): Promise<IFinancialProduct | null> {
-    const prismaProduct = await prisma.financialProduct.findUnique({
+    const prismaProduct = await prisma.financialProduct.findFirst({
       where: { id },
       include: {
         financialEntity: true,
