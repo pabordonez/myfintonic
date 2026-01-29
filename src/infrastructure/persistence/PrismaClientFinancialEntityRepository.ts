@@ -58,7 +58,7 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
   }
 
   async findById(id: string): Promise<IClientFinancialEntity | null> {
-    const entity = await prisma.clientFinancialEntity.findUnique({ 
+    const entity = await prisma.clientFinancialEntity.findFirst({ 
       where: { id },
       include: { valueHistory: true, financialEntity: true }
     });
