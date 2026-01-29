@@ -22,7 +22,10 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
           }
         } : undefined
       },
-      include: { financialEntity: true }
+      include: { 
+        financialEntity: true,        
+        valueHistory: true
+      }
     });
 
     return this.mapToDomain(created);
