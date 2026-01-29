@@ -14,6 +14,7 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
       financialProduct: {
         create: vi.fn().mockImplementation(async ({ data }) => {
           const newEntry = {
+            id: 'mock-product-id', // Ensure ID exists
             ...data,
             // Simulate automatic DB fields
             createdAt: new Date(),
@@ -29,7 +30,18 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
           // Simulate Prisma 'connectOrCreate' for financialEntity relation
           if (data.financialEntity?.connectOrCreate?.create) {
             // We store the created entity object so mapToDomain can read .name from it
-            newEntry.financialEntity = data.financialEntity.connectOrCreate.create
+            newEntry.financialEntity = {
+              id: 'mock-fe-id',
+              ...data.financialEntity.connectOrCreate.create,
+            }
+          }
+          // Simulate Prisma 'connect' for financialEntity relation
+          if (data.financialEntity?.connect) {
+            newEntry.financialEntityId = data.financialEntity.connect.id || 'mock-fe-id'
+            newEntry.financialEntity = {
+              id: newEntry.financialEntityId,
+              name: data.financialEntity.connect.name || 'Banco de Pruebas',
+            }
           }
           mockDb.push(newEntry)
           return newEntry
@@ -94,6 +106,11 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
       productTransaction: { deleteMany: vi.fn() },
       valueHistory: { deleteMany: vi.fn() },
       client: { deleteMany: vi.fn(), create: vi.fn() },
+      financialEntity: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'mock-fe-id', ...data })),
+      },
       $disconnect: vi.fn(),
     },
   }
@@ -147,7 +164,7 @@ describe('Financial Products API', () => {
         name: 'My Fund',
         numberOfUnits: 50,
         netAssetValue: 200,
-        totalPurchaseValue: 10000,
+        currentBalance: 10000,
         fees: { opening: 0, closing: 0, maintenance: 10 },
       }
       await request(app).post('/products').send(investmentFund)
@@ -187,6 +204,44 @@ describe('Financial Products API', () => {
       const response = await request(app).post('/products').send(invalidProduct)
 
       expect(response.status).toBe(400)
+    })
+  })
+
+  describe('POST /products (Specific Types)', () => {
+    it('should create a FIXED_TERM_DEPOSIT with initialDate', async () => {
+      const deposit = {
+        type: 'FIXED_TERM_DEPOSIT',
+        name: 'Depósito Test',
+        financialEntity: 'Banco de Pruebas',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        initialBalance: 5000,
+        initialDate: new Date().toISOString(),
+        maturityDate: new Date(Date.now() + 31536000000).toISOString(), // +1 year
+        annualInterestRate: 0.03,
+        interestPaymentFrequency: 'Quarterly',
+      }
+      const response = await request(app).post('/products').send(deposit)
+      expect(response.status).toBe(201)
+      expect(response.body).toHaveProperty('initialDate')
+    })
+
+    it('should create an INVESTMENT_FUND with currentBalance', async () => {
+      const fund = {
+        type: 'INVESTMENT_FUND',
+        name: 'Fondo Test',
+        financialEntity: 'Banco de Pruebas',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        currentBalance: 10500,
+        numberOfUnits: 100,
+        netAssetValue: 105,
+        fees: { opening: 0, closing: 0, maintenance: 10 },
+      }
+      const response = await request(app).post('/products').send(fund)
+      expect(response.status).toBe(201)
+      expect(response.body).toHaveProperty('currentBalance', 10500)
+      expect(response.body).not.toHaveProperty('totalPurchaseValue')
     })
   })
 

@@ -88,7 +88,7 @@ model FinancialProduct {
   currentBalance       Decimal?  @db.Decimal(15, 2)
   monthlyInterestRate  Decimal?  @db.Decimal(5, 4)
   initialBalance       Decimal?  @db.Decimal(15, 2)
-  initialCapital       Decimal?  @db.Decimal(15, 2)
+  initialDate          DateTime?
   annualInterestRate   Decimal?  @db.Decimal(5, 4)
   maturityDate         DateTime?
   interestPaymentFreq  String?
@@ -96,7 +96,6 @@ model FinancialProduct {
   // Fondos y Acciones
   numberOfUnits        Decimal?  @db.Decimal(15, 6) // Participaciones pueden tener muchos decimales
   netAssetValue        Decimal?  @db.Decimal(15, 2)
-  totalPurchaseValue   Decimal?  @db.Decimal(15, 2)
   numberOfShares       Decimal?  @db.Decimal(15, 2) // A veces hay acciones fraccionarias
   unitPurchasePrice    Decimal?  @db.Decimal(15, 2)
   currentMarketPrice   Decimal?  @db.Decimal(15, 2)

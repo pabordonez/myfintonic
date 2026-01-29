@@ -17,7 +17,8 @@ const savingsAccountSchema = z.object({
 })
 
 const fixedTermDepositSchema = z.object({
-  initialCapital: z.number({ required_error: 'Missing required field: initialCapital' }),
+  initialBalance: z.number({ required_error: 'Missing required field: initialBalance' }),
+  initialDate: z.coerce.date({ required_error: 'Missing required field: initialDate' }),
   maturityDate: z.coerce.date({ required_error: 'Missing required field: maturityDate' }),
   annualInterestRate: z.number({ required_error: 'Missing required field: annualInterestRate' }),
   interestPaymentFrequency: z.enum(['Monthly', 'Quarterly', 'Annual', 'AtMaturity'], {
@@ -26,9 +27,9 @@ const fixedTermDepositSchema = z.object({
 })
 
 const investmentFundSchema = z.object({
-  numberOfUnits: z.number({ required_error: 'Missing required field: numberOfUnits' }),
-  netAssetValue: z.number({ required_error: 'Missing required field: netAssetValue' }),
-  totalPurchaseValue: z.number({ required_error: 'Missing required field: totalPurchaseValue' }),
+  numberOfUnits: z.number().optional(),
+  netAssetValue: z.number().optional(),
+  currentBalance: z.number({ required_error: 'Missing required field: currentBalance' }),
   fees: z.object(
     {
       opening: z.number(),
@@ -36,7 +37,7 @@ const investmentFundSchema = z.object({
       maintenance: z.number(),
     },
     { required_error: 'Missing required field: fees' }
-  ),
+  ).optional(),
 })
 
 const stocksSchema = z.object({
@@ -49,7 +50,7 @@ const stocksSchema = z.object({
       selling: z.number(),
     },
     { required_error: 'Missing required field: fees' }
-  ),
+  ).optional(),
 })
 
 const productSchemas: Record<ProductType, z.ZodType<any>> = {

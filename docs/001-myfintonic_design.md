@@ -10,6 +10,14 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 
 ### Enumeraciones
 
+**ProductType**: Define los posibles productos.
+
+- `CURRENT_ACCOUNT`
+- `SAVINGS_ACCOUNT`
+- `FIXED_TERM_DEPOSIT`
+- `INVESTMENT_FUND`
+- `STOCKS`
+
 **ProductStatus**: Define los posibles estados de cualquier producto.
 
 - `ACTIVE`
@@ -45,6 +53,8 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `balance` (Number): Valor total del patrimonio en esta entidad.
 - `initialBalance` (Number): Valor inicial al crear la relación.
 - `valueHistory` (Array): Histórico de valoraciones.
+  - `date` (Date)
+  - `value` (Number)
   - `previousValue` (Number): Valor anterior.
 
 ### Entidad Base
@@ -52,6 +62,7 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 **FinancialProduct**
 
 - `id` (String): Identificador único formado por `PREFIJO-UUID` (e.g., `CUR-550e8400...`).
+- `type` (ProductType): Tipo de producto.
 - `name` (String): Nombre descriptivo del producto (e.g., "Cuenta Nómina Premium").
 - `financialEntityId` (UUID): Referencia a la entidad financiera.
 - `status` (ProductStatus): Estado actual del producto.
@@ -78,21 +89,22 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `monthlyInterestRate` (Number): Porcentaje de interés (e.g., 0.01 para 1%).
 
 **FixedTermDeposit** (hereda de `FinancialProduct`)
-
-- `initialCapital` (Number): Importe inicial del depósito.
+- `initialDate` (Date): Fecha de inicio del depósito.
 - `maturityDate` (Date): Fecha de finalización del depósito.
 - `annualInterestRate` (Number): Tasa de interés nominal anual (e.g., 0.05 para 5%).
 - `interestPaymentFrequency` (String): "Monthly", "Quarterly", "Annual", "AtMaturity".
 
 **InvestmentFund** (hereda de `FinancialProduct`)
 
+- `currentBalance` (Number): Valor actual del fondo.
 - `numberOfUnits` (Number): Cantidad de participaciones del cliente.
-- `netAssetValue` (Number): Valor actual de una participación.
-- `totalPurchaseValue` (Number): Coste total de adquisición de las participaciones.
+- `netAssetValue` (Number): Valor actual de una participación.Valor liquidativo
+
 - `fees` (Object):
-  - `opening` (Number)
-  - `closing` (Number)
-  - `maintenance` (Number)
+  - `opening` (Number) Coste de apertura o supscripcion
+  - `closing` (Number) coste de reembolso
+  - `maintenance` (Number) coste de mantenimiento o gestion
+  - `custody` (Number) coste de deposito
 
 **Stocks** (hereda de `FinancialProduct`)
 
@@ -141,7 +153,8 @@ A continuación se detallan los esquemas JSON esperados en el cuerpo de las peti
   "name": "Depósito 12 Meses",
   "financialEntity": "Banco Central",
   "status": "ACTIVE",
-  "initialCapital": 5000.0,
+  "initialBalance": 5000.0,
+  "initialDate": "2024-01-01T00:00:00Z",
   "maturityDate": "2024-12-31T23:59:59Z",
   "annualInterestRate": 0.035,
   "interestPaymentFrequency": "Quarterly"
@@ -156,9 +169,9 @@ A continuación se detallan los esquemas JSON esperados en el cuerpo de las peti
   "name": "Fondo Tecnológico Global",
   "financialEntity": "Gestora Capital",
   "status": "ACTIVE",
+  "currentBalance": 32000.0,
   "numberOfUnits": 150.5,
   "netAssetValue": 210.45,
-  "totalPurchaseValue": 30000.0,
   "fees": {
     "opening": 15.0,
     "closing": 15.0,
@@ -339,74 +352,71 @@ Se definen los siguientes códigos de error para estandarizar las respuestas de 
 ```mermaid
 classDiagram
     class FinancialEntity {
-        +UUID id
         +String name
     }
 
     class ClientFinancialEntity {
-        +UUID id
         +Number balance
         +Number initialBalance
-        +HistoricoValor[] historicoValor
+        +ValueHistory[] valueHistory
     }
 
-    class ProductoFinanciero {
-        +UUID id
+    class FinancialProduct {
         +String id
-        +String nombre
+        +String name
         +Number initialBalance
-        +FinancialEntity entidadFinanciera
-        +EstadoProducto estado
-        +HistoricoValor[] historicoValor
-        +actualizarHistorico()
+        +FinancialEntity financialEntity
+        +ProductStatus status
+        +ValueHistory[] valueHistory
+        +updateHistory()
     }
 
-    class CuentaCorriente {
-        +Number saldoActual
-        +Movimiento[] movimientos
+    class CurrentAccount {
+        +Number currentBalance
+        +Transaction[] transactions
     }
 
-    class CuentaRemunerada {
-        +Number saldoActual
-        +Number tasaInteresMensual
+    class SavingsAccount {
+        +Number currentBalance
+        +Number monthlyInterestRate
     }
 
-    class DepositoPlazoFijo {
-        +Number capitalInicial
-        +Date fechaVencimiento
-        +Number tasaInteresAnual
+    class FixedTermDeposit {
+        +Number initialBalance
+        +Date initialDate
+        +Date maturityDate
+        +Number annualInterestRate
     }
 
-    class FondoInversion {
-        +Number numeroParticipaciones
-        +Number valorLiquidativo
-        +Number valorCompraTotal
-        +calcularPlusvalia()
+    class InvestmentFund {
+        +Number currentBalance
+        +Number numberOfUnits
+        +Number netAssetValue
+        +calculateGain()
     }
 
-    class Acciones {
-        +Number numeroTitulos
-        +Number valorCompraUnitario
-        +Number valorMercadoActualUnitario
+    class Stocks {
+        +Number numberOfShares
+        +Number unitPurchasePrice
+        +Number currentMarketPrice
     }
 
-    ProductoFinanciero <|-- CuentaCorriente
-    ProductoFinanciero <|-- CuentaRemunerada
-    ProductoFinanciero <|-- DepositoPlazoFijo
-    ProductoFinanciero <|-- FondoInversion
-    ProductoFinanciero <|-- Acciones
+    FinancialProduct <|-- CurrentAccount
+    FinancialProduct <|-- SavingsAccount
+    FinancialProduct <|-- FixedTermDeposit
+    FinancialProduct <|-- InvestmentFund
+    FinancialProduct <|-- Stocks
 
-    class EstadoProducto {
+    class ProductStatus {
         <<enumeration>>
-        Activo
-        Inactivo
-        Pausado
-        Vencido
+        ACTIVE
+        INACTIVE
+        PAUSED
+        EXPIRED
     }
 
-    ProductoFinanciero --> EstadoProducto
-    ProductoFinanciero --> FinancialEntity
+    FinancialProduct --> ProductStatus
+    FinancialProduct --> FinancialEntity
     ClientFinancialEntity --> FinancialEntity
     ClientFinancialEntity --> Client
 ```
-TODO:RETOCAR FINANCIALENTITY sobretodo en mermaid

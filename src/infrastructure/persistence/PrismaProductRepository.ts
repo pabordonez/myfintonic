@@ -13,7 +13,6 @@ export class PrismaProductRepository implements IProductRepository {
     return this.mapToDomain(createdProduct);
   }
 
-  //TODO REVISAR ESTAS VALIDACIONES PUES SE HACEN EN EL FACTORY DEL OBJETO
   async update(id: string, product: Partial<IFinancialProduct>): Promise<void> {
 
     const p = product as any;
@@ -22,9 +21,9 @@ export class PrismaProductRepository implements IProductRepository {
     // 1. Campos directos (1:1)
     const directFields = [
       'name', 'type', 'status',
-      'currentBalance', 'monthlyInterestRate', 'initialBalance', 'initialCapital', 'annualInterestRate',
+      'currentBalance', 'monthlyInterestRate', 'initialBalance', 'initialDate', 'annualInterestRate',
       'maturityDate', 'interestPaymentFreq', 'numberOfUnits', 'netAssetValue',
-      'totalPurchaseValue', 'numberOfShares', 'unitPurchasePrice', 'currentMarketPrice'
+      'numberOfShares', 'unitPurchasePrice', 'currentMarketPrice'
     ];
 
     directFields.forEach(field => {
@@ -37,12 +36,12 @@ export class PrismaProductRepository implements IProductRepository {
     if (p.clientId !== undefined) data.client = { connect: { id: p.clientId } };
     if (p.fees !== undefined) data.fees = p.fees ?? Prisma.JsonNull;
     
-    // Generar histórico si cambia el saldo (Cuentas) o Capital Inicial (Depósitos)
-    const newValue = p.currentBalance ?? p.initialCapital;
+    // Generar histórico si cambia el saldo (Cuentas, Fondos)
+    const newValue = p.currentBalance;
     if (newValue !== undefined && newValue !== null) {
       // Obtener valor anterior para el histórico
       const currentProduct = await prisma.financialProduct.findUnique({ where: { id } });
-      const previousValue = currentProduct?.currentBalance ?? currentProduct?.initialCapital;
+      const previousValue = currentProduct?.currentBalance;
 
       data.valueHistory = {
         create: {
@@ -143,13 +142,12 @@ export class PrismaProductRepository implements IProductRepository {
       currentBalance: p.currentBalance ?? null,
       monthlyInterestRate: p.monthlyInterestRate ?? null,
       initialBalance: p.initialBalance ?? null,
-      initialCapital: p.initialCapital ?? null,
+      initialDate: p.initialDate ?? null,
       annualInterestRate: p.annualInterestRate ?? null,
       maturityDate: p.maturityDate ?? null,
       interestPaymentFreq: p.interestPaymentFreq ?? null,
       numberOfUnits: p.numberOfUnits ?? null,
       netAssetValue: p.netAssetValue ?? null,
-      totalPurchaseValue: p.totalPurchaseValue ?? null,
       numberOfShares: p.numberOfShares ?? null,
       unitPurchasePrice: p.unitPurchasePrice ?? null,
       currentMarketPrice: p.currentMarketPrice ?? null,
@@ -189,13 +187,12 @@ export class PrismaProductRepository implements IProductRepository {
       currentBalance: prismaProduct.currentBalance,
       initialBalance: prismaProduct.initialBalance,
       monthlyInterestRate: prismaProduct.monthlyInterestRate,
-      initialCapital: prismaProduct.initialCapital,
+      initialDate: prismaProduct.initialDate,
       annualInterestRate: prismaProduct.annualInterestRate,
       maturityDate: prismaProduct.maturityDate,
       interestPaymentFreq: prismaProduct.interestPaymentFreq,
       numberOfUnits: prismaProduct.numberOfUnits,
       netAssetValue: prismaProduct.netAssetValue,
-      totalPurchaseValue: prismaProduct.totalPurchaseValue,
       numberOfShares: prismaProduct.numberOfShares,
       unitPurchasePrice: prismaProduct.unitPurchasePrice,
       currentMarketPrice: prismaProduct.currentMarketPrice,
