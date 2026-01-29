@@ -34,6 +34,8 @@ get:
               financialEntityId:
                 type: string
                 format: uuid
+              financialEntity:
+                $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
               valueHistory:
                 type: array
                 items:
