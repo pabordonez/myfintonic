@@ -1,15 +1,14 @@
 import express from 'express'
 import helmet from 'helmet'
 import { env } from '@config/env'
-import { createProductRouter } from '@infrastructure/http/routes/product.routes'
+import { productRouter } from '@infrastructure/http/routes/productRoutes'
+import { authRouter } from '@infrastructure/http/routes/authRoutes'
+import { clientFinancialEntityRouter } from '@infrastructure/http/routes/clientFinancialEntityRoutes'
 import { createHealthRouter } from '@infrastructure/http/routes/health.routes'
 import { createFinancialEntityRoutes } from '@infrastructure/http/routes/financialEntity.routes'
-import { createClientRoutes } from '@infrastructure/http/routes/client.routes'
 import {
-  productController,
   healthController,
-  financialEntityController,
-  clientFinancialEntityController
+  financialEntityController
 } from '@infrastructure/dependencies'
 import { requestLogger } from '@infrastructure/http/middlewares/requestLogger'
 import { corsMiddleware } from '@infrastructure/http/middlewares/corsMiddleware'
@@ -31,7 +30,8 @@ app.use(rateLimitMiddleware)
 app.use(express.json())
 app.use(requestLogger)
 
+app.use('/auth', authRouter)
 app.use('/health', createHealthRouter(healthController))
-app.use('/products', createProductRouter(productController))
+app.use('/products', productRouter)
 app.use('/financial-entities', createFinancialEntityRoutes(financialEntityController))
-app.use('/clients', createClientRoutes(clientFinancialEntityController))
+app.use('/clients', clientFinancialEntityRouter)

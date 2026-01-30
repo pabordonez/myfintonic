@@ -24,6 +24,12 @@ export class ProductController {
   getAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const filters: any = {}
+      
+      const user = (req as any).user
+      if (user && user.role !== 'ADMIN') {
+        filters.clientId = user.id
+      }
+
       if (req.query.status) filters.status = req.query.status
       if (req.query.type) filters.type = req.query.type
       if (req.query.financialEntity) filters.financialEntity = req.query.financialEntity
@@ -39,6 +45,11 @@ export class ProductController {
     try {
       const product = await this.productUseCases.getProductById(req.params.id as string)
       if (product) {
+        const user = (req as any).user
+        if (user && user.role !== 'ADMIN' && product.clientId !== user.id) {
+          res.status(404).json({ error: 'Product not found' })
+          return
+        }
         res.status(200).json(product)
       } else {
         res.status(404).json({ error: 'Product not found' })

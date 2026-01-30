@@ -106,6 +106,7 @@ export class PrismaProductRepository implements IProductRepository {
   async findAll(filters?: Partial<IFinancialProduct>): Promise<IFinancialProduct[]> {
     const where: Prisma.FinancialProductWhereInput = {};
 
+    if (filters?.clientId) where.clientId = filters.clientId;
     if (filters?.status) where.status = filters.status as ProductStatus;
     if (filters?.type) where.type = filters.type as ProductType;
     if (filters?.financialEntity) where.financialEntity = { name: filters.financialEntity };

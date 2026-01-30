@@ -22,7 +22,11 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid URL'),
 
   // JWT (Uso futuro)
-  JWT_SECRET: z.string().optional(),
+  JWT_SECRET: z.string().min(10, 'JWT_SECRET is required and must be secure'),
+  
+  // Admin Seed
+  ADMIN_EMAIL: z.string().email(),
+  ADMIN_PASSWORD: z.string().min(8),
   
   // En Producción es obligatorio. En Desarrollo tiene un valor por defecto.
   CORS_ORIGIN: isProduction 

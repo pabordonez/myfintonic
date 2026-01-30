@@ -38,6 +38,9 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `firstName` (String): Nombre.
 - `lastName` (String): Apellidos.
 - `nickname` (String): Apodo.
+- `email` (String): Correo electrónico (Único).
+- `password` (String): Hash de la contraseña.
+- `role` (Role): Rol del usuario (`ADMIN` o `USER`).
 - `createdAt` / `updatedAt`: Fechas de auditoría.
 
 **FinancialEntity**
@@ -206,6 +209,16 @@ La API seguirá los principios REST, utilizando sustantivos en plural para las c
 
 ### Endpoints Principales
 
+> **Nota de Seguridad**: Todos los endpoints (excepto `/auth/*` y `/health`) requieren un token JWT válido en la cabecera `Authorization: Bearer <token>`.
+
+- **`POST /auth/register`**: Registra un nuevo usuario con rol `USER`.
+  - **Body**: `{ "email": "...", "password": "...", "firstName": "...", "lastName": "..." }`
+  - **Respuestas**: `201 Created`, `400 Bad Request`, `409 Conflict`.
+
+- **`POST /auth/login`**: Autentica un usuario y devuelve un token JWT.
+  - **Body**: `{ "email": "...", "password": "..." }`
+  - **Respuestas**: `200 OK` (con token), `401 Unauthorized`.
+
 - **`GET /products`**: Obtiene una lista de todos los productos financieros.
   - **Filtros (Query Params)**:
     - `?status=ACTIVE`
@@ -353,6 +366,20 @@ Se definen los siguientes códigos de error para estandarizar las respuestas de 
 
 ```mermaid
 classDiagram
+    class Client {
+        +String firstName
+        +String lastName
+        +String email
+        +String password
+        +Role role
+    }
+
+    class Role {
+        <<enumeration>>
+        ADMIN
+        USER
+    }
+
     class FinancialEntity {
         +String name
     }
@@ -417,6 +444,7 @@ classDiagram
         EXPIRED
     }
 
+    Client --> Role
     FinancialProduct --> ProductStatus
     FinancialProduct --> FinancialEntity
     ClientFinancialEntity --> FinancialEntity

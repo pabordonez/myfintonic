@@ -5,3 +5,4 @@ export type ProductType =
   | 'FIXED_TERM_DEPOSIT'
   | 'INVESTMENT_FUND'
   | 'STOCKS'
+export type Role = 'ADMIN' | 'USER'

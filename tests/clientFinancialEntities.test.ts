@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
 import { app } from '../src/app'
 import prisma from '../src/infrastructure/persistence/prisma/client'
+import jwt from 'jsonwebtoken'
+import { env } from '../src/config/env'
 
 // 1. Hoisted variables to simulate in-memory DBs within the mock
 const { mockDb, mockCatalog } = vi.hoisted(() => ({
@@ -77,6 +79,11 @@ describe('Client Financial Entity Association API', () => {
   const clientId = 'client-123'
   const santanderId = 'catalog-santander'
 
+  // Tokens
+  const userToken = jwt.sign({ id: clientId, role: 'USER' }, env.JWT_SECRET)
+  const otherUserToken = jwt.sign({ id: 'other-client', role: 'USER' }, env.JWT_SECRET)
+  const adminToken = jwt.sign({ id: 'admin', role: 'ADMIN' }, env.JWT_SECRET)
+
   beforeEach(() => {
     mockDb.length = 0
     mockCatalog.length = 0
@@ -94,6 +101,7 @@ describe('Client Financial Entity Association API', () => {
     it('should create a new association for a client', async () => {
       const response = await request(app)
         .post(`/clients/${clientId}/financial-entities`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({
           financialEntityId: santanderId,
           balance: 5000,
@@ -110,12 +118,35 @@ describe('Client Financial Entity Association API', () => {
     it('should return 404 if the financial entity does not exist in catalog', async () => {
       const response = await request(app)
         .post(`/clients/${clientId}/financial-entities`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({
           financialEntityId: 'non-existent-id',
           balance: 5000,
         })
 
       expect(response.status).toBe(404)
+    })
+
+    it('should return 403 if user tries to create association for another client', async () => {
+      const response = await request(app)
+        .post(`/clients/${clientId}/financial-entities`)
+        .set('Authorization', `Bearer ${otherUserToken}`)
+        .send({
+          financialEntityId: santanderId,
+        })
+      expect(response.status).toBe(403)
+    })
+
+    it('should allow ADMIN to create association for any client', async () => {
+      const response = await request(app)
+        .post(`/clients/${clientId}/financial-entities`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          financialEntityId: santanderId,
+          balance: 5000,
+          initialBalance: 5000,
+        })
+      expect(response.status).toBe(201)
     })
   })
 
@@ -124,12 +155,14 @@ describe('Client Financial Entity Association API', () => {
       // First, create an association to update
       const createRes = await request(app)
         .post(`/clients/${clientId}/financial-entities`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({ financialEntityId: santanderId, balance: 5000 })
       const associationId = createRes.body.id
 
       // Now, update it
       const updateResponse = await request(app)
         .put(`/clients/${clientId}/financial-entities/${associationId}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({ balance: 7500 })
 
       expect(updateResponse.status).toBe(204)
@@ -154,19 +187,20 @@ describe('Client Financial Entity Association API', () => {
       // Setup: Crear una vinculación para borrar
       const createRes = await request(app)
         .post(`/clients/${clientId}/financial-entities`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({ financialEntityId: santanderId, balance: 1000 })
       const id = createRes.body.id
 
       // 1. Borrar
-      const deleteRes = await request(app).delete(`/clients/${clientId}/financial-entities/${id}`)
+      const deleteRes = await request(app).delete(`/clients/${clientId}/financial-entities/${id}`).set('Authorization', `Bearer ${userToken}`)
       expect(deleteRes.status).toBe(204)
 
       // 2. Verificar detalle 404
-      const getRes = await request(app).get(`/clients/${clientId}/financial-entities/${id}`)
+      const getRes = await request(app).get(`/clients/${clientId}/financial-entities/${id}`).set('Authorization', `Bearer ${userToken}`)
       expect(getRes.status).toBe(404)
 
       // 3. Verificar que no está en la lista del cliente
-      const listRes = await request(app).get(`/clients/${clientId}/financial-entities`)
+      const listRes = await request(app).get(`/clients/${clientId}/financial-entities`).set('Authorization', `Bearer ${userToken}`)
       const found = listRes.body.find((e: any) => e.id === id)
       expect(found).toBeUndefined()
     })
