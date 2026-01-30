@@ -25,8 +25,8 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(10, 'JWT_SECRET is required and must be secure'),
   
   // Admin Seed
-  ADMIN_EMAIL: z.string().email().default('admin@myfintonic.com'),
-  ADMIN_PASSWORD: z.string().min(8).default('myfintonicAdmin!'),
+  ADMIN_EMAIL: z.string().email(),
+  ADMIN_PASSWORD: z.string().min(8),
   
   // En Producción es obligatorio. En Desarrollo tiene un valor por defecto.
   CORS_ORIGIN: isProduction 
