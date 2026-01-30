@@ -28,10 +28,10 @@ get:
                 financialEntityId:
                   type: string
                   format: uuid
+                financialEntity:
+                  $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
                 balance:
                   type: number
-                financialEntityName:
-                  type: string
 post:
   summary: Vincular nueva entidad
   operationId: createClientFinancialEntity

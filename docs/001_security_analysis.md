@@ -10,6 +10,7 @@
 ### 1.2. Validación de Entrada
 - **DTOs**: Se definen DTOs en la capa de aplicación para estructurar la entrada.
 - **Integridad de Dominio**: Se utiliza `Zod` en `ProductFactory` para asegurar que las entidades de dominio no se crean con datos inválidos o incompletos.
+    - **Validación Polimórfica**: Se impide la actualización de campos que no corresponden al tipo de producto específico (ej. impedir inyectar `interestRate` en una cuenta que no lo soporta), mitigando riesgos de asignación masiva (Mass Assignment).
 - **Tipado Estricto**: TypeScript configurado en modo estricto (`strict: true`) mitiga errores de tipos y nulos.
 
 ### 1.3. Base de Datos

@@ -37,6 +37,11 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
           }
           // Simulate Prisma 'connect' for financialEntity relation
           if (data.financialEntity?.connect) {
+            if (data.financialEntity.connect.name === 'Non Existent Bank') {
+              const error: any = new Error('Record not found')
+              error.code = 'P2025'
+              throw error
+            }
             newEntry.financialEntityId = data.financialEntity.connect.id || 'mock-fe-id'
             newEntry.financialEntity = {
               id: newEntry.financialEntityId,
@@ -91,8 +96,16 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
           }
 
           // Handle financialEntity relation in update
-          if (data.financialEntity?.connectOrCreate?.create) {
-            updated.financialEntity = data.financialEntity.connectOrCreate.create
+          if (data.financialEntity?.connect) {
+            if (data.financialEntity.connect.name === 'Non Existent Bank') {
+              const error: any = new Error('Record not found')
+              error.code = 'P2025'
+              throw error
+            }
+            updated.financialEntity = {
+              id: 'mock-fe-id',
+              name: data.financialEntity.connect.name,
+            }
           }
 
           mockDb[index] = updated
@@ -128,7 +141,6 @@ describe('Financial Products API', () => {
     status: 'ACTIVE',
     clientId: '550e8400-e29b-41d4-a716-446655440000',
     currentBalance: 1000.5,
-    initialBalance: 1000.5,
   }
 
   let productId: string
@@ -208,6 +220,14 @@ describe('Financial Products API', () => {
 
       expect(response.status).toBe(400)
     })
+
+    it('should return 400 if financialEntity does not exist', async () => {
+      const invalidProduct = { ...baseProduct, financialEntity: 'Non Existent Bank' }
+      const response = await request(app).post('/products').send(invalidProduct)
+
+      expect(response.status).toBe(400)
+      expect(response.body.error).toContain("Financial Entity 'Non Existent Bank' not found")
+    })
   })
 
   describe('POST /products (Specific Types)', () => {
@@ -261,11 +281,22 @@ describe('Financial Products API', () => {
       const response = await request(app).get('/products/non-existent-id')
       expect(response.status).toBe(404)
     })
+
+    it('should filter out fields not belonging to the product type', async () => {
+      const response = await request(app).get(`/products/${productId}`)
+      expect(response.status).toBe(200)
+      expect(response.body.type).toBe('CURRENT_ACCOUNT')
+      // Should have specific fields
+      expect(response.body).toHaveProperty('currentBalance')
+      // Should not have fields from other types
+      expect(response.body).not.toHaveProperty('numberOfShares')
+      expect(response.body).not.toHaveProperty('interestPaymentFrequency')
+    })
   })
 
   describe('PUT /products/:id', () => {
     it('should return 204 on successful update', async () => {
-      const updatedProduct = { ...baseProduct, name: 'Updated Name' }
+      const updatedProduct = { name: 'Updated Name' }
       const response = await request(app).put(`/products/${productId}`).send(updatedProduct)
 
       expect(response.status).toBe(204)
@@ -283,6 +314,23 @@ describe('Financial Products API', () => {
       expect(getResponse.body.valueHistory).toHaveLength(1)
       expect(Number(getResponse.body.valueHistory[0].value)).toBe(newBalance)
       expect(Number(getResponse.body.valueHistory[0].previousValue)).toBe(baseProduct.currentBalance)
+    })
+
+    it('should return 400 when trying to update a field not allowed for the product type', async () => {
+      // Trying to update 'numberOfShares' on a CURRENT_ACCOUNT
+      const invalidUpdate = { numberOfShares: 10 }
+      const response = await request(app).put(`/products/${productId}`).send(invalidUpdate)
+
+      expect(response.status).toBe(400)
+      expect(response.body.error).toContain('Validation failed')
+      expect(response.body.error).toContain('numberOfShares')
+    })
+
+    it('should return 400 if updating to a non-existent financialEntity', async () => {
+      const response = await request(app).put(`/products/${productId}`).send({ financialEntity: 'Non Existent Bank' })
+
+      expect(response.status).toBe(400)
+      expect(response.body.error).toContain("Financial Entity 'Non Existent Bank' not found")
     })
   })
 
@@ -302,6 +350,13 @@ describe('Financial Products API', () => {
         .send({ status: 'PAUSED' })
       expect(response.status).toBe(404)
     })
+
+    it('should return 400 if patching with non-existent financialEntity', async () => {
+      const response = await request(app).patch(`/products/${productId}`).send({ financialEntity: 'Non Existent Bank' })
+
+      expect(response.status).toBe(400)
+      expect(response.body.error).toContain("Financial Entity 'Non Existent Bank' not found")
+    })
   })
 
   describe('DELETE /products/:id', () => {
@@ -318,6 +373,124 @@ describe('Financial Products API', () => {
       const listResponse = await request(app).get('/products')
       const found = listResponse.body.find((p: any) => p.id === productId)
       expect(found).toBeUndefined()
+    })
+  })
+
+  describe('Type-specific Validation and Filtering (All Types)', () => {
+    // Helper para crear productos rápidamente
+    const createProduct = async (data: any) => {
+      const res = await request(app).post('/products').send(data)
+      return res.body
+    }
+
+    it('SAVINGS_ACCOUNT: should filter fields and validate updates', async () => {
+      const product = await createProduct({
+        type: 'SAVINGS_ACCOUNT',
+        name: 'Savings',
+        financialEntity: 'Bank',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        currentBalance: 5000,
+        monthlyInterestRate: 0.02
+      })
+
+      // 1. Verificar filtrado en GET (solo campos de Savings)
+      const getRes = await request(app).get(`/products/${product.id}`)
+      expect(getRes.body).toHaveProperty('monthlyInterestRate')
+      expect(getRes.body).not.toHaveProperty('numberOfShares') // Campo de Stocks
+      expect(getRes.body).not.toHaveProperty('transactions') // Campo de CurrentAccount (según mapToDomain actual)
+
+      // 2. Verificar validación en PUT (no permitir campos de otros tipos)
+      const updateRes = await request(app).put(`/products/${product.id}`).send({ numberOfShares: 10 })
+      expect(updateRes.status).toBe(400)
+      expect(updateRes.body.error).toContain('Validation failed')
+    })
+
+    it('FIXED_TERM_DEPOSIT: should filter fields and validate updates', async () => {
+      const product = await createProduct({
+        type: 'FIXED_TERM_DEPOSIT',
+        name: 'Deposit',
+        financialEntity: 'Bank',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        initialBalance: 10000,
+        initialDate: new Date().toISOString(),
+        maturityDate: new Date().toISOString(),
+        annualInterestRate: 0.05,
+        interestPaymentFrequency: 'Annual'
+      })
+
+      const getRes = await request(app).get(`/products/${product.id}`)
+      expect(getRes.body).toHaveProperty('annualInterestRate')
+      expect(getRes.body).toHaveProperty('interestPaymentFrequency')
+      expect(getRes.body).not.toHaveProperty('currentBalance') // Depósitos usan initialBalance
+
+      // Intentar actualizar un campo inválido (currentBalance no existe en Depósitos)
+      const updateRes = await request(app).put(`/products/${product.id}`).send({ currentBalance: 500 })
+      expect(updateRes.status).toBe(400)
+
+      // Intentar actualizar con un valor de enum inválido
+      const updateResEnum = await request(app).put(`/products/${product.id}`).send({ interestPaymentFrequency: 'END' })
+      expect(updateResEnum.status).toBe(400)
+      expect(updateResEnum.body.error).toContain('Validation failed')
+    })
+
+    it('FIXED_TERM_DEPOSIT: should fail creation with invalid interestPaymentFrequency', async () => {
+      const deposit = {
+        type: 'FIXED_TERM_DEPOSIT',
+        name: 'Deposit Invalid Enum',
+        financialEntity: 'Bank',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        initialBalance: 10000,
+        initialDate: new Date().toISOString(),
+        maturityDate: new Date().toISOString(),
+        annualInterestRate: 0.05,
+        interestPaymentFrequency: 'END'
+      }
+      const response = await request(app).post('/products').send(deposit)
+      expect(response.status).toBe(400)
+      expect(response.body.error).toContain('Validation failed')
+    })
+
+    it('INVESTMENT_FUND: should filter fields and validate updates', async () => {
+      const product = await createProduct({
+        type: 'INVESTMENT_FUND',
+        name: 'Fund',
+        financialEntity: 'Bank',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        currentBalance: 20000,
+        numberOfUnits: 10,
+        netAssetValue: 2000
+      })
+
+      const getRes = await request(app).get(`/products/${product.id}`)
+      expect(getRes.body).toHaveProperty('netAssetValue')
+      expect(getRes.body).not.toHaveProperty('annualInterestRate')
+
+      const updateRes = await request(app).put(`/products/${product.id}`).send({ annualInterestRate: 0.05 })
+      expect(updateRes.status).toBe(400)
+    })
+
+    it('STOCKS: should filter fields and validate updates', async () => {
+      const product = await createProduct({
+        type: 'STOCKS',
+        name: 'Apple',
+        financialEntity: 'Broker',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        numberOfShares: 100,
+        unitPurchasePrice: 150,
+        currentMarketPrice: 160
+      })
+
+      const getRes = await request(app).get(`/products/${product.id}`)
+      expect(getRes.body).toHaveProperty('numberOfShares')
+      expect(getRes.body).not.toHaveProperty('monthlyInterestRate')
+
+      const updateRes = await request(app).put(`/products/${product.id}`).send({ monthlyInterestRate: 0.01 })
+      expect(updateRes.status).toBe(400)
     })
   })
 })

@@ -49,6 +49,8 @@ ClientFinancialEntityResponse:
     financialEntityId:
       type: string
       format: uuid
+    financialEntity:
+      $ref: '#/FinancialEntity'
     createdAt:
       type: string
       format: date-time

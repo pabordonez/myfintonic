@@ -115,6 +115,8 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
   - `buying` (Number)
   - `selling` (Number)
 
+> **Nota de Validación**: La API implementa una validación estricta por tipo. Solo se permite enviar y recibir los campos definidos para cada tipo de producto específico. Intentar actualizar un campo ajeno al tipo (ej. `monthlyInterestRate` en `STOCKS`) provocará un error `400 Bad Request`.
+
 ### Estructura JSON de Peticiones (Ejemplos)
 
 A continuación se detallan los esquemas JSON esperados en el cuerpo de las peticiones `POST` y `PUT` para la gestión de productos.Se utiliza un código en el campo `type` para referenciar el tipo de producto.
