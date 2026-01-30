@@ -5,6 +5,7 @@ import { ProductType } from '@domain/types'
 
 export interface IProductFactory {
   create(data: Omit<IFinancialProduct, 'id'>): IFinancialProduct
+  validateUpdate(type: ProductType, data: any): void
 }
 
 const currentAccountSchema = z.object({
@@ -53,13 +54,21 @@ const stocksSchema = z.object({
   ).optional(),
 })
 
-const productSchemas: Record<ProductType, z.ZodType<any>> = {
+const productSchemas: Record<ProductType, z.ZodObject<any, any>> = {
   CURRENT_ACCOUNT: currentAccountSchema,
   SAVINGS_ACCOUNT: savingsAccountSchema,
   FIXED_TERM_DEPOSIT: fixedTermDepositSchema,
   INVESTMENT_FUND: investmentFundSchema,
   STOCKS: stocksSchema,
 }
+
+// Schema for fields that are common to all products and can be updated
+const commonUpdateSchema = z.object({
+  name: z.string().optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'PAUSED', 'EXPIRED']).optional(),
+  financialEntity: z.string().optional(),
+  clientId: z.string().optional(),
+})
 
 export class ProductFactory implements IProductFactory {
   create<IFinancialProductCreate extends IFinancialProduct>(
@@ -78,6 +87,28 @@ export class ProductFactory implements IProductFactory {
       updatedAt: data.updatedAt || now,
       valueHistory: data.valueHistory || [],
     } as unknown as IFinancialProductCreate
+  }
+
+  validateUpdate(type: ProductType, data: any): void {
+    const specificSchema = productSchemas[type]
+    
+    // Create a schema that allows common fields + specific fields (all optional for update)
+    // .strict() ensures no other fields are allowed
+    const updateSchema = commonUpdateSchema
+      .merge(specificSchema ? specificSchema.partial() : z.object({}))
+      .strict()
+
+    const result = updateSchema.safeParse(data)
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(e => {
+        if (e.code === 'unrecognized_keys') {
+          return `Field(s) '${e.keys.join(', ')}' cannot be updated for product type ${type}`
+        }
+        return e.message
+      }).join(', ')
+      throw new Error(`Validation failed: ${errorMessages}`)
+    }
   }
 
   private validate<IFinancialProductValidate extends IFinancialProduct>(

@@ -43,6 +43,9 @@ export class ProductUseCases {
     if (!existingProduct) {
       throw new Error('Product not found')
     }
+
+    this.productFactory.validateUpdate(existingProduct.type, productData)
+
     await this.productRepository.update(id, productData)
   }
 

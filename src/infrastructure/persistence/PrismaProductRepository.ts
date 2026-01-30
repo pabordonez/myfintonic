@@ -19,7 +19,6 @@ export class PrismaProductRepository implements IProductRepository {
   }
 
   async update(id: string, product: Partial<IFinancialProduct>): Promise<void> {
-
     const p = product as any;
     const data: any = {};
 
@@ -27,7 +26,7 @@ export class PrismaProductRepository implements IProductRepository {
     const directFields = [
       'name', 'type', 'status',
       'currentBalance', 'monthlyInterestRate', 'initialBalance', 'initialDate', 'annualInterestRate',
-      'maturityDate', 'interestPaymentFreq', 'numberOfUnits', 'netAssetValue',
+      'maturityDate', 'numberOfUnits', 'netAssetValue',
       'numberOfShares', 'unitPurchasePrice', 'currentMarketPrice'
     ];
 
@@ -36,6 +35,11 @@ export class PrismaProductRepository implements IProductRepository {
         data[field] = p[field];
       }
     });
+
+    // Mapeo manual para campos con nombres diferentes (Dominio vs BD)
+    if (p.interestPaymentFrequency !== undefined) {
+      data.interestPaymentFreq = p.interestPaymentFrequency;
+    }
 
     // 2. Campos especiales (Relaciones y JSON)
     if (p.clientId !== undefined) data.client = { connect: { id: p.clientId } };
@@ -150,7 +154,7 @@ export class PrismaProductRepository implements IProductRepository {
       initialDate: p.initialDate ?? null,
       annualInterestRate: p.annualInterestRate ?? null,
       maturityDate: p.maturityDate ?? null,
-      interestPaymentFreq: p.interestPaymentFreq ?? null,
+      interestPaymentFreq: p.interestPaymentFrequency ?? null,
       numberOfUnits: p.numberOfUnits ?? null,
       netAssetValue: p.netAssetValue ?? null,
       numberOfShares: p.numberOfShares ?? null,
@@ -165,8 +169,9 @@ export class PrismaProductRepository implements IProductRepository {
     // Mapeo de Objeto de Base de Datos (Prisma) -> Entidad de Dominio
     // Aquí reconstruimos el objeto. Si usas clases específicas (CurrentAccount, Stocks),
     // deberías instanciar la clase correcta según prismaProduct.type.
-    
-    const base = {
+
+    // 1. Campos Comunes
+    const base: any = {
       id: prismaProduct.id,
       type: prismaProduct.type,
       name: prismaProduct.name,
@@ -181,26 +186,51 @@ export class PrismaProductRepository implements IProductRepository {
         value: Number(h.value),
         previousValue: h.previousValue ? Number(h.previousValue) : undefined
       })) || [],
-      transactions: prismaProduct.transactions || [],
-      fees: prismaProduct.fees
     };
 
-    // Retornamos un objeto que cumple con la interfaz/clase FinancialProduct
-    // combinando los datos base con los específicos que no sean nulos.
-    return {
-      ...base,
-      currentBalance: prismaProduct.currentBalance,
-      initialBalance: prismaProduct.initialBalance,
-      monthlyInterestRate: prismaProduct.monthlyInterestRate,
-      initialDate: prismaProduct.initialDate,
-      annualInterestRate: prismaProduct.annualInterestRate,
-      maturityDate: prismaProduct.maturityDate,
-      interestPaymentFreq: prismaProduct.interestPaymentFreq,
-      numberOfUnits: prismaProduct.numberOfUnits,
-      netAssetValue: prismaProduct.netAssetValue,
-      numberOfShares: prismaProduct.numberOfShares,
-      unitPurchasePrice: prismaProduct.unitPurchasePrice,
-      currentMarketPrice: prismaProduct.currentMarketPrice,
-    } as unknown as IFinancialProduct;
+    // 2. Campos Específicos según el tipo
+    let specificFields = {};
+
+    switch (prismaProduct.type) {
+      case ProductType.CURRENT_ACCOUNT:
+        specificFields = {
+          currentBalance: prismaProduct.currentBalance,
+          transactions: prismaProduct.transactions || []
+        };
+        break;
+      case ProductType.SAVINGS_ACCOUNT:
+        specificFields = {
+          currentBalance: prismaProduct.currentBalance,
+          monthlyInterestRate: prismaProduct.monthlyInterestRate
+        };
+        break;
+      case ProductType.FIXED_TERM_DEPOSIT:
+        specificFields = {
+          initialBalance: prismaProduct.initialBalance,
+          initialDate: prismaProduct.initialDate,
+          maturityDate: prismaProduct.maturityDate,
+          annualInterestRate: prismaProduct.annualInterestRate,
+          interestPaymentFrequency: prismaProduct.interestPaymentFreq
+        };
+        break;
+      case ProductType.INVESTMENT_FUND:
+        specificFields = {
+          currentBalance: prismaProduct.currentBalance,
+          numberOfUnits: prismaProduct.numberOfUnits,
+          netAssetValue: prismaProduct.netAssetValue,
+          fees: prismaProduct.fees
+        };
+        break;
+      case ProductType.STOCKS:
+        specificFields = {
+          numberOfShares: prismaProduct.numberOfShares,
+          unitPurchasePrice: prismaProduct.unitPurchasePrice,
+          currentMarketPrice: prismaProduct.currentMarketPrice,
+          fees: prismaProduct.fees
+        };
+        break;
+    }
+
+    return { ...base, ...specificFields } as IFinancialProduct;
   }
 }

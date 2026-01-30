@@ -128,7 +128,6 @@ describe('Financial Products API', () => {
     status: 'ACTIVE',
     clientId: '550e8400-e29b-41d4-a716-446655440000',
     currentBalance: 1000.5,
-    initialBalance: 1000.5,
   }
 
   let productId: string
@@ -261,11 +260,22 @@ describe('Financial Products API', () => {
       const response = await request(app).get('/products/non-existent-id')
       expect(response.status).toBe(404)
     })
+
+    it('should filter out fields not belonging to the product type', async () => {
+      const response = await request(app).get(`/products/${productId}`)
+      expect(response.status).toBe(200)
+      expect(response.body.type).toBe('CURRENT_ACCOUNT')
+      // Should have specific fields
+      expect(response.body).toHaveProperty('currentBalance')
+      // Should not have fields from other types
+      expect(response.body).not.toHaveProperty('numberOfShares')
+      expect(response.body).not.toHaveProperty('interestPaymentFrequency')
+    })
   })
 
   describe('PUT /products/:id', () => {
     it('should return 204 on successful update', async () => {
-      const updatedProduct = { ...baseProduct, name: 'Updated Name' }
+      const updatedProduct = { name: 'Updated Name' }
       const response = await request(app).put(`/products/${productId}`).send(updatedProduct)
 
       expect(response.status).toBe(204)
@@ -283,6 +293,16 @@ describe('Financial Products API', () => {
       expect(getResponse.body.valueHistory).toHaveLength(1)
       expect(Number(getResponse.body.valueHistory[0].value)).toBe(newBalance)
       expect(Number(getResponse.body.valueHistory[0].previousValue)).toBe(baseProduct.currentBalance)
+    })
+
+    it('should return 400 when trying to update a field not allowed for the product type', async () => {
+      // Trying to update 'numberOfShares' on a CURRENT_ACCOUNT
+      const invalidUpdate = { numberOfShares: 10 }
+      const response = await request(app).put(`/products/${productId}`).send(invalidUpdate)
+
+      expect(response.status).toBe(400)
+      expect(response.body.error).toContain('Validation failed')
+      expect(response.body.error).toContain('numberOfShares')
     })
   })
 
@@ -318,6 +338,101 @@ describe('Financial Products API', () => {
       const listResponse = await request(app).get('/products')
       const found = listResponse.body.find((p: any) => p.id === productId)
       expect(found).toBeUndefined()
+    })
+  })
+
+  describe('Type-specific Validation and Filtering (All Types)', () => {
+    // Helper para crear productos rápidamente
+    const createProduct = async (data: any) => {
+      const res = await request(app).post('/products').send(data)
+      return res.body
+    }
+
+    it('SAVINGS_ACCOUNT: should filter fields and validate updates', async () => {
+      const product = await createProduct({
+        type: 'SAVINGS_ACCOUNT',
+        name: 'Savings',
+        financialEntity: 'Bank',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        currentBalance: 5000,
+        monthlyInterestRate: 0.02
+      })
+
+      // 1. Verificar filtrado en GET (solo campos de Savings)
+      const getRes = await request(app).get(`/products/${product.id}`)
+      expect(getRes.body).toHaveProperty('monthlyInterestRate')
+      expect(getRes.body).not.toHaveProperty('numberOfShares') // Campo de Stocks
+      expect(getRes.body).not.toHaveProperty('transactions') // Campo de CurrentAccount (según mapToDomain actual)
+
+      // 2. Verificar validación en PUT (no permitir campos de otros tipos)
+      const updateRes = await request(app).put(`/products/${product.id}`).send({ numberOfShares: 10 })
+      expect(updateRes.status).toBe(400)
+      expect(updateRes.body.error).toContain('Validation failed')
+    })
+
+    it('FIXED_TERM_DEPOSIT: should filter fields and validate updates', async () => {
+      const product = await createProduct({
+        type: 'FIXED_TERM_DEPOSIT',
+        name: 'Deposit',
+        financialEntity: 'Bank',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        initialBalance: 10000,
+        initialDate: new Date().toISOString(),
+        maturityDate: new Date().toISOString(),
+        annualInterestRate: 0.05,
+        interestPaymentFrequency: 'Annual'
+      })
+
+      const getRes = await request(app).get(`/products/${product.id}`)
+      expect(getRes.body).toHaveProperty('annualInterestRate')
+      expect(getRes.body).toHaveProperty('interestPaymentFrequency')
+      expect(getRes.body).not.toHaveProperty('currentBalance') // Depósitos usan initialBalance
+
+      // Intentar actualizar un campo inválido (currentBalance no existe en Depósitos)
+      const updateRes = await request(app).put(`/products/${product.id}`).send({ currentBalance: 500 })
+      expect(updateRes.status).toBe(400)
+    })
+
+    it('INVESTMENT_FUND: should filter fields and validate updates', async () => {
+      const product = await createProduct({
+        type: 'INVESTMENT_FUND',
+        name: 'Fund',
+        financialEntity: 'Bank',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        currentBalance: 20000,
+        numberOfUnits: 10,
+        netAssetValue: 2000
+      })
+
+      const getRes = await request(app).get(`/products/${product.id}`)
+      expect(getRes.body).toHaveProperty('netAssetValue')
+      expect(getRes.body).not.toHaveProperty('annualInterestRate')
+
+      const updateRes = await request(app).put(`/products/${product.id}`).send({ annualInterestRate: 0.05 })
+      expect(updateRes.status).toBe(400)
+    })
+
+    it('STOCKS: should filter fields and validate updates', async () => {
+      const product = await createProduct({
+        type: 'STOCKS',
+        name: 'Apple',
+        financialEntity: 'Broker',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        numberOfShares: 100,
+        unitPurchasePrice: 150,
+        currentMarketPrice: 160
+      })
+
+      const getRes = await request(app).get(`/products/${product.id}`)
+      expect(getRes.body).toHaveProperty('numberOfShares')
+      expect(getRes.body).not.toHaveProperty('monthlyInterestRate')
+
+      const updateRes = await request(app).put(`/products/${product.id}`).send({ monthlyInterestRate: 0.01 })
+      expect(updateRes.status).toBe(400)
     })
   })
 })

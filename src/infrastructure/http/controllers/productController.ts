@@ -64,6 +64,8 @@ export class ProductController {
     } catch (error) {
       if (error instanceof Error && error.message === 'Product not found') {
         res.status(404).json({ error: error.message })
+      } else if (error instanceof Error && error.message.startsWith('Validation failed')) {
+        res.status(400).json({ error: error.message })
       } else {
         res.status(400).json({ error: 'Bad Request' })
       }
@@ -77,6 +79,8 @@ export class ProductController {
     } catch (error) {
       if (error instanceof Error && error.message === 'Product not found') {
         res.status(404).json({ error: error.message })
+      } else if (error instanceof Error && error.message.startsWith('Validation failed')) {
+        res.status(400).json({ error: error.message })
       } else {
         res.status(400).json({ error: 'Bad Request' })
       }
