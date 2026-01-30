@@ -39,15 +39,21 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
           }
           // Simulate Prisma 'connect' for financialEntity relation
           if (data.financialEntity?.connect) {
-            if (data.financialEntity.connect.name === 'Non Existent Bank') {
+            const connectedId = data.financialEntity.connect.id
+            if (connectedId === 'non-existent-id') {
               const error: any = new Error('Record not found')
               error.code = 'P2025'
               throw error
             }
-            newEntry.financialEntityId = data.financialEntity.connect.id || 'mock-fe-id'
+            
+            // Resolver nombre basado en el ID simulado
+            let entityName = 'Banco de Pruebas'
+            if (connectedId === 'global-bank-id') entityName = 'Global Bank'
+
+            newEntry.financialEntityId = connectedId || 'mock-fe-id'
             newEntry.financialEntity = {
               id: newEntry.financialEntityId,
-              name: data.financialEntity.connect.name || 'Banco de Pruebas',
+              name: entityName,
             }
           }
           mockDb.push(newEntry)
@@ -99,14 +105,19 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
 
           // Handle financialEntity relation in update
           if (data.financialEntity?.connect) {
-            if (data.financialEntity.connect.name === 'Non Existent Bank') {
+            const connectedId = data.financialEntity.connect.id
+            if (connectedId === 'non-existent-id') {
               const error: any = new Error('Record not found')
               error.code = 'P2025'
               throw error
             }
+
+            let entityName = 'Banco de Pruebas'
+            if (connectedId === 'global-bank-id') entityName = 'Global Bank'
+
             updated.financialEntity = {
-              id: 'mock-fe-id',
-              name: data.financialEntity.connect.name,
+              id: connectedId,
+              name: entityName,
             }
           }
 
@@ -136,10 +147,11 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
 
 describe('Financial Products API', () => {
   // Base test data
+  const mockFeId = 'mock-fe-id'
   const baseProduct = {
     type: 'CURRENT_ACCOUNT',
     name: 'Cuenta Nómina Test',
-    financialEntity: 'Banco de Pruebas',
+    financialEntity: mockFeId, // Ahora enviamos ID, no nombre
     status: 'ACTIVE',
     clientId: '550e8400-e29b-41d4-a716-446655440000',
     currentBalance: 1000.5,
@@ -202,7 +214,7 @@ describe('Financial Products API', () => {
     it('should allow filtering by financialEntity', async () => {
       const otherBankProduct = {
         ...baseProduct,
-        financialEntity: 'Global Bank',
+        financialEntity: 'global-bank-id', // ID específico
         name: 'Global Account',
       }
       await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(otherBankProduct)
@@ -219,7 +231,11 @@ describe('Financial Products API', () => {
       const response = await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(baseProduct)
 
       expect(response.status).toBe(201)
-      expect(response.body).toMatchObject(baseProduct)
+      // La respuesta tendrá el nombre de la entidad (mapeado por dominio), no el ID que enviamos
+      expect(response.body).toMatchObject({
+        ...baseProduct,
+        financialEntity: 'Banco de Pruebas'
+      })
       expect(response.body).toHaveProperty('id')
     })
 
@@ -231,11 +247,11 @@ describe('Financial Products API', () => {
     })
 
     it('should return 400 if financialEntity does not exist', async () => {
-      const invalidProduct = { ...baseProduct, financialEntity: 'Non Existent Bank' }
+      const invalidProduct = { ...baseProduct, financialEntity: 'non-existent-id' }
       const response = await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(invalidProduct)
 
       expect(response.status).toBe(400)
-      expect(response.body.error).toContain("Financial Entity 'Non Existent Bank' not found")
+      expect(response.body.error).toContain("Financial Entity with ID 'non-existent-id' not found")
     })
   })
 
@@ -244,7 +260,7 @@ describe('Financial Products API', () => {
       const deposit = {
         type: 'FIXED_TERM_DEPOSIT',
         name: 'Depósito Test',
-        financialEntity: 'Banco de Pruebas',
+        financialEntity: mockFeId,
         status: 'ACTIVE',
         clientId: '550e8400-e29b-41d4-a716-446655440000',
         initialBalance: 5000,
@@ -262,7 +278,7 @@ describe('Financial Products API', () => {
       const fund = {
         type: 'INVESTMENT_FUND',
         name: 'Fondo Test',
-        financialEntity: 'Banco de Pruebas',
+        financialEntity: mockFeId,
         status: 'ACTIVE',
         clientId: '550e8400-e29b-41d4-a716-446655440000',
         currentBalance: 10500,
@@ -346,10 +362,10 @@ describe('Financial Products API', () => {
     })
 
     it('should return 400 if updating to a non-existent financialEntity', async () => {
-      const response = await request(app).put(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send({ financialEntity: 'Non Existent Bank' })
+      const response = await request(app).put(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send({ financialEntity: 'non-existent-id' })
 
       expect(response.status).toBe(400)
-      expect(response.body.error).toContain("Financial Entity 'Non Existent Bank' not found")
+      expect(response.body.error).toContain("Financial Entity with ID 'non-existent-id' not found")
     })
   })
 
@@ -372,10 +388,10 @@ describe('Financial Products API', () => {
     })
 
     it('should return 400 if patching with non-existent financialEntity', async () => {
-      const response = await request(app).patch(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send({ financialEntity: 'Non Existent Bank' })
+      const response = await request(app).patch(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send({ financialEntity: 'non-existent-id' })
 
       expect(response.status).toBe(400)
-      expect(response.body.error).toContain("Financial Entity 'Non Existent Bank' not found")
+      expect(response.body.error).toContain("Financial Entity with ID 'non-existent-id' not found")
     })
   })
 
@@ -407,7 +423,7 @@ describe('Financial Products API', () => {
       const product = await createProduct({
         type: 'SAVINGS_ACCOUNT',
         name: 'Savings',
-        financialEntity: 'Bank',
+        financialEntity: mockFeId,
         status: 'ACTIVE',
         clientId: '550e8400-e29b-41d4-a716-446655440000',
         currentBalance: 5000,
@@ -430,7 +446,7 @@ describe('Financial Products API', () => {
       const product = await createProduct({
         type: 'FIXED_TERM_DEPOSIT',
         name: 'Deposit',
-        financialEntity: 'Bank',
+        financialEntity: mockFeId,
         status: 'ACTIVE',
         clientId: '550e8400-e29b-41d4-a716-446655440000',
         initialBalance: 10000,
@@ -459,7 +475,7 @@ describe('Financial Products API', () => {
       const deposit = {
         type: 'FIXED_TERM_DEPOSIT',
         name: 'Deposit Invalid Enum',
-        financialEntity: 'Bank',
+        financialEntity: mockFeId,
         status: 'ACTIVE',
         clientId: '550e8400-e29b-41d4-a716-446655440000',
         initialBalance: 10000,
@@ -477,7 +493,7 @@ describe('Financial Products API', () => {
       const product = await createProduct({
         type: 'INVESTMENT_FUND',
         name: 'Fund',
-        financialEntity: 'Bank',
+        financialEntity: mockFeId,
         status: 'ACTIVE',
         clientId: '550e8400-e29b-41d4-a716-446655440000',
         currentBalance: 20000,
@@ -497,7 +513,7 @@ describe('Financial Products API', () => {
       const product = await createProduct({
         type: 'STOCKS',
         name: 'Apple',
-        financialEntity: 'Broker',
+        financialEntity: mockFeId,
         status: 'ACTIVE',
         clientId: '550e8400-e29b-41d4-a716-446655440000',
         numberOfShares: 100,
