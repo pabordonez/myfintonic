@@ -7,15 +7,22 @@ export class PrismaProductRepository implements IProductRepository {
   
   async create(product: IFinancialProduct): Promise<IFinancialProduct> {
     const data = this.mapToPrisma(product);
-    const createdProduct = await prisma.financialProduct.create({
-      data: data,
-      include: {
-        financialEntity: true,
-        valueHistory: true,
-        transactions: true
+    try {
+      const createdProduct = await prisma.financialProduct.create({
+        data: data,
+        include: {
+          financialEntity: true,
+          valueHistory: true,
+          transactions: true
+        }
+      });
+      return this.mapToDomain(createdProduct);
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        throw new Error(`Financial Entity '${product.financialEntity}' not found`);
       }
-    });
-    return this.mapToDomain(createdProduct);
+      throw error;
+    }
   }
 
   async update(id: string, product: Partial<IFinancialProduct>): Promise<void> {
@@ -64,17 +71,21 @@ export class PrismaProductRepository implements IProductRepository {
     // Manejo de la relación con FinancialEntity en update
     if (p.financialEntity !== undefined) {
       data.financialEntity = {
-        connectOrCreate: {
-          where: { name: p.financialEntity },
-          create: { name: p.financialEntity }
-        }
+        connect: { name: p.financialEntity }
       };
     }
     
-    await prisma.financialProduct.update({
-      where: { id },
-      data: data
-    });
+    try {
+      await prisma.financialProduct.update({
+        where: { id },
+        data: data
+      });
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        throw new Error(`Financial Entity '${p.financialEntity}' not found`);
+      }
+      throw error;
+    }
   }
 
   async findById(id: string): Promise<IFinancialProduct | null> {
@@ -140,10 +151,7 @@ export class PrismaProductRepository implements IProductRepository {
       type: product.type as ProductType,
       // Conectamos o creamos la entidad financiera basada en el nombre y el cliente
       financialEntity: {
-        connectOrCreate: {
-          where: { name: product.financialEntity },
-          create: { name: product.financialEntity }
-        }
+        connect: { name: product.financialEntity }
       },
       status: product.status as ProductStatus,
       client: { connect: { id: product.clientId } },

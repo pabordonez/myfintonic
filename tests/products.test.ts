@@ -37,6 +37,11 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
           }
           // Simulate Prisma 'connect' for financialEntity relation
           if (data.financialEntity?.connect) {
+            if (data.financialEntity.connect.name === 'Non Existent Bank') {
+              const error: any = new Error('Record not found')
+              error.code = 'P2025'
+              throw error
+            }
             newEntry.financialEntityId = data.financialEntity.connect.id || 'mock-fe-id'
             newEntry.financialEntity = {
               id: newEntry.financialEntityId,
@@ -91,8 +96,16 @@ vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal 
           }
 
           // Handle financialEntity relation in update
-          if (data.financialEntity?.connectOrCreate?.create) {
-            updated.financialEntity = data.financialEntity.connectOrCreate.create
+          if (data.financialEntity?.connect) {
+            if (data.financialEntity.connect.name === 'Non Existent Bank') {
+              const error: any = new Error('Record not found')
+              error.code = 'P2025'
+              throw error
+            }
+            updated.financialEntity = {
+              id: 'mock-fe-id',
+              name: data.financialEntity.connect.name,
+            }
           }
 
           mockDb[index] = updated
@@ -207,6 +220,14 @@ describe('Financial Products API', () => {
 
       expect(response.status).toBe(400)
     })
+
+    it('should return 400 if financialEntity does not exist', async () => {
+      const invalidProduct = { ...baseProduct, financialEntity: 'Non Existent Bank' }
+      const response = await request(app).post('/products').send(invalidProduct)
+
+      expect(response.status).toBe(400)
+      expect(response.body.error).toContain("Financial Entity 'Non Existent Bank' not found")
+    })
   })
 
   describe('POST /products (Specific Types)', () => {
@@ -304,6 +325,13 @@ describe('Financial Products API', () => {
       expect(response.body.error).toContain('Validation failed')
       expect(response.body.error).toContain('numberOfShares')
     })
+
+    it('should return 400 if updating to a non-existent financialEntity', async () => {
+      const response = await request(app).put(`/products/${productId}`).send({ financialEntity: 'Non Existent Bank' })
+
+      expect(response.status).toBe(400)
+      expect(response.body.error).toContain("Financial Entity 'Non Existent Bank' not found")
+    })
   })
 
   describe('PATCH /products/:id', () => {
@@ -321,6 +349,13 @@ describe('Financial Products API', () => {
         .patch('/products/non-existent-id')
         .send({ status: 'PAUSED' })
       expect(response.status).toBe(404)
+    })
+
+    it('should return 400 if patching with non-existent financialEntity', async () => {
+      const response = await request(app).patch(`/products/${productId}`).send({ financialEntity: 'Non Existent Bank' })
+
+      expect(response.status).toBe(400)
+      expect(response.body.error).toContain("Financial Entity 'Non Existent Bank' not found")
     })
   })
 

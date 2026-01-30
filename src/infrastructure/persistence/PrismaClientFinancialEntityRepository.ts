@@ -66,6 +66,8 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     return this.mapToDomain(entity);
   }
 
+
+  
   async findAll(filters?: Partial<IClientFinancialEntity> & { name?: string }): Promise<IClientFinancialEntity[]> {
     const where: Prisma.ClientFinancialEntityWhereInput = {};
     if (filters?.clientId) where.clientId = filters.clientId;
