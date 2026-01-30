@@ -12,8 +12,10 @@ export class ClientFinancialEntityController {
       }
       const association = await this.useCases.createAssociation(dto)
       res.status(201).json(association)
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('not found')) {
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        res.status(409).json({ error: 'Association already exists' })
+      } else if (error instanceof Error && error.message.includes('not found')) {
         res.status(404).json({ error: error.message })
       } else {
         res.status(500).json({ error: 'Internal Server Error' })

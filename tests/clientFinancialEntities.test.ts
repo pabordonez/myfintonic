@@ -22,6 +22,14 @@ vi.mock('../src/infrastructure/persistence/prisma/client', () => {
       },
       clientFinancialEntity: {
         create: vi.fn().mockImplementation(async ({ data }) => {
+          // Simular restricción de unicidad (P2002)
+          const existing = mockDb.find(e => e.clientId === data.clientId && e.financialEntityId === data.financialEntityId)
+          if (existing) {
+            const error: any = new Error('Unique constraint failed')
+            error.code = 'P2002'
+            throw error
+          }
+
           const catalogEntity = mockCatalog.find(e => e.id === data.financialEntityId)
           
           if (!catalogEntity) {
@@ -43,31 +51,70 @@ vi.mock('../src/infrastructure/persistence/prisma/client', () => {
           return newEntry
         }),
         findUnique: vi.fn().mockImplementation(async ({ where }) => {
-          return mockDb.find(e => e.id === where.id) || null
+          if (where.clientId_financialEntityId) {
+             return mockDb.find(e => 
+               e.clientId === where.clientId_financialEntityId.clientId && 
+               e.financialEntityId === where.clientId_financialEntityId.financialEntityId &&
+               !e.deletedAt
+             ) || null
+          }
+          return mockDb.find(e => e.id === where.id && !e.deletedAt) || null
         }),
         findFirst: vi.fn().mockImplementation(async ({ where }) => {
-          return mockDb.find(p => p.id === where.id) || null
+          if (where.clientId && where.financialEntityId) {
+            return mockDb.find(e => 
+              e.clientId === where.clientId && 
+              e.financialEntityId === where.financialEntityId && 
+              !e.deletedAt
+            ) || null
+          }
+          return mockDb.find(p => p.id === where.id && !p.deletedAt) || null
         }),
         findMany: vi.fn().mockImplementation(async ({ where }) => {
-          return mockDb.filter(e => e.clientId === where.clientId)
+          return mockDb.filter(e => e.clientId === where.clientId && !e.deletedAt)
         }),
         update: vi.fn().mockImplementation(async ({ where, data }) => {
-          const index = mockDb.findIndex(e => e.id === where.id)
+          let index = -1
+          if (where.id) {
+            index = mockDb.findIndex(e => e.id === where.id)
+          } else if (where.clientId_financialEntityId) {
+            // Soporte para búsqueda por clave compuesta (usado en upsert/restore)
+            index = mockDb.findIndex(e => 
+              e.clientId === where.clientId_financialEntityId.clientId && 
+              e.financialEntityId === where.clientId_financialEntityId.financialEntityId
+            )
+          }
+
           if (index === -1) throw new Error('Record not found')
 
           const current = mockDb[index]
           const cleanData = { ...data }
-          delete cleanData.valueHistory
+          
+          // Simular creación de histórico anidado
+          if (cleanData.valueHistory?.create) {
+            if (!current.valueHistory) current.valueHistory = []
+            current.valueHistory.push({
+              id: `vh-${Math.random()}`,
+              ...cleanData.valueHistory.create,
+              date: cleanData.valueHistory.create.date || new Date()
+            })
+            delete cleanData.valueHistory
+          }
 
           const updated = { ...current, ...cleanData }
+          
+          // Manejo explícito de restauración (deletedAt: null)
+          if (data.deletedAt === null) updated.deletedAt = null
+
           mockDb[index] = updated
           return updated
         }),
         delete: vi.fn().mockImplementation(async ({ where }) => {
           const index = mockDb.findIndex(e => e.id === where.id)
           if (index === -1) throw new Error('Record not found')
-          const deleted = mockDb.splice(index, 1)
-          return deleted[0]
+          // Simular Soft Delete
+          mockDb[index].deletedAt = new Date()
+          return mockDb[index]
         }),
       },
       $disconnect: vi.fn(),
@@ -115,6 +162,23 @@ describe('Client Financial Entity Association API', () => {
       expect(response.body.initialBalance).toBe(5000)
     })
 
+    it('should return 409 if association already exists and is ACTIVE', async () => {
+      // 1. Crear primera vez
+      await request(app)
+        .post(`/clients/${clientId}/financial-entities`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ financialEntityId: santanderId, balance: 5000 })
+
+      // 2. Intentar crear de nuevo (debe fallar)
+      const response = await request(app)
+        .post(`/clients/${clientId}/financial-entities`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ financialEntityId: santanderId, balance: 1000 })
+
+      expect(response.status).toBe(409)
+      expect(response.body.error).toBe('Association already exists')
+    })
+
     it('should return 404 if the financial entity does not exist in catalog', async () => {
       const response = await request(app)
         .post(`/clients/${clientId}/financial-entities`)
@@ -147,6 +211,33 @@ describe('Client Financial Entity Association API', () => {
           initialBalance: 5000,
         })
       expect(response.status).toBe(201)
+    })
+
+    it('should restore (reactivate) a deleted association if created again', async () => {
+      // 1. Crear
+      const createRes = await request(app)
+        .post(`/clients/${clientId}/financial-entities`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ financialEntityId: santanderId, balance: 1000 })
+      const id = createRes.body.id
+
+      // 2. Borrar (Soft Delete)
+      await request(app).delete(`/clients/${clientId}/financial-entities/${id}`).set('Authorization', `Bearer ${userToken}`)
+      
+      // 3. Crear de nuevo (Debe restaurar)
+      const response = await request(app)
+        .post(`/clients/${clientId}/financial-entities`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ financialEntityId: santanderId, balance: 2000 })
+
+      expect(response.status).toBe(201)
+      expect(response.body.id).toBe(id) // Debe ser el mismo ID recuperado
+      expect(response.body.balance).toBe(2000) // Saldo actualizado
+      
+      // Verificar en "BD" que ya no está borrado
+      const inDb = mockDb.find(e => e.id === id)
+      expect(inDb.deletedAt).toBeNull()
+      expect(Number(inDb.balance)).toBe(2000)
     })
   })
 

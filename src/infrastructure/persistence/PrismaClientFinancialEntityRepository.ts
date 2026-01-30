@@ -7,28 +7,85 @@ import { Prisma } from '@prisma/client';
 export class PrismaClientFinancialEntityRepository implements IClientFinancialEntityRepository {
   
   async create(dto: CreateClientFinancialEntityDto): Promise<IClientFinancialEntity> {
-    const created = await prisma.clientFinancialEntity.create({
-      data: {
+    try {
+      // Construimos el objeto data dinámicamente para evitar pasar 'undefined' en relaciones
+      const data: any = {
         clientId: dto.clientId,
         financialEntityId: dto.financialEntityId,
         balance: (dto.balance !== null && dto.balance !== undefined) ? new Prisma.Decimal(dto.balance) : null,
         initialBalance: (dto.initialBalance !== null && dto.initialBalance !== undefined) ? new Prisma.Decimal(dto.initialBalance) : ((dto.balance !== null && dto.balance !== undefined) ? new Prisma.Decimal(dto.balance) : null),
-        // Crear histórico inicial si hay balance
-        valueHistory: (dto.balance !== null && dto.balance !== undefined) ? {
+      };
+
+      if (dto.balance !== null && dto.balance !== undefined) {
+        data.valueHistory = {
           create: {
             date: new Date(),
             value: new Prisma.Decimal(dto.balance),
-            previousValue: null
           }
-        } : undefined
-      },
-      include: { 
-        financialEntity: true,        
-        valueHistory: true
+        };
       }
-    });
 
-    return this.mapToDomain(created);
+      const created = await prisma.clientFinancialEntity.create({
+        data: data,
+        include: { 
+          financialEntity: true,        
+          valueHistory: true
+        }
+      });
+
+      return this.mapToDomain(created);
+    } catch (error: any) {
+      // Si ya existe (activo o borrado), lo reactivamos y actualizamos
+      if (error.code === 'P2002') {
+
+        // 1. Verificar si existe y está ACTIVO
+        // Usamos findFirst para evitar problemas con la extensión soft-delete y claves compuestas
+        const existingActive = await prisma.clientFinancialEntity.findFirst({
+          where: {
+            clientId: dto.clientId,
+            financialEntityId: dto.financialEntityId
+          }
+        });
+
+
+
+        if (existingActive) throw error; // Está activo -> Dejar que falle con 409
+
+        // 2. Si llegamos aquí, existe pero está borrado -> RESTAURAR
+        const updateData: Prisma.ClientFinancialEntityUpdateInput = {
+          deletedAt: null
+        };
+
+        if (dto.balance !== null && dto.balance !== undefined) {
+          updateData.balance = new Prisma.Decimal(dto.balance);
+          updateData.valueHistory = {
+            create: {
+              date: new Date(),
+              value: new Prisma.Decimal(dto.balance)
+            }
+          };
+        }
+
+
+        const updated = await prisma.clientFinancialEntity.update({
+          where: {
+            clientId_financialEntityId: {
+              clientId: dto.clientId,
+              financialEntityId: dto.financialEntityId
+            }
+          },
+          data: updateData,
+          include: { 
+            financialEntity: true,        
+            valueHistory: true
+          }
+        });
+
+
+        return this.mapToDomain(updated);
+      }
+      throw error;
+    }
   }
 
   async update(id: string, entity: Partial<IClientFinancialEntity>): Promise<void> {
