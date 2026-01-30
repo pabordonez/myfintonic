@@ -19,7 +19,7 @@ export class PrismaProductRepository implements IProductRepository {
       return this.mapToDomain(createdProduct);
     } catch (error: any) {
       if (error.code === 'P2025') {
-        throw new Error(`Financial Entity '${product.financialEntity}' not found`);
+        throw new Error(`Financial Entity with ID '${product.financialEntity}' not found`);
       }
       throw error;
     }
@@ -71,7 +71,7 @@ export class PrismaProductRepository implements IProductRepository {
     // Manejo de la relación con FinancialEntity en update
     if (p.financialEntity !== undefined) {
       data.financialEntity = {
-        connect: { name: p.financialEntity }
+        connect: { id: p.financialEntity }
       };
     }
     
@@ -82,7 +82,7 @@ export class PrismaProductRepository implements IProductRepository {
       });
     } catch (error: any) {
       if (error.code === 'P2025') {
-        throw new Error(`Financial Entity '${p.financialEntity}' not found`);
+        throw new Error(`Financial Entity with ID '${p.financialEntity}' not found`);
       }
       throw error;
     }
@@ -150,9 +150,9 @@ export class PrismaProductRepository implements IProductRepository {
       id: product.id,
       name: product.name,
       type: product.type as ProductType,
-      // Conectamos o creamos la entidad financiera basada en el nombre y el cliente
+      // Conectamos la entidad financiera basada en el ID
       financialEntity: {
-        connect: { name: product.financialEntity }
+        connect: { id: product.financialEntity }
       },
       status: product.status as ProductStatus,
       client: { connect: { id: product.clientId } },
