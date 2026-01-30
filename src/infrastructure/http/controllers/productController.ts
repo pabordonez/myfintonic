@@ -11,6 +11,8 @@ export class ProductController {
     } catch (error) {
       if (error instanceof Error && error.message === 'Missing required fields') {
         res.status(400).json({ error: error.message })
+      } else if (error instanceof Error && error.message.startsWith('Validation failed')) {
+        res.status(400).json({ error: error.message })
       } else {
         res.status(500).json({ error: 'Internal Server Error' })
       }

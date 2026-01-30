@@ -393,6 +393,29 @@ describe('Financial Products API', () => {
       // Intentar actualizar un campo inválido (currentBalance no existe en Depósitos)
       const updateRes = await request(app).put(`/products/${product.id}`).send({ currentBalance: 500 })
       expect(updateRes.status).toBe(400)
+
+      // Intentar actualizar con un valor de enum inválido
+      const updateResEnum = await request(app).put(`/products/${product.id}`).send({ interestPaymentFrequency: 'END' })
+      expect(updateResEnum.status).toBe(400)
+      expect(updateResEnum.body.error).toContain('Validation failed')
+    })
+
+    it('FIXED_TERM_DEPOSIT: should fail creation with invalid interestPaymentFrequency', async () => {
+      const deposit = {
+        type: 'FIXED_TERM_DEPOSIT',
+        name: 'Deposit Invalid Enum',
+        financialEntity: 'Bank',
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        initialBalance: 10000,
+        initialDate: new Date().toISOString(),
+        maturityDate: new Date().toISOString(),
+        annualInterestRate: 0.05,
+        interestPaymentFrequency: 'END'
+      }
+      const response = await request(app).post('/products').send(deposit)
+      expect(response.status).toBe(400)
+      expect(response.body.error).toContain('Validation failed')
     })
 
     it('INVESTMENT_FUND: should filter fields and validate updates', async () => {
