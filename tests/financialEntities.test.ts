@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
 import { app } from '../src/app'
+import jwt from 'jsonwebtoken'
+import { env } from '../src/config/env'
 
 // 1. Hoisted variable to simulate the catalog in-memory
 const { mockCatalog } = vi.hoisted(() => ({
@@ -48,17 +50,25 @@ describe('Financial Entities Catalog API', () => {
   }
 
   let entityId: string
+  const adminToken = jwt.sign({ id: 'admin', role: 'ADMIN' }, env.JWT_SECRET)
+  const userToken = jwt.sign({ id: 'user', role: 'USER' }, env.JWT_SECRET)
 
   beforeEach(async () => {
     mockCatalog.length = 0
-    const response = await request(app).post('/financial-entities').send(baseEntity)
+    const response = await request(app)
+      .post('/financial-entities')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send(baseEntity)
     entityId = response.body?.id
   })
 
   describe('POST /financial-entities', () => {
     it('should create a new financial entity in the catalog', async () => {
       const newEntity = { ...baseEntity, name: 'BBVA' }
-      const response = await request(app).post('/financial-entities').send(newEntity)
+      const response = await request(app)
+        .post('/financial-entities')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(newEntity)
       expect(response.status).toBe(201)
       expect(response.body.name).toBe('BBVA')
     })
@@ -66,7 +76,9 @@ describe('Financial Entities Catalog API', () => {
 
   describe('GET /financial-entities', () => {
     it('should return all entities from the catalog', async () => {
-      const response = await request(app).get('/financial-entities')
+      const response = await request(app)
+        .get('/financial-entities')
+        .set('Authorization', `Bearer ${userToken}`)
       expect(response.status).toBe(200)
       expect(response.body.length).toBeGreaterThan(0)
       expect(response.body[0]).toHaveProperty('name', 'Banco Santander')
@@ -76,15 +88,21 @@ describe('Financial Entities Catalog API', () => {
   describe('DELETE /financial-entities/:id', () => {
     it('should delete an entity and ensure it does not appear in queries', async () => {
       // 1. Borrar
-      const response = await request(app).delete(`/financial-entities/${entityId}`)
+      const response = await request(app)
+        .delete(`/financial-entities/${entityId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
       expect(response.status).toBe(204)
 
       // 2. Verificar que ya no aparece en el detalle (404)
-      const getResponse = await request(app).get(`/financial-entities/${entityId}`)
+      const getResponse = await request(app)
+        .get(`/financial-entities/${entityId}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(getResponse.status).toBe(404)
 
       // 3. Verificar que ya no aparece en el listado
-      const listResponse = await request(app).get('/financial-entities')
+      const listResponse = await request(app)
+        .get('/financial-entities')
+        .set('Authorization', `Bearer ${userToken}`)
       const found = listResponse.body.find((e: any) => e.id === entityId)
       expect(found).toBeUndefined()
     })
