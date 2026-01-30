@@ -36,6 +36,8 @@ RegisterRequest:
   required:
     - email
     - password
+    - firstName
+    - lastName
   properties:
     email:
       type: string

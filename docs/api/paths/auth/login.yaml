@@ -3,6 +3,7 @@ post:
     - Auth
   summary: Iniciar sesión
   description: Autentica al usuario y devuelve un token JWT.
+  security: []
   requestBody:
     required: true
     content:

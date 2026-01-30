@@ -26,6 +26,12 @@
 - **Husky (Git Hooks)**: Configurado para ejecutar linter y tests antes de cada commit, actuando como primera barrera de defensa.
 - **ESLint**: Configurado con reglas de TypeScript para detectar patrones de código problemáticos.
 
+### 1.6. Autenticación y Autorización
+- **JWT**: Implementado para gestión de sesiones stateless.
+- **Bcrypt**: Hashing de contraseñas antes de persistir en base de datos.
+- **RBAC**: Control de acceso basado en roles (`ADMIN`, `USER`).
+- **Ownership**: Middleware para asegurar que los usuarios solo acceden a sus propios recursos.
+
 ## 2. Estrategia de Seguridad Futura (Snyk)
 
 Se planea la integración de **Snyk** para cubrir las siguientes áreas:

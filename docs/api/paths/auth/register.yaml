@@ -3,6 +3,7 @@ post:
     - Auth
   summary: Registrar nuevo usuario
   description: Crea una cuenta de usuario con rol USER.
+  security: []
   requestBody:
     required: true
     content:

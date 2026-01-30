@@ -21,6 +21,9 @@ erDiagram
         string firstName
         string lastName
         string nickname
+        string email "Unique"
+        string password "Hash"
+        enum role "ADMIN, USER"
         datetime createdAt
         datetime updatedAt
         datetime deletedAt "Nullable"
@@ -121,6 +124,9 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 | `firstName` | VARCHAR(191) | Nombre del cliente.                         |
 | `lastName`  | VARCHAR(191) | Apellidos del cliente.                      |
 | `nickname`  | VARCHAR(191) | Apodo o nombre de usuario para mostrar.     |
+| `email`     | VARCHAR(191) | Correo electrónico único.                   |
+| `password`  | VARCHAR(191) | Contraseña hasheada.                        |
+| `role`      | ENUM         | Rol del usuario: `ADMIN`, `USER`.           |
 | `deletedAt` | DATETIME     | Fecha de borrado lógico (si es NULL, está activo). |
 
 ### Tabla `FinancialEntity`
