@@ -95,6 +95,7 @@ Para la entidad principal `FinancialProduct`, hemos optado por una estrategia de
   - **Rendimiento en Dashboard**: La consulta más frecuente es "obtener todos los activos de un usuario para calcular su patrimonio". Con esta estrategia, esto es un simple `SELECT * FROM FinancialProduct WHERE clientId = ?`, evitando múltiples `JOINs` costosos.
   - **Simplicidad**: Facilita la paginación y el ordenamiento global de productos.
 - **Implementación**: Los campos específicos de cada producto (ej. `numberOfShares` para acciones) son columnas `NULLABLE`. Si el producto es una Cuenta Corriente, `numberOfShares` será `NULL`.
+- **Integridad de Aplicación**: Aunque la tabla física permite almacenar cualquier combinación de columnas, la capa de dominio aplica un **filtrado estricto** y validación (Zod) para asegurar que solo se persistan y expongan los campos pertinentes al `type` del producto, evitando inconsistencias lógicas.
 
 ### 3.2. Uso de JSON para Estructuras Flexibles
 
