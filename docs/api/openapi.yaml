@@ -8,6 +8,8 @@ servers:
     description: Servidor Principal
 
 tags:
+  - name: Auth
+    description: Autenticación y Registro de usuarios.
   - name: Financial Products
     description: Operaciones generales sobre productos financieros (CRUD e Histórico).
   - name: Investment Funds
@@ -31,6 +33,12 @@ security:
 paths:
   /health:
     $ref: 'paths/health.yaml'
+
+  /auth/register:
+    $ref: './paths/auth/register.yaml'
+
+  /auth/login:
+    $ref: './paths/auth/login.yaml'
 
   /products:
     $ref: './paths/products/list.yaml'
