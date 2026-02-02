@@ -74,4 +74,19 @@ describe('ValueHistoryList', () => {
     // Should NOT render the item with null previousValue
     expect(screen.queryByText('01/09/2023')).not.toBeInTheDocument()
   })
+
+  it('calculates and displays total profitability based on initialBalance', () => {
+    const initialBalance = 1000
+    // Latest value is 1100 (first in sorted list)
+    // Profitability = ((1100 - 1000) / 1000) * 100 = 10%
+    render(<ValueHistoryList history={mockHistory} initialBalance={initialBalance} />)
+
+    // Check for Total badge
+    const totalBadge = screen.getByText((content, element) => {
+      return (
+        (element?.textContent?.includes('Total: 10.00%') && element?.className.includes('text-green-800')) ?? false
+      )
+    })
+    expect(totalBadge).toBeInTheDocument()
+  })
 })

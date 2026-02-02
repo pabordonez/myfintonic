@@ -22,6 +22,7 @@ export const ClientFinancialEntityFormPage = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [valueHistory, setValueHistory] = useState<ValueHistory[]>([])
+  const [initialBalance, setInitialBalance] = useState<number | undefined>(undefined)
 
   const {
     register,
@@ -57,6 +58,9 @@ export const ClientFinancialEntityFormPage = () => {
           setValue('balance', assocRes.data.balance)
           if (assocRes.data.valueHistory) {
             setValueHistory(assocRes.data.valueHistory)
+          }
+          if (assocRes.data.initialBalance !== undefined) {
+            setInitialBalance(assocRes.data.initialBalance)
           }
         }
       } catch (err) {
@@ -169,7 +173,7 @@ export const ClientFinancialEntityFormPage = () => {
       </div>
 
       {isEditMode && valueHistory.length > 0 && (
-        <ValueHistoryList history={valueHistory} />
+        <ValueHistoryList history={valueHistory} initialBalance={initialBalance} />
       )}
     </div>
   )

@@ -8,9 +8,10 @@ export interface ValueHistory {
 
 interface ValueHistoryListProps {
   history: ValueHistory[]
+  initialBalance?: number
 }
 
-export const ValueHistoryList = ({ history }: ValueHistoryListProps) => {
+export const ValueHistoryList = ({ history, initialBalance }: ValueHistoryListProps) => {
   // Ordenar por fecha descendente (más reciente primero) y tomar los últimos 10
   const sortedHistory = [...history]
     .filter((item) => item.previousValue != null)
@@ -47,13 +48,35 @@ export const ValueHistoryList = ({ history }: ValueHistoryListProps) => {
 
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-      <div className="px-4 py-5 sm:px-6">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">
-          Histórico de Valoraciones
-        </h3>
-        <p className="mt-1 max-w-2xl text-sm text-gray-500">
-          Últimos 10 movimientos registrados.
-        </p>
+      <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+          <h3 className="text-lg leading-6 font-medium text-gray-900">
+            Histórico de Valoraciones
+          </h3>
+          <p className="mt-1 max-w-2xl text-sm text-gray-500">
+            Últimos 10 movimientos registrados.
+          </p>
+        </div>
+        {initialBalance !== undefined && initialBalance !== 0 && (
+          <div
+            className={`flex items-center px-3 py-1 rounded-full text-sm font-bold ${
+              ((sortedHistory[0].value - initialBalance) / initialBalance) * 100 > 0
+                ? 'bg-green-100 text-green-800'
+                : ((sortedHistory[0].value - initialBalance) / initialBalance) * 100 < 0
+                ? 'bg-red-100 text-red-800'
+                : 'bg-gray-100 text-gray-800'
+            }`}
+          >
+            {((sortedHistory[0].value - initialBalance) / initialBalance) * 100 > 0 ? (
+              <ArrowUp className="w-4 h-4 mr-1" />
+            ) : ((sortedHistory[0].value - initialBalance) / initialBalance) * 100 < 0 ? (
+              <ArrowDown className="w-4 h-4 mr-1" />
+            ) : (
+              <Minus className="w-4 h-4 mr-1" />
+            )}
+            Total: {Math.abs(((sortedHistory[0].value - initialBalance) / initialBalance) * 100).toFixed(2)}%
+          </div>
+        )}
       </div>
       <div className="border-t border-gray-200">
         <ul className="divide-y divide-gray-200">
