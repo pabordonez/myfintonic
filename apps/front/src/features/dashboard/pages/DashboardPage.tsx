@@ -44,6 +44,9 @@ export const DashboardPage = () => {
     fetchData()
   }, [user, token])
 
+  // Calcular el balance total
+  const totalBalance = items.reduce((acc, item) => acc + (Number(item.balance) || 0), 0)
+
   if (!user) return null
 
   return (
@@ -70,7 +73,8 @@ export const DashboardPage = () => {
       ) : error ? (
         <div className="bg-red-50 p-4 rounded-md text-red-700">{error}</div>
       ) : (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <>
+          <div className="bg-white shadow overflow-hidden sm:rounded-md">
           <ul className="divide-y divide-gray-200">
             {items.length === 0 && (
               <li className="px-4 py-4 sm:px-6 text-gray-500 text-center">
@@ -108,7 +112,23 @@ export const DashboardPage = () => {
               </li>
             ))}
           </ul>
-        </div>
+          </div>
+          {user.role === 'USER' && (
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6 text-right">
+                <dt className="text-sm font-medium text-gray-500 truncate">
+                  Balance Total
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold text-indigo-600">
+                  {new Intl.NumberFormat('es-ES', {
+                    style: 'currency',
+                    currency: 'EUR',
+                  }).format(totalBalance)}
+                </dd>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

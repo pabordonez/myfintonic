@@ -31,7 +31,7 @@ export const Navbar = () => {
         <div className="flex items-center gap-8">
           {/* Logo */}
           <Link
-            to="/"
+            to="/dashboard"
             className="text-xl font-bold text-indigo-600 flex items-center gap-2"
           >
             <span className="hidden sm:inline">MyFintonic</span>

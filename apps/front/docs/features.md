@@ -125,3 +125,7 @@ Crear ClientFinancialEntityFormPage.test.tsx simulando la carga del catálogo, e
 Actualizar DashboardPage.test.tsx para verificar que el botón de creación aparece solo para USER y que la navegación funciona.
 Routing: Añadir las rutas necesarias en App.tsx.
 UI: Mantener consistencia con Tailwind CSS.
+
+
+--------------
+el en formulario de Viculacion de cliente y quiero hacer un componente visual que muestre el historico de valores pero solo los 10 ultimos, que salga fuera del propio formulario y se vea la fecha de la actualizacion, el valor que tenia previo previousValue, el value y el porcentaje de diferencia de los dos valores

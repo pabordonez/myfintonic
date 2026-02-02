@@ -65,7 +65,7 @@ describe('DashboardPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Banco Santander')).toBeInTheDocument()
       // Check for currency formatting (partial match due to potential locale differences)
-      expect(screen.getByText(/1\.?500,50\s*€/)).toBeInTheDocument()
+      expect(screen.getAllByText(/1\.?500,50\s*€/)[0]).toBeInTheDocument()
     })
 
     expect(axios.get).toHaveBeenCalledWith(
