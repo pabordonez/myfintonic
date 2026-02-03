@@ -45,6 +45,8 @@ const stocksSchema = z.object({
   numberOfShares: z.number({ required_error: 'Missing required field: numberOfShares' }),
   unitPurchasePrice: z.number({ required_error: 'Missing required field: unitPurchasePrice' }),
   currentMarketPrice: z.number({ required_error: 'Missing required field: currentMarketPrice' }),
+  currentBalance: z.number({ required_error: 'Missing required field: currentBalance' }).optional(),
+  initialBalance: z.number({ required_error: 'Missing required field: initialBalance' }),
   fees: z.object(
     {
       buying: z.number(),
@@ -120,7 +122,7 @@ export class ProductFactory implements IProductFactory {
       const result = schema.safeParse(data)
       if (!result.success) {
         const errorMessages = result.error.errors.map(e => e.message).join(', ')
-        throw new Error(`Validation failed: ${errorMessages}`)
+        throw new Error(`Validation failed: ${errorMessages} ${JSON.stringify(data)}`)
       }
     }
   }

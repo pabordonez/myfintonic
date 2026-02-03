@@ -240,6 +240,8 @@ export class PrismaProductRepository implements IProductRepository {
           numberOfShares: prismaProduct.numberOfShares,
           unitPurchasePrice: prismaProduct.unitPurchasePrice,
           currentMarketPrice: prismaProduct.currentMarketPrice,
+          currentBalance: prismaProduct.currentBalance,
+          initialBalance: prismaProduct.initialBalance,
           fees: prismaProduct.fees
         };
         break;

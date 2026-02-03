@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import { productService } from '../services/product.service'
@@ -25,12 +25,26 @@ const getStatusColor = (status: string) => {
   }
 }
 
+type SortDirection = 'asc' | 'desc' | null
+
+interface SortConfig {
+  key: string | null
+  direction: SortDirection
+}
+
 export const ProductsPage = () => {
   const navigate = useNavigate()
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const token = localStorage.getItem('token')
+
+  // Estados de Filtros y Ordenación
+  const [filterName, setFilterName] = useState('')
+  const [filterType, setFilterType] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+  const [filterEntities, setFilterEntities] = useState<string[]>([])
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: null })
 
   useEffect(() => {
     if (!token) {
@@ -70,6 +84,86 @@ export const ProductsPage = () => {
     }
   }
 
+  // --- Lógica de Filtrado y Ordenación (Memoizada) ---
+
+  // 1. Obtener lista única de entidades para el filtro
+  const uniqueEntities = useMemo(() => {
+    const names = new Set(data.map((d) => d.financialEntityName).filter(Boolean))
+    return Array.from(names).sort()
+  }, [data])
+
+  // 2. Procesar datos (Filtrar + Ordenar)
+  const processedData = useMemo(() => {
+    let result = [...data]
+
+    // Filtros
+    if (filterName) {
+      result = result.filter((item) =>
+        item.name.toLowerCase().includes(filterName.toLowerCase())
+      )
+    }
+    if (filterType) {
+      result = result.filter((item) => item.type === filterType)
+    }
+    if (filterStatus) {
+      result = result.filter((item) => item.status === filterStatus)
+    }
+    if (filterEntities.length > 0) {
+      result = result.filter((item) =>
+        filterEntities.includes(item.financialEntityName)
+      )
+    }
+
+    // Ordenación
+    if (sortConfig.key && sortConfig.direction) {
+      result.sort((a, b) => {
+        let valA, valB
+
+        if (sortConfig.key === 'balance') {
+          valA = a.currentBalance ?? a.initialBalance ?? 0
+          valB = b.currentBalance ?? b.initialBalance ?? 0
+        } else {
+          valA = a[sortConfig.key!]?.toString().toLowerCase() ?? ''
+          valB = b[sortConfig.key!]?.toString().toLowerCase() ?? ''
+        }
+
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1
+        return 0
+      })
+    }
+
+    return result
+  }, [data, filterName, filterType, filterStatus, filterEntities, sortConfig])
+
+  // Handlers
+  const handleSort = (key: string) => {
+    let direction: SortDirection = 'asc'
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    } else if (sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = null
+    }
+    setSortConfig({ key: direction ? key : null, direction })
+  }
+
+  const clearFilters = () => {
+    setFilterName('')
+    setFilterType('')
+    setFilterStatus('')
+    setFilterEntities([])
+    setSortConfig({ key: null, direction: null })
+  }
+
+  const renderSortIcon = (key: string) => {
+    if (sortConfig.key !== key) return <span className="text-gray-300 ml-1 text-xs">↕</span>
+    return (
+      <span className="text-blue-600 ml-1 text-xs">
+        {sortConfig.direction === 'asc' ? '▲' : '▼'}
+      </span>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -100,30 +194,130 @@ export const ProductsPage = () => {
         </div>
       )}
 
+      {/* --- Barra de Filtros --- */}
+      <div className="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          {/* Búsqueda por Nombre */}
+          <div>
+            <label htmlFor="filter-name" className="block text-xs font-semibold text-gray-500 uppercase mb-1">Buscar</label>
+            <input
+              id="filter-name"
+              type="text"
+              placeholder="Nombre..."
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              value={filterName}
+              onChange={(e) => setFilterName(e.target.value)}
+            />
+          </div>
+
+          {/* Filtro Entidad (Múltiple) */}
+          <div>
+            <label htmlFor="filter-entities" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+              Entidad (Ctrl+Click)
+            </label>
+            <select
+              id="filter-entities"
+              multiple
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-[42px]"
+              value={filterEntities}
+              onChange={(e) =>
+                setFilterEntities(
+                  Array.from(e.target.selectedOptions, (option) => option.value)
+                )
+              }
+            >
+              {uniqueEntities.map((entity) => (
+                <option key={entity} value={entity}>
+                  {entity}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Filtro Tipo */}
+          <div>
+            <label htmlFor="filter-type" className="block text-xs font-semibold text-gray-500 uppercase mb-1">Tipo</label>
+            <select
+              id="filter-type"
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white h-[42px]"
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {Object.entries(productTypes).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Filtro Estado */}
+          <div>
+            <label htmlFor="filter-status" className="block text-xs font-semibold text-gray-500 uppercase mb-1">Estado</label>
+            <select
+              id="filter-status"
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white h-[42px]"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="">Todos</option>
+              <option value="ACTIVE">Activo</option>
+              <option value="INACTIVE">Inactivo</option>
+              <option value="PAUSED">Pausado</option>
+              <option value="EXPIRED">Expirado</option>
+            </select>
+          </div>
+
+          {/* Botón Limpiar */}
+          <button
+            onClick={clearFilters}
+            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium py-2 px-4 rounded border border-gray-300 transition-colors text-sm h-[42px]"
+          >
+            Limpiar Filtros
+          </button>
+        </div>
+      </div>
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        {data.length === 0 ? (
+        {processedData.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
-            No hay productos disponibles.
+            No se encontraron productos con los filtros actuales.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nombre
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center">Nombre {renderSortIcon('name')}</div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Entidad
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    onClick={() => handleSort('financialEntityName')}
+                  >
+                    <div className="flex items-center">Entidad {renderSortIcon('financialEntityName')}</div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tipo
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    onClick={() => handleSort('type')}
+                  >
+                    <div className="flex items-center">Tipo {renderSortIcon('type')}</div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Balance
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    onClick={() => handleSort('balance')}
+                  >
+                    <div className="flex items-center">Balance {renderSortIcon('balance')}</div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    onClick={() => handleSort('status')}
+                  >
+                    <div className="flex items-center">Estado {renderSortIcon('status')}</div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
@@ -131,7 +325,7 @@ export const ProductsPage = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {data.map((item: any) => (
+                {processedData.map((item: any) => (
                   <tr key={item.id}>
                     <td
                       className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600"

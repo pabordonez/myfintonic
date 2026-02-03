@@ -8,6 +8,7 @@ export interface IFinancialProduct {
   status: ProductStatus;
   clientId?: string;
   valueHistory?: Array<{ date: Date; value: number }>;
+  currentBalance?: number;
   [key: string]: any;
 }
 
@@ -46,6 +47,8 @@ export interface IInvestmentFund extends IFinancialProduct {
 
 export interface IStocks extends IFinancialProduct {
   type: 'STOCKS';
+  initialBalance: number;
+  currentBalance: number;
   numberOfShares: number;
   unitPurchasePrice: number;
   currentMarketPrice: number;

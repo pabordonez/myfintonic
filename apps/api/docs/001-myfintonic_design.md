@@ -111,6 +111,8 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 
 **Stocks** (hereda de `FinancialProduct`)
 
+- `initialBalance` (Number): Inversión inicial (Obligatorio en creación).
+- `currentBalance` (Number): Valor total de mercado.
 - `numberOfShares` (Number): Cantidad de acciones.
 - `unitPurchasePrice` (Number): Precio medio de compra por acción.
 - `currentMarketPrice` (Number): Precio actual de mercado por acción.
@@ -193,6 +195,8 @@ A continuación se detallan los esquemas JSON esperados en el cuerpo de las peti
   "name": "Acciones Apple Inc.",
   "financialEntity": "ca1c82a9-e536-46c8-9e26-e08b7ed20652",
   "status": "ACTIVE",
+  "currentBalance": 4455.0,
+  "initialBalance": 3625.0,
   "numberOfShares": 25,
   "unitPurchasePrice": 145.0,
   "currentMarketPrice": 178.2,
@@ -452,6 +456,7 @@ classDiagram
     }
 
     class Stocks {
+        +Number currentBalance
         +Number numberOfShares
         +Number unitPurchasePrice
         +Number currentMarketPrice

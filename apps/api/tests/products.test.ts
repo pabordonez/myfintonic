@@ -356,6 +356,7 @@ describe('Financial Products API', () => {
       const response = await request(app).put(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send(invalidUpdate)
 
       expect(response.status).toBe(400)
+
       expect(response.body.error).toContain('Validation failed')
       expect(response.body.error).toContain('numberOfShares')
     })
@@ -517,15 +518,53 @@ describe('Financial Products API', () => {
         clientId: '550e8400-e29b-41d4-a716-446655440000',
         numberOfShares: 100,
         unitPurchasePrice: 150,
-        currentMarketPrice: 160
+        currentMarketPrice: 160,
+        currentBalance: 16000,
+        initialBalance: 16000
       })
+
+      expect(product).toHaveProperty('id')
 
       const getRes = await request(app).get(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`)
       expect(getRes.body).toHaveProperty('numberOfShares')
+      expect(getRes.body).toHaveProperty('currentBalance', 16000)
+      expect(getRes.body).toHaveProperty('initialBalance', 16000)
       expect(getRes.body).not.toHaveProperty('monthlyInterestRate')
 
       const updateRes = await request(app).put(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`).send({ monthlyInterestRate: 0.01 })
       expect(updateRes.status).toBe(400)
+    })
+
+    it('STOCKS: should update currentBalance and create history entry', async () => {
+      const product = await createProduct({
+        type: 'STOCKS',
+        name: 'Tesla',
+        financialEntity: mockFeId,
+        status: 'ACTIVE',
+        clientId: '550e8400-e29b-41d4-a716-446655440000',
+        numberOfShares: 10,
+        unitPurchasePrice: 200,
+        currentMarketPrice: 220,
+        currentBalance: 2200,
+        initialBalance: 2200
+      })
+      
+      expect(product).toHaveProperty('id')
+
+      const newBalance = 2500
+      const updateRes = await request(app).put(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`).send({ currentBalance: newBalance })
+      
+      if (updateRes.status === 400) {
+        console.error('STOCKS Update Validation Error:', JSON.stringify(updateRes.body, null, 2))
+      }
+      
+      expect(updateRes.status).toBe(204)
+
+      const getRes = await request(app).get(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`)
+      expect(getRes.body.currentBalance).toBe(newBalance)
+      // Verificamos que se haya generado histórico (asumiendo que la lógica de negocio lo implementa)
+      expect(getRes.body.valueHistory).toHaveLength(1)
+      expect(getRes.body.valueHistory[0].value).toBe(newBalance)
     })
   })
 })
