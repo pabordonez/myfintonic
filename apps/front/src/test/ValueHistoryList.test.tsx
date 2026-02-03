@@ -61,7 +61,7 @@ describe('ValueHistoryList', () => {
      expect(currencyElements.length).toBeGreaterThan(0)
   })
 
-  it('filters out items with null previousValue', () => {
+  it('renders items with null previousValue as 0 change', () => {
     const historyWithNulls = [
       { date: '2023-10-01T10:00:00Z', value: 1100, previousValue: 1000 },
       { date: '2023-09-01T10:00:00Z', value: 900, previousValue: null },
@@ -71,8 +71,11 @@ describe('ValueHistoryList', () => {
 
     // Should render the valid item
     expect(screen.getByText('01/10/2023')).toBeInTheDocument()
-    // Should NOT render the item with null previousValue
-    expect(screen.queryByText('01/09/2023')).not.toBeInTheDocument()
+    // Should render the item with null previousValue
+    expect(screen.getByText('01/09/2023')).toBeInTheDocument()
+    
+    // Should show 0.00% for the null previous value item
+    expect(screen.getByText('0.00%')).toBeInTheDocument()
   })
 
   it('calculates and displays total profitability based on initialBalance', () => {

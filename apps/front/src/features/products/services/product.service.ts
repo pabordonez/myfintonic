@@ -43,4 +43,12 @@ export const productService = {
     )
     return response.data
   },
+  patch: async (id: string, data: any) => {
+    const response = await axios.patch(
+      `${API_URL}/products/${id}`,
+      data,
+      getHeaders()
+    )
+    return response.data
+  },
 }

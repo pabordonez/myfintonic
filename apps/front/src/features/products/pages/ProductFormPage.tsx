@@ -13,6 +13,7 @@ export const ProductFormPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [valueHistory, setValueHistory] = useState<ValueHistory[]>([])
   const [initialBalance, setInitialBalance] = useState<number | undefined>(undefined)
+  const [statusLoading, setStatusLoading] = useState(false)
 
   const { register, handleSubmit, watch, reset } = useForm()
   const selectedType = watch('type')
@@ -34,6 +35,7 @@ export const ProductFormPage = () => {
             type: product.type,
             financialEntity:
               product.financialEntityId || product.financialEntity,
+            status: product.status,
             //TODO MEJORAR ESTO
             currentBalance: product.currentBalance ?? product.initialBalance,
             initialBalance: product.initialBalance,
@@ -141,6 +143,28 @@ export const ProductFormPage = () => {
     }
   }
 
+  const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value
+    if (!isEditMode || !id) return
+
+    // Confirmación de seguridad
+    if (!window.confirm(`¿Estás seguro de cambiar el estado a ${newStatus}?`)) {
+      e.preventDefault()
+      // Revertir selección visualmente si se cancela (opcional, requiere estado controlado o reset)
+      return
+    }
+
+    try {
+      setStatusLoading(true)
+      await productService.patch(id, { status: newStatus })
+    } catch (err) {
+      console.error(err)
+      setError('Error al actualizar el estado')
+    } finally {
+      setStatusLoading(false)
+    }
+  }
+
   if (loading) return <div>Cargando...</div>
 
   return (
@@ -180,6 +204,29 @@ export const ProductFormPage = () => {
             <option value="STOCKS">Acciones</option>
           </select>
         </div>
+
+        {isEditMode && (
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium">
+              Estado
+            </label>
+            <div className="flex items-center gap-2">
+              <select
+                id="status"
+                {...register('status')}
+                onChange={handleStatusChange}
+                disabled={statusLoading}
+                className="mt-1 block w-full border rounded p-2 bg-white disabled:bg-gray-100"
+              >
+                <option value="ACTIVE">Activo</option>
+                <option value="INACTIVE">Inactivo</option>
+                <option value="PAUSED">Pausado</option>
+                <option value="EXPIRED">Expirado</option>
+              </select>
+              {statusLoading && <span className="text-xs text-gray-500">Actualizando...</span>}
+            </div>
+          </div>
+        )}
 
         <div>
           <label

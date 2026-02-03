@@ -517,4 +517,46 @@ describe('ProductFormPage', () => {
     
     expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
   })
+
+  it('calls PATCH when status is changed in edit mode', async () => {
+    mockUseParams.mockReturnValue({ id: 'prod-1' })
+    const mockProduct = {
+      id: 'prod-1',
+      name: 'Cuenta Activa',
+      type: 'CURRENT_ACCOUNT',
+      financialEntityId: 'ent-1',
+      status: 'ACTIVE',
+      currentBalance: 500,
+    }
+
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: [{ id: 'ent-1', name: 'Banco Santander' }],
+      })
+      .mockResolvedValueOnce({ data: mockProduct })
+
+    vi.mocked(axios.patch).mockResolvedValue({})
+    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true)
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByLabelText(/Estado/i)).toBeInTheDocument())
+
+    fireEvent.change(screen.getByLabelText(/Estado/i), {
+      target: { value: 'PAUSED' },
+    })
+
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(axios.patch).toHaveBeenCalledWith(
+      expect.stringContaining(`${API_URL}/products/prod-1`),
+      { status: 'PAUSED' },
+      expect.any(Object)
+    )
+    
+    confirmSpy.mockRestore()
+  })
 })
