@@ -57,7 +57,7 @@ export const ValueHistoryList = ({ history, initialBalance }: ValueHistoryListPr
             Últimos 10 movimientos registrados.
           </p>
         </div>
-        {initialBalance !== undefined && initialBalance !== 0 && (
+        {initialBalance != null && initialBalance !== 0 && (
           <div
             className={`flex items-center px-3 py-1 rounded-full text-sm font-bold ${
               ((sortedHistory[0].value - initialBalance) / initialBalance) * 100 > 0

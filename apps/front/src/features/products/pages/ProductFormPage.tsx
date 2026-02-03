@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { productService } from '../services/product.service'
+import { ValueHistoryList, ValueHistory } from '../../financial-entities/components/ValueHistoryList'
 
 export const ProductFormPage = () => {
   const { id } = useParams()
@@ -10,6 +11,8 @@ export const ProductFormPage = () => {
   const [entities, setEntities] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [valueHistory, setValueHistory] = useState<ValueHistory[]>([])
+  const [initialBalance, setInitialBalance] = useState<number | undefined>(undefined)
 
   const { register, handleSubmit, watch, reset } = useForm()
   const selectedType = watch('type')
@@ -53,6 +56,13 @@ export const ProductFormPage = () => {
             // pero NO debe enviarse en el PUT.
             clientId: product.clientId,
           })
+
+          if (product.valueHistory) {
+            setValueHistory(product.valueHistory)
+          }
+          if (product.initialBalance != null) {
+            setInitialBalance(product.initialBalance)
+          }
         }
       } catch (err) {
         console.error(err)
@@ -379,6 +389,19 @@ export const ProductFormPage = () => {
           )}
         </div>
       </form>
+
+      {isEditMode &&
+        (selectedType === 'CURRENT_ACCOUNT' ||
+          selectedType === 'SAVINGS_ACCOUNT' ||
+          selectedType === 'INVESTMENT_FUND') &&
+        valueHistory.length > 0 && (
+          <div className="mt-8">
+            <ValueHistoryList
+              history={valueHistory}
+              initialBalance={initialBalance}
+            />
+          </div>
+        )}
     </div>
   )
 }

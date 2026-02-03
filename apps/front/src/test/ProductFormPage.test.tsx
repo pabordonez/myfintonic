@@ -453,4 +453,68 @@ describe('ProductFormPage', () => {
       )
     })
   })
+
+  it('renders history for CURRENT_ACCOUNT', async () => {
+    mockUseParams.mockReturnValue({ id: 'prod-1' })
+    const mockProduct = {
+      id: 'prod-1',
+      name: 'Cuenta Vieja',
+      type: 'CURRENT_ACCOUNT',
+      financialEntityId: 'ent-1',
+      currentBalance: 500,
+      initialBalance: 400,
+      valueHistory: [
+        { date: '2023-10-01', value: 500, previousValue: 400 }
+      ]
+    }
+
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: [{ id: 'ent-1', name: 'Banco Santander' }],
+      })
+      .mockResolvedValueOnce({ data: mockProduct })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
+    })
+  })
+
+  it('renders history for INVESTMENT_FUND', async () => {
+    mockUseParams.mockReturnValue({ id: 'prod-2' })
+    const mockProduct = {
+      id: 'prod-2',
+      name: 'Fondo',
+      type: 'INVESTMENT_FUND',
+      financialEntityId: 'ent-1',
+      currentBalance: 500,
+      initialBalance: 400,
+      valueHistory: [
+        { date: '2023-10-01', value: 500, previousValue: 400 }
+      ]
+    }
+
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: [{ id: 'ent-1', name: 'Banco Santander' }],
+      })
+      .mockResolvedValueOnce({ data: mockProduct })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+       expect(screen.getByDisplayValue('Fondo')).toBeInTheDocument()
+    })
+    
+    expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
+  })
 })
