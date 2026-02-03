@@ -10,6 +10,8 @@ servers:
 tags:
   - name: Auth
     description: Autenticación y Registro de usuarios.
+  - name: Clients
+    description: Gestión de perfiles de usuario.
   - name: Financial Products
     description: Operaciones generales sobre productos financieros (CRUD e Histórico).
   - name: Investment Funds
@@ -39,6 +41,9 @@ paths:
 
   /auth/login:
     $ref: './paths/auth/login.yaml'
+
+  /clients/{id}:
+    $ref: './paths/clients/update.yaml'
 
   /products:
     $ref: './paths/products/list.yaml'

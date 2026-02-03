@@ -31,8 +31,8 @@
     "api:lint-quiet": "npm run lint-quiet -w @myfintonic/api",
     "api:test-silent": "npm run test:silent -w @myfintonic/api",
     "api:openapi:validate": "npm run api:validate -w @myfintonic/api",
-    "docker:dev": "cd ./docker/ && docker compose up -d --build",
-    "api:docker:prod": "cd ./docker/ && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build"
+    "docker:dev": "docker compose -f docker/docker-compose.yml up -d --build",
+    "docker:prod": "docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d --build"
   },
   "devDependencies": {
     "turbo": "^2.0.0",
