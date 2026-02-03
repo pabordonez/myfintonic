@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Link } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import axios from 'axios'
 import { API_URL } from '@/config/api'
+import { ProfitabilityBadge } from '../../financial-entities/components/ProfitabilityBadge'
 
 export const DashboardPage = () => {
   const { user, token } = useAuth()
@@ -46,6 +47,24 @@ export const DashboardPage = () => {
 
   // Calcular el balance total
   const totalBalance = items.reduce((acc, item) => acc + (Number(item.balance) || 0), 0)
+  const totalInitialBalance = items.reduce(
+    (acc, item) => acc + (Number(item.initialBalance) || 0),
+    0
+  )
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar la entidad ${name}?`)) return
+
+    try {
+      await axios.delete(`${API_URL}/clients/${user?.id}/financial-entities/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setItems((prev) => prev.filter((item) => item.id !== id))
+    } catch (err) {
+      console.error(err)
+      setError('Error al eliminar la entidad')
+    }
+  }
 
   if (!user) return null
 
@@ -96,7 +115,13 @@ export const DashboardPage = () => {
                           ? `${item.firstName} ${item.lastName} (${item.email})`
                           : item.financialEntity?.name || 'Entidad Desconocida'}
                       </p>
-                      <div className="ml-2 flex-shrink-0 flex">
+                      <div className="ml-2 flex-shrink-0 flex items-center gap-4">
+                        {user.role === 'USER' && item.initialBalance != null && Number(item.initialBalance) !== 0 && (
+                          <ProfitabilityBadge
+                            currentValue={item.balance}
+                            initialValue={item.initialBalance}
+                          />
+                        )}
                         <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                           {user.role === 'ADMIN'
                             ? item.role
@@ -105,6 +130,18 @@ export const DashboardPage = () => {
                                 currency: 'EUR',
                               }).format(item.balance)}
                         </p>
+                        {user.role === 'USER' && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault()
+                              handleDelete(item.id, item.financialEntity?.name)
+                            }}
+                            className="text-gray-400 hover:text-red-600 transition-colors"
+                            title="Eliminar entidad"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -119,7 +156,15 @@ export const DashboardPage = () => {
                 <dt className="text-sm font-medium text-gray-500 truncate">
                   Balance Total
                 </dt>
-                <dd className="mt-1 text-3xl font-semibold text-indigo-600">
+                <dd className="mt-1 text-3xl font-semibold text-indigo-600 flex justify-end items-center gap-3">
+                  {totalInitialBalance > 0 && (
+                    <ProfitabilityBadge
+                      currentValue={totalBalance}
+                      initialValue={totalInitialBalance}
+                      className="px-3 py-1 text-sm font-bold"
+                      iconSize={4}
+                    />
+                  )}
                   {new Intl.NumberFormat('es-ES', {
                     style: 'currency',
                     currency: 'EUR',

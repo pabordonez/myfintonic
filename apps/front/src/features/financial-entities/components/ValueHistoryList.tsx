@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
+import { ProfitabilityBadge } from './ProfitabilityBadge'
 
 export interface ValueHistory {
   date: string | Date
@@ -33,11 +33,6 @@ export const ValueHistoryList = ({ history, initialBalance }: ValueHistoryListPr
     })
   }
 
-  const calculatePercentage = (current: number, previous: number) => {
-    if (previous === 0) return 0
-    return ((current - previous) / previous) * 100
-  }
-
   if (sortedHistory.length === 0) {
     return (
       <div className="bg-white shadow sm:rounded-lg p-6 text-center text-gray-500">
@@ -58,33 +53,18 @@ export const ValueHistoryList = ({ history, initialBalance }: ValueHistoryListPr
           </p>
         </div>
         {initialBalance != null && initialBalance !== 0 && (
-          <div
-            className={`flex items-center px-3 py-1 rounded-full text-sm font-bold ${
-              ((sortedHistory[0].value - initialBalance) / initialBalance) * 100 > 0
-                ? 'bg-green-100 text-green-800'
-                : ((sortedHistory[0].value - initialBalance) / initialBalance) * 100 < 0
-                ? 'bg-red-100 text-red-800'
-                : 'bg-gray-100 text-gray-800'
-            }`}
-          >
-            {((sortedHistory[0].value - initialBalance) / initialBalance) * 100 > 0 ? (
-              <ArrowUp className="w-4 h-4 mr-1" />
-            ) : ((sortedHistory[0].value - initialBalance) / initialBalance) * 100 < 0 ? (
-              <ArrowDown className="w-4 h-4 mr-1" />
-            ) : (
-              <Minus className="w-4 h-4 mr-1" />
-            )}
-            Total: {Math.abs(((sortedHistory[0].value - initialBalance) / initialBalance) * 100).toFixed(2)}%
-          </div>
+          <ProfitabilityBadge
+            currentValue={sortedHistory[0].value}
+            initialValue={initialBalance}
+            label="Total:"
+            className="px-3 py-1 text-sm font-bold"
+            iconSize={4}
+          />
         )}
       </div>
       <div className="border-t border-gray-200">
         <ul className="divide-y divide-gray-200">
           {sortedHistory.map((item, index) => {
-            const percentage = calculatePercentage(item.value, item.previousValue)
-            const isPositive = percentage > 0
-            const isNegative = percentage < 0
-
             return (
               <li key={index} className="px-4 py-4 sm:px-6 hover:bg-gray-50">
                 <div className="flex items-center justify-between">
@@ -101,24 +81,10 @@ export const ValueHistoryList = ({ history, initialBalance }: ValueHistoryListPr
                     </div>
                   </div>
                   <div className="flex items-center">
-                    <div
-                      className={`flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        isPositive
-                          ? 'bg-green-100 text-green-800'
-                          : isNegative
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {isPositive ? (
-                        <ArrowUp className="w-3 h-3 mr-1" />
-                      ) : isNegative ? (
-                        <ArrowDown className="w-3 h-3 mr-1" />
-                      ) : (
-                        <Minus className="w-3 h-3 mr-1" />
-                      )}
-                      {Math.abs(percentage).toFixed(2)}%
-                    </div>
+                    <ProfitabilityBadge
+                      currentValue={item.value}
+                      initialValue={item.previousValue}
+                    />
                   </div>
                 </div>
               </li>

@@ -84,7 +84,7 @@ describe('ValueHistoryList', () => {
     // Check for Total badge
     const totalBadge = screen.getByText((content, element) => {
       return (
-        (element?.textContent?.includes('Total: 10.00%') && element?.className.includes('text-green-800')) ?? false
+        (element?.textContent?.includes('Total:10.00%') && element?.className.includes('text-green-800')) ?? false
       )
     })
     expect(totalBadge).toBeInTheDocument()
