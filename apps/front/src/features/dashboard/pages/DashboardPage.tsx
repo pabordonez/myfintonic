@@ -93,66 +93,114 @@ export const DashboardPage = () => {
         <div className="bg-red-50 p-4 rounded-md text-red-700">{error}</div>
       ) : (
         <>
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200">
-            {items.length === 0 && (
-              <li className="px-4 py-4 sm:px-6 text-gray-500 text-center">
-                No hay elementos para mostrar.
-              </li>
-            )}
-            {items.map((item: any) => (
-              <li key={item.id}>
-                <Link
-                  to={
-                    user.role === 'ADMIN' ? '#' : `/client-entities/${item.id}`
-                  }
-                  className="block hover:bg-gray-50"
-                >
-                  <div className="px-4 py-4 sm:px-6">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-indigo-600 truncate">
-                        {user.role === 'ADMIN'
-                          ? `${item.firstName} ${item.lastName} (${item.email})`
-                          : item.financialEntity?.name || 'Entidad Desconocida'}
-                      </p>
-                      <div className="ml-2 flex-shrink-0 flex items-center gap-4">
-                        <p className="text-sm text-gray-500">
-                          {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
-                        </p>
-                        {user.role === 'USER' && item.initialBalance != null && Number(item.initialBalance) !== 0 && (
+          {user.role === 'USER' ? (
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="w-full px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Nombre </th>
+                    <th scope="col" className="whitespace-nowrap px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Diferencial
+                    </th>
+                    <th scope="col" className="whitespace-nowrap px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Balance Actual
+                    </th>
+                    <th scope="col" className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Actualizado
+                    </th>
+                    <th scope="col" className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {items.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                        No hay elementos para mostrar.
+                      </td>
+                    </tr>
+                  )}
+                  {items.map((item: any) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Link
+                          to={`/client-entities/${item.id}`}
+                          className="text-sm font-medium text-gray-900 hover:text-indigo-600"
+                        >
+                          {item.financialEntity?.name || 'Entidad Desconocida'}
+                        </Link>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {item.initialBalance != null && Number(item.initialBalance) !== 0 ? (
                           <ProfitabilityBadge
                             currentValue={item.balance}
                             initialValue={item.initialBalance}
                           />
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
                         )}
-                        <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          {user.role === 'ADMIN'
-                            ? item.role
-                            : new Intl.NumberFormat('es-ES', {
-                                style: 'currency',
-                                currency: 'EUR',
-                              }).format(item.balance)}
-                        </p>
-                        {user.role === 'USER' && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault()
-                              handleDelete(item.id, item.financialEntity?.name)
-                            }}
-                            className="text-gray-400 hover:text-red-600 transition-colors"
-                            title="Eliminar entidad"
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </button>
-                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                          {new Intl.NumberFormat('es-ES', {
+                            style: 'currency',
+                            currency: 'EUR',
+                          }).format(item.balance)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                        {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault()
+                            handleDelete(item.id, item.financialEntity?.name)
+                          }}
+                          className="text-gray-400 hover:text-red-600 transition-colors"
+                          title="Eliminar entidad"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="bg-white shadow overflow-hidden sm:rounded-md">
+              <ul className="divide-y divide-gray-200">
+                {items.length === 0 && (
+                  <li className="px-4 py-4 sm:px-6 text-gray-500 text-center">
+                    No hay elementos para mostrar.
+                  </li>
+                )}
+                {items.map((item: any) => (
+                  <li key={item.id}>
+                    <div className="block hover:bg-gray-50">
+                      <div className="px-4 py-4 sm:px-6">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium text-indigo-600 truncate">
+                            {`${item.firstName} ${item.lastName} (${item.email})`}
+                          </p>
+                          <div className="ml-2 flex-shrink-0 flex items-center gap-4">
+                            <p className="text-sm text-gray-500">
+                              {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
+                            </p>
+                            <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                              {item.role}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-          </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {user.role === 'USER' && (
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6 text-right">

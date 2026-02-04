@@ -86,7 +86,7 @@ export const FinancialEntitiesPage = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Nombre
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actualizado
                   </th>
                 </tr>
@@ -100,7 +100,7 @@ export const FinancialEntitiesPage = () => {
                     >
                       {item.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                       {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
                     </td>
                   </tr>
