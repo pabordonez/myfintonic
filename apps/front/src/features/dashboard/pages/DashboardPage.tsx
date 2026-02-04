@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Link } from 'react-router-dom'
 import { Plus, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
@@ -69,35 +69,37 @@ export const DashboardPage = () => {
   }
 
   // Lógica de filtrado y ordenación
-  const processedItems = [...items]
-    .filter((item) =>
-      item.financialEntity?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (!sortConfig) return 0
-      let aValue: any = ''
-      let bValue: any = ''
+  const processedItems = useMemo(() => {
+    return [...(items || [])]
+      .filter((item) =>
+        (item.financialEntity?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => {
+        if (!sortConfig) return 0
+        let aValue: any = ''
+        let bValue: any = ''
 
-      if (sortConfig.key === 'name') {
-        aValue = a.financialEntity?.name || ''
-        bValue = b.financialEntity?.name || ''
-        return sortConfig.direction === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue)
-      }
+        if (sortConfig.key === 'name') {
+          aValue = a.financialEntity?.name || ''
+          bValue = b.financialEntity?.name || ''
+          return sortConfig.direction === 'asc'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue)
+        }
 
-      if (sortConfig.key === 'differential') {
-        aValue = (Number(a.balance) || 0) - (Number(a.initialBalance) || 0)
-        bValue = (Number(b.balance) || 0) - (Number(b.initialBalance) || 0)
-      } else if (sortConfig.key === 'balance') {
-        aValue = Number(a.balance) || 0
-        bValue = Number(b.balance) || 0
-      }
+        if (sortConfig.key === 'differential') {
+          aValue = (Number(a.balance) || 0) - (Number(a.initialBalance) || 0)
+          bValue = (Number(b.balance) || 0) - (Number(b.initialBalance) || 0)
+        } else if (sortConfig.key === 'balance') {
+          aValue = Number(a.balance) || 0
+          bValue = Number(b.balance) || 0
+        }
 
-      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1
-      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1
-      return 0
-    })
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1
+        return 0
+      })
+  }, [items, searchTerm, sortConfig])
 
   const handleSort = (key: string) => {
     setSortConfig((current) => ({
@@ -132,6 +134,21 @@ export const DashboardPage = () => {
         )}
       </div>
 
+      {user.role === 'USER' && (
+        <div className="relative max-w-xs w-full mb-4">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            placeholder="Buscar entidad..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-10">Cargando...</div>
       ) : error ? (
@@ -140,20 +157,6 @@ export const DashboardPage = () => {
         <>
           {user.role === 'USER' ? (
             <>
-              {/* Barra de búsqueda */}
-              <div className="relative max-w-xs w-full mb-4">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Buscar entidad..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
