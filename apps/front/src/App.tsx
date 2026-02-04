@@ -5,10 +5,10 @@ import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { MainLayout } from '@/shared/components/MainLayout'
 import { ProductsPage } from '@/features/products/pages/ProductsPage'
-import { FinancialEntitiesPage } from '@/features/entities/pages/FinancialEntitiesPage'
+import { FinancialEntitiesPage } from '@/features/financial-entities/pages/FinancialEntitiesPage'
 import { ProductFormPage } from '@/features/products/pages/ProductFormPage'
-import { FinancialEntityFormPage } from '@/features/entities/pages/FinancialEntityFormPage'
-import { ClientFinancialEntityFormPage } from '@/features/entities/pages/ClientFinancialEntityFormPage'
+import { FinancialEntityFormPage } from '@/features/financial-entities/pages/FinancialEntityFormPage'
+import { ClientFinancialEntityFormPage } from '@/features/client-financial-entities/pages/ClientFinancialEntityFormPage'
 import { EditProfilePage } from '@/features/profile/pages/EditProfilePage'
 
 function App() {

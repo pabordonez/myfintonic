@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { FinancialEntityFormPage } from '../features/entities/pages/FinancialEntityFormPage'
+import { FinancialEntityFormPage } from '../features/financial-entities/pages/FinancialEntityFormPage'
 import axios from 'axios'
 import { MemoryRouter } from 'react-router-dom'
 import { API_URL } from '../config/api'
