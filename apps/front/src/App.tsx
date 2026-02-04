@@ -8,7 +8,7 @@ import { ProductsPage } from '@/features/products/pages/ProductsPage'
 import { FinancialEntitiesPage } from '@/features/entities/pages/FinancialEntitiesPage'
 import { ProductFormPage } from '@/features/products/pages/ProductFormPage'
 import { FinancialEntityFormPage } from '@/features/entities/pages/FinancialEntityFormPage'
-import { ClientFinancialEntityFormPage } from '@/features/dashboard/pages/ClientFinancialEntityFormPage'
+import { ClientFinancialEntityFormPage } from '@/features/entities/pages/ClientFinancialEntityFormPage'
 import { EditProfilePage } from '@/features/profile/pages/EditProfilePage'
 
 function App() {
