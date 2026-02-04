@@ -116,6 +116,9 @@ export const DashboardPage = () => {
                           : item.financialEntity?.name || 'Entidad Desconocida'}
                       </p>
                       <div className="ml-2 flex-shrink-0 flex items-center gap-4">
+                        <p className="text-sm text-gray-500">
+                          {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
+                        </p>
                         {user.role === 'USER' && item.initialBalance != null && Number(item.initialBalance) !== 0 && (
                           <ProfitabilityBadge
                             currentValue={item.balance}

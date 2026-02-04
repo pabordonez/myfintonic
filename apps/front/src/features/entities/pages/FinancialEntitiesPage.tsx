@@ -86,6 +86,9 @@ export const FinancialEntitiesPage = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Nombre
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actualizado
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -96,6 +99,9 @@ export const FinancialEntitiesPage = () => {
                       onClick={() => navigate(`/financial-entities/${item.id}`)}
                     >
                       {item.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
                     </td>
                   </tr>
                 ))}

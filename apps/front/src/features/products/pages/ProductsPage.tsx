@@ -319,6 +319,12 @@ export const ProductsPage = () => {
                   >
                     <div className="flex items-center">Estado {renderSortIcon('status')}</div>
                   </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    onClick={() => handleSort('updatedAt')}
+                  >
+                    <div className="flex items-center">Actualizado {renderSortIcon('updatedAt')}</div>
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
@@ -353,6 +359,9 @@ export const ProductsPage = () => {
                       >
                         {item.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <button

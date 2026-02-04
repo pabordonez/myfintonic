@@ -559,4 +559,93 @@ describe('ProductFormPage', () => {
     
     confirmSpy.mockRestore()
   })
+
+  it('STOCKS (Create): shows Initial Balance and submits it', async () => {
+    vi.mocked(axios.get).mockResolvedValue({
+      data: [{ id: 'ent-1', name: 'Banco Santander' }],
+    })
+    vi.mocked(axios.post).mockResolvedValue({ data: { id: 'new-stock' } })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByLabelText(/Tipo/i)).toBeInTheDocument())
+
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'STOCKS' },
+    })
+
+    // Verificar campos específicos
+    expect(screen.getByLabelText(/Balance Inicial/i)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/^Balance$/i)).not.toBeInTheDocument() // Balance genérico
+    expect(screen.queryByLabelText(/Balance Actual/i)).not.toBeInTheDocument()
+
+    // Rellenar formulario
+    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: 'My Stock' } })
+    fireEvent.change(screen.getByLabelText(/Entidad/i), { target: { value: 'ent-1' } })
+    fireEvent.change(screen.getByLabelText(/Balance Inicial/i), { target: { value: '5000' } })
+    fireEvent.change(screen.getByLabelText(/Acciones/i), { target: { value: '10' } })
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/products'),
+        expect.objectContaining({
+          type: 'STOCKS',
+          initialBalance: 5000,
+        }),
+        expect.any(Object)
+      )
+    })
+  })
+
+  it('STOCKS (Edit): shows Current Balance and submits it', async () => {
+    mockUseParams.mockReturnValue({ id: 'stock-1' })
+    const mockStock = {
+      id: 'stock-1',
+      name: 'My Stock',
+      type: 'STOCKS',
+      financialEntityId: 'ent-1',
+      currentBalance: 6000,
+      initialBalance: 5000,
+      numberOfShares: 10
+    }
+
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Banco Santander' }] })
+      .mockResolvedValueOnce({ data: mockStock })
+
+    vi.mocked(axios.put).mockResolvedValue({})
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByDisplayValue('My Stock')).toBeInTheDocument())
+
+    // Verificar campos específicos de edición
+    expect(screen.getByLabelText(/Balance Actual/i)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/Balance Inicial/i)).not.toBeInTheDocument()
+
+    // Actualizar balance
+    fireEvent.change(screen.getByLabelText(/Balance Actual/i), { target: { value: '6500' } })
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(axios.put).toHaveBeenCalledWith(
+        expect.stringContaining('/products/stock-1'),
+        expect.objectContaining({
+            currentBalance: 6500
+        }),
+        expect.any(Object)
+      )
+    })
+  })
 })

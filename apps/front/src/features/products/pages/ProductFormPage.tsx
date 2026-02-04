@@ -117,7 +117,7 @@ export const ProductFormPage = () => {
         // Re-assign balance to the correct field based on type
         if (typeToUse === 'FIXED_TERM_DEPOSIT') {
           updateData.initialBalance = balanceValue
-        } else if (typeToUse !== 'STOCKS') {
+        } else {
           updateData.currentBalance = balanceValue
         }
 
@@ -375,6 +375,40 @@ export const ProductFormPage = () => {
 
         {selectedType === 'STOCKS' && (
           <div>
+            {!isEditMode ? (
+              <div>
+                <label
+                  htmlFor="initialBalance"
+                  className="block text-sm font-medium"
+                >
+                  Balance Inicial
+                </label>
+                <input
+                  id="initialBalance"
+                  type="number"
+                  step="0.01"
+                  {...register('initialBalance')}
+                  className="mt-1 block w-full border rounded p-2"
+                />
+              </div>
+            ) : (
+              <div>
+                <label
+                  htmlFor="currentBalance"
+                  className="block text-sm font-medium"
+                >
+                  Balance Actual
+                </label>
+                <input
+                  id="currentBalance"
+                  type="number"
+                  step="0.01"
+                  {...register('currentBalance')}
+                  className="mt-1 block w-full border rounded p-2"
+                />
+              </div>
+            )}
+
             <label
               htmlFor="numberOfShares"
               className="block text-sm font-medium"
@@ -440,7 +474,8 @@ export const ProductFormPage = () => {
       {isEditMode &&
         (selectedType === 'CURRENT_ACCOUNT' ||
           selectedType === 'SAVINGS_ACCOUNT' ||
-          selectedType === 'INVESTMENT_FUND') &&
+          selectedType === 'INVESTMENT_FUND' ||
+          selectedType === 'STOCKS') &&
         valueHistory.length > 0 && (
           <div className="mt-8">
             <ValueHistoryList

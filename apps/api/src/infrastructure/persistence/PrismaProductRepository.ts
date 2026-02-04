@@ -229,6 +229,7 @@ export class PrismaProductRepository implements IProductRepository {
         break;
       case 'INVESTMENT_FUND':
         specificFields = {
+          initialBalance: prismaProduct.initialBalance,
           currentBalance: prismaProduct.currentBalance,
           numberOfUnits: prismaProduct.numberOfUnits,
           netAssetValue: prismaProduct.netAssetValue,
