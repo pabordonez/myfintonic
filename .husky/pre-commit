@@ -2,9 +2,6 @@
 
 echo "🔍 Running Quality Gates (pre-commit)..."
 
-# Detectar cambios en el backend (apps/api)
-# if git diff --cached --name-only | grep -q "^apps/api/"; then
-#   echo "📦 Cambios detectados en apps/api. Ejecutando validaciones específicas..."
 
   # Gate 1: Linting (API)
   echo "📝 Checking code style (@myfintonic/api)..."
@@ -26,7 +23,6 @@ echo "🔍 Running Quality Gates (pre-commit)..."
     echo "❌ Build failed!"
     exit 1
   }
-# fi
 
 
 # Validar OpenAPI solo si hay cambios en la carpeta apps/api/docs
