@@ -9,6 +9,7 @@ export interface IFinancialProduct {
   clientId?: string;
   valueHistory?: Array<{ date: Date; value: number }>;
   currentBalance?: number;
+  //TODO MEJORAR ESTO
   [key: string]: any;
 }
 
