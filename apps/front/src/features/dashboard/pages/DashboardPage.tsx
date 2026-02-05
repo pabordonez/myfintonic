@@ -236,12 +236,18 @@ export const DashboardPage = () => {
                   {processedItems.map((item: any) => (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Link
-                          to={`/client-entities/${item.id}`}
-                          className="text-sm font-medium text-gray-900 hover:text-indigo-600"
-                        >
-                          {item.financialEntity?.name || 'Entidad Desconocida'}
-                        </Link>
+                        {user.role === 'ADMIN' ? (
+                          <span className="text-sm font-medium text-gray-900">
+                            {item.financialEntity?.name || 'Entidad Desconocida'}
+                          </span>
+                        ) : (
+                          <Link
+                            to={`/client-entities/${item.id}`}
+                            className="text-sm font-medium text-gray-900 hover:text-indigo-600"
+                          >
+                            {item.financialEntity?.name || 'Entidad Desconocida'}
+                          </Link>
+                        )}
                       </td>
                       {user.role === 'ADMIN' && (
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

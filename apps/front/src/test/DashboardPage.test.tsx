@@ -331,6 +331,10 @@ describe('DashboardPage', () => {
         expect(screen.queryByText('Nueva Entidad')).not.toBeInTheDocument()
         expect(screen.queryByText('Acciones')).not.toBeInTheDocument()
 
+        // Verify entity name is not a link for ADMIN (read-only)
+        const entityName = screen.getByText('Bank A')
+        expect(entityName.closest('a')).toBeNull()
+
         // Switch back to Clients to cover the onClick handler
         const clientsTab = screen.getByText('Clientes')
         fireEvent.click(clientsTab)
