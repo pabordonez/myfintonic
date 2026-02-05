@@ -316,6 +316,11 @@ export const ProductsPage = () => {
                   >
                     <div className="flex items-center">Tipo {renderSortIcon('type')}</div>
                   </th>
+                  {user?.role === 'ADMIN' && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Cliente
+                    </th>
+                  )}
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                     onClick={() => handleSort('differential')}
@@ -360,6 +365,11 @@ export const ProductsPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {productTypes[item.type] || item.type}
                     </td>
+                    {user?.role === 'ADMIN' && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.client ? `${item.client.firstName} ${item.client.lastName}` : '-'}
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {item.initialBalance != null && Number(item.initialBalance) !== 0 ? (
                         <ProfitabilityBadge

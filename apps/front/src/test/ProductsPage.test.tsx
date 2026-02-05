@@ -692,4 +692,62 @@ describe('ProductsPage', () => {
       expect(nameCell).not.toHaveClass('cursor-pointer')
     })
   })
+
+  describe('ADMIN Role - Client Column', () => {
+    beforeEach(() => {
+      mockUseAuth.mockReturnValue({ token: 'test-token', user: { role: 'ADMIN' } })
+    })
+
+    it('renders "Cliente" column and client info', async () => {
+      const mockProducts = [
+        {
+          id: '1',
+          name: 'P1',
+          type: 'CURRENT_ACCOUNT',
+          status: 'ACTIVE',
+          currentBalance: 100,
+          client: { firstName: 'John', lastName: 'Doe' }
+        }
+      ]
+      vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+
+      render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+      
+      await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
+      
+      // Verificar encabezado
+      expect(screen.getByText('Cliente')).toBeInTheDocument()
+      
+      // Verificar contenido de la celda
+      expect(screen.getByText('John Doe')).toBeInTheDocument()
+    })
+  })
+
+  describe('USER Role - No Client Column', () => {
+    beforeEach(() => {
+      mockUseAuth.mockReturnValue({ token: 'test-token', user: { role: 'USER' } })
+    })
+
+    it('does NOT render "Cliente" column', async () => {
+      // Aunque los datos vengan con cliente (hipotéticamente), el usuario no debe ver la columna
+      const mockProducts = [
+        {
+          id: '1',
+          name: 'P1',
+          type: 'CURRENT_ACCOUNT',
+          status: 'ACTIVE',
+          currentBalance: 100,
+          client: { firstName: 'John', lastName: 'Doe' }
+        }
+      ]
+      vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+
+      render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+      
+      await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
+      
+      expect(screen.queryByText('Cliente')).not.toBeInTheDocument()
+      expect(screen.queryByText('John Doe')).not.toBeInTheDocument()
+    })
+  })
 })

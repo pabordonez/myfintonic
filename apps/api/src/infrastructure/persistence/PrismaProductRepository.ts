@@ -12,7 +12,8 @@ export class PrismaProductRepository implements IProductRepository {
         include: {
           financialEntity: true,
           valueHistory: true,
-          transactions: true
+          transactions: true,
+          client: true
         }
       });
       return this.mapToDomain(createdProduct);
@@ -98,7 +99,8 @@ export class PrismaProductRepository implements IProductRepository {
       include: {
         financialEntity: true,
         valueHistory: true,
-        transactions: true
+        transactions: true,
+        client: true
       }
     });
 
@@ -120,7 +122,8 @@ export class PrismaProductRepository implements IProductRepository {
       include: {
         financialEntity: true,
         valueHistory: true,
-        transactions: true
+        transactions: true,
+        client: true
       }
     });
 
@@ -192,6 +195,11 @@ export class PrismaProductRepository implements IProductRepository {
       financialEntityName: prismaProduct.financialEntity?.name,
       status: prismaProduct.status,
       clientId: prismaProduct.clientId,
+      client: prismaProduct.client ? {
+        firstName: prismaProduct.client.firstName,
+        lastName: prismaProduct.client.lastName,
+        email: prismaProduct.client.email
+      } : undefined,
       createdAt: prismaProduct.createdAt,
       updatedAt: prismaProduct.updatedAt,
       valueHistory: prismaProduct.valueHistory?.map((h: any) => ({
