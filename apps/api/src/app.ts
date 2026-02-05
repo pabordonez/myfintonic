@@ -1,13 +1,17 @@
 import express from 'express'
 import helmet from 'helmet'
 import { env } from '@config/env'
-import { productRouter } from '@infrastructure/http/routes/productRoutes'
-import { authRouter } from '@infrastructure/http/routes/authRoutes'
-import { clientFinancialEntityRouter } from '@infrastructure/http/routes/clientFinancialEntityRoutes'
+import { createProductRoutes } from '@infrastructure/http/routes/productRoutes'
+import { createAuthRoutes } from '@infrastructure/http/routes/authRoutes'
+import { createClientFinancialEntityRoutes } from '@infrastructure/http/routes/clientFinancialEntityRoutes'
 import { createHealthRouter } from '@infrastructure/http/routes/health.routes'
 import { createFinancialEntityRoutes } from '@infrastructure/http/routes/financialEntity.routes'
-import { clientRouter } from '@infrastructure/http/routes/client.routes'
+import { createClientRoutes } from '@infrastructure/http/routes/client.routes'
 import {
+  authController,
+  clientController,
+  productController,
+  clientFinancialEntityController,
   healthController,
   financialEntityController
 } from '@infrastructure/dependencies'
@@ -31,9 +35,10 @@ app.use(rateLimitMiddleware)
 app.use(express.json())
 app.use(requestLogger)
 
-app.use('/auth', authRouter)
+// Configuración de Rutas
+app.use('/auth', createAuthRoutes(authController, clientController))
 app.use('/health', createHealthRouter(healthController))
-app.use('/products', productRouter)
+app.use('/products', createProductRoutes(productController))
 app.use('/financial-entities', createFinancialEntityRoutes(financialEntityController))
-app.use('/clients', clientRouter)
-app.use('/', clientFinancialEntityRouter)
+app.use('/clients', createClientRoutes(clientController))
+app.use('/', createClientFinancialEntityRoutes(clientFinancialEntityController))
