@@ -1,4 +1,5 @@
 import { IFinancialEntity } from './IFinancialEntity';
+import { IClientDetails } from './IClient';
 import { IClientFinancialEntityValueHistory } from './IClientFinancialEntityHistory';
 
 export interface IClientFinancialEntity {
@@ -6,6 +7,8 @@ export interface IClientFinancialEntity {
   balance: number;
   initialBalance?: number;
   clientId: string;
+  //TODO DEFINIR UN INTERFAZ
+  client?: IClientDetails;
   financialEntityId: string;
   financialEntity?: IFinancialEntity;
   createdAt: Date;

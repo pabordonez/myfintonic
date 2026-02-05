@@ -6,9 +6,11 @@ const mockRepo = {
   create: vi.fn(),
   findAll: vi.fn(),
   findById: vi.fn(),
+  findAllWithClients: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
-} as unknown as IClientFinancialEntityRepository
+}  as IClientFinancialEntityRepository
+
 
 const useCases = new ClientFinancialEntityUseCases(mockRepo)
 
@@ -19,15 +21,24 @@ describe('ClientFinancialEntityUseCases', () => {
 
   describe('createAssociation', () => {
     it('should call repo.create', async () => {
-      await useCases.createAssociation({} as any)
-      expect(mockRepo.create).toHaveBeenCalled()
+      const data = { clientId: 'c1', financialEntityId: 'fe1', balance: 100 }
+      await useCases.createAssociation(data)
+      expect(mockRepo.create).toHaveBeenCalledWith(data)
     })
   })
 
   describe('getAssociations', () => {
     it('should call repo.findAll', async () => {
-      await useCases.getAssociations({})
-      expect(mockRepo.findAll).toHaveBeenCalled()
+      const filters = { clientId: 'c1' }
+      await useCases.getAssociations(filters)
+      expect(mockRepo.findAll).toHaveBeenCalledWith(filters)
+    })
+  })
+
+  describe('getAllAssociations', () => {
+    it('should call repo.findAllWithClients', async () => {
+      await useCases.getAllAssociations()
+      expect(mockRepo.findAllWithClients).toHaveBeenCalled()
     })
   })
 
@@ -41,13 +52,13 @@ describe('ClientFinancialEntityUseCases', () => {
   describe('updateBalance', () => {
     it('should throw if association not found', async () => {
       vi.mocked(mockRepo.findById).mockResolvedValue(null)
-      await expect(useCases.updateBalance('1', { balance: 100 })).rejects.toThrow('Client Financial Entity association not found')
+      await expect(useCases.updateBalance('1', { balance: 200 })).rejects.toThrow('Client Financial Entity association not found')
     })
 
     it('should call repo.update if found', async () => {
       vi.mocked(mockRepo.findById).mockResolvedValue({ id: '1' } as any)
-      await useCases.updateBalance('1', { balance: 100 })
-      expect(mockRepo.update).toHaveBeenCalledWith('1', { balance: 100 })
+      await useCases.updateBalance('1', { balance: 200 })
+      expect(mockRepo.update).toHaveBeenCalledWith('1', { balance: 200 })
     })
   })
 

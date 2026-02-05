@@ -166,6 +166,27 @@ describe('DashboardPage', () => {
       expect(rows[3]).toHaveTextContent('A')
     })
 
+    it('sorts items with equal values', async () => {
+      const items = [
+        { id: '1', balance: 1000, initialBalance: 0, financialEntity: { name: 'A' } },
+        { id: '2', balance: 1000, initialBalance: 0, financialEntity: { name: 'B' } },
+      ]
+      vi.mocked(axios.get).mockResolvedValue({ data: items })
+
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      )
+      await waitFor(() => expect(screen.getByText('A')).toBeInTheDocument())
+
+      const balanceHeader = screen.getByText('Balance Actual')
+      fireEvent.click(balanceHeader)
+      
+      expect(screen.getByText('A')).toBeInTheDocument()
+      expect(screen.getByText('B')).toBeInTheDocument()
+    })
+
     it('filters items by search term', async () => {
       render(
         <MemoryRouter>
@@ -235,7 +256,7 @@ describe('DashboardPage', () => {
   })
 
   describe('ADMIN Role', () => {
-    it('fetches and renders clients list', async () => {
+    it('fetches and renders clients list by default', async () => {
       mockUseAuth.mockReturnValue({ user: { role: 'ADMIN', id: 'admin' }, token: 'token' })
       const mockClients = [
         { id: 'c1', firstName: 'John', lastName: 'Doe', email: 'john@test.com', role: 'USER' }
@@ -249,8 +270,73 @@ describe('DashboardPage', () => {
       )
 
       await waitFor(() => expect(axios.get).toHaveBeenCalledWith(`${API_URL}/clients`, expect.any(Object)))
-      expect(screen.getByText('Gestión de Clientes')).toBeInTheDocument()
+      expect(screen.getByText('Clientes')).toBeInTheDocument()
       expect(screen.getByText(/John Doe/)).toBeInTheDocument()
+    })
+
+    describe('Global Entities View', () => {
+      const mockGlobalEntities = [
+        {
+          id: '1',
+          balance: 1000,
+          initialBalance: 800,
+          financialEntity: { name: 'Bank A' },
+          client: { firstName: 'John', lastName: 'Doe', email: 'john@test.com' },
+          updatedAt: new Date().toISOString(),
+        }
+      ]
+
+      beforeEach(() => {
+        mockUseAuth.mockReturnValue({ user: { role: 'ADMIN', id: 'admin' }, token: 'token' })
+      })
+
+      it('renders tabs to switch views', async () => {
+        vi.mocked(axios.get).mockResolvedValue({ data: [] })
+        render(
+          <MemoryRouter>
+            <DashboardPage />
+          </MemoryRouter>
+        )
+        await waitFor(() => expect(screen.getByText('Clientes')).toBeInTheDocument())
+        
+        expect(screen.getByText('Clientes')).toBeInTheDocument()
+        expect(screen.getByText('Clientes-Entidades')).toBeInTheDocument()
+      })
+
+      it('switches to entities view and back to clients', async () => {
+        vi.mocked(axios.get)
+          .mockResolvedValueOnce({ data: [] }) // Initial load (Clients)
+          .mockResolvedValueOnce({ data: mockGlobalEntities }) // Switch to Entities
+          .mockResolvedValueOnce({ data: [] }) // Switch back to Clients
+
+        render(
+          <MemoryRouter>
+            <DashboardPage />
+          </MemoryRouter>
+        )
+        
+        await waitFor(() => expect(screen.getByText('Clientes')).toBeInTheDocument())
+
+        const entitiesTab = screen.getByText('Clientes-Entidades')
+        fireEvent.click(entitiesTab)
+
+        await waitFor(() => {
+          expect(axios.get).toHaveBeenCalledWith(`${API_URL}/clients-financial-entities`, expect.any(Object))
+          expect(screen.getByText('Bank A')).toBeInTheDocument()
+        })
+
+        // Verify Admin specific columns/restrictions
+        expect(screen.getByText('Cliente')).toBeInTheDocument()
+        expect(screen.getByText(/John Doe/)).toBeInTheDocument()
+        expect(screen.queryByText('Nueva Entidad')).not.toBeInTheDocument()
+        expect(screen.queryByText('Acciones')).not.toBeInTheDocument()
+
+        // Switch back to Clients to cover the onClick handler
+        const clientsTab = screen.getByText('Clientes')
+        fireEvent.click(clientsTab)
+
+        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3))
+      })
     })
   })
 })

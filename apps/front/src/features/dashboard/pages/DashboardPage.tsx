@@ -13,6 +13,7 @@ export const DashboardPage = () => {
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
+  const [activeTab, setActiveTab] = useState<'clients' | 'entities'>('clients')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,7 +25,11 @@ export const DashboardPage = () => {
 
         let url = ''
         if (user.role === 'ADMIN') {
-          url = `${API_URL}/clients`
+          if (activeTab === 'clients') {
+            url = `${API_URL}/clients`
+          } else {
+            url = `${API_URL}/clients-financial-entities`
+          }
         } else {
           // Verificación explícita para evitar el error "User ID not found"
           if (!user.id) throw new Error('User ID not found')
@@ -45,7 +50,7 @@ export const DashboardPage = () => {
     }
 
     fetchData()
-  }, [user, token])
+  }, [user, token, activeTab])
 
   // Calcular el balance total
   const totalBalance = items.reduce((acc, item) => acc + (Number(item.balance) || 0), 0)
@@ -120,10 +125,28 @@ export const DashboardPage = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           {user.role === 'ADMIN' ? (
-            <>
-              <Users className="h-8 w-8 text-indigo-600" />
-              Gestión de Clientes
-            </>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setActiveTab('clients')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                  activeTab === 'clients' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <Users className="h-6 w-6" />
+                Clientes
+              </button>
+              <button
+                onClick={() => setActiveTab('entities')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                  activeTab === 'entities'
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <Wallet className="h-6 w-6" />
+                Clientes-Entidades
+              </button>
+            </div>
           ) : (
             <>
               <Wallet className="h-8 w-8 text-indigo-600" />
@@ -163,7 +186,7 @@ export const DashboardPage = () => {
         <div className="bg-red-50 p-4 rounded-md text-red-700">{error}</div>
       ) : (
         <>
-          {user.role === 'USER' ? (
+          {user.role === 'USER' || (user.role === 'ADMIN' && activeTab === 'entities') ? (
             <>
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
               <table className="min-w-full divide-y divide-gray-200">
@@ -175,6 +198,11 @@ export const DashboardPage = () => {
                         <SortIcon columnKey="name" />
                       </div>
                     </th>
+                    {user.role === 'ADMIN' && (
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                        Cliente
+                      </th>
+                    )}
                     <th scope="col" className="whitespace-nowrap px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onClick={() => handleSort('differential')}>
                       <div className="flex items-center">
                         Diferencial
@@ -190,9 +218,11 @@ export const DashboardPage = () => {
                     <th scope="col" className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
                       Actualizado
                     </th>
-                    <th scope="col" className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Acciones
-                    </th>
+                    {user.role !== 'ADMIN' && (
+                      <th scope="col" className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                        Acciones
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -213,6 +243,11 @@ export const DashboardPage = () => {
                           {item.financialEntity?.name || 'Entidad Desconocida'}
                         </Link>
                       </td>
+                      {user.role === 'ADMIN' && (
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {item.client ? `${item.client.firstName} ${item.client.lastName}` : '-'}
+                        </td>
+                      )}
                       <td className="px-6 py-4 whitespace-nowrap">
                         {item.initialBalance != null && Number(item.initialBalance) !== 0 ? (
                           <ProfitabilityBadge
@@ -234,18 +269,20 @@ export const DashboardPage = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                         {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault()
-                            handleDelete(item.id, item.financialEntity?.name)
-                          }}
-                          className="text-gray-400 hover:text-red-600 transition-colors"
-                          title="Eliminar entidad"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </td>
+                      {user.role !== 'ADMIN' && (
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault()
+                              handleDelete(item.id, item.financialEntity?.name)
+                            }}
+                            className="text-gray-400 hover:text-red-600 transition-colors"
+                            title="Eliminar entidad"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

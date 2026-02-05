@@ -58,11 +58,13 @@ describe('ProductController', () => {
     })
 
     it('should return 500 on generic error', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       vi.mocked(mockUseCases.createProduct).mockRejectedValue(new Error('Boom'))
       const req = mockRequest({})
       const res = mockResponse()
       await controller.create(req, res)
       expect(res.status).toHaveBeenCalledWith(500)
+      consoleSpy.mockRestore()
     })
   })
 

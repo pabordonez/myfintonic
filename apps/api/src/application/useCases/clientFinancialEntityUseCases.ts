@@ -13,6 +13,10 @@ export class ClientFinancialEntityUseCases {
     return this.repository.findAll(filters);
   }
 
+  async getAllAssociations(): Promise<IClientFinancialEntity[]> {
+    return this.repository.findAllWithClients();
+  }
+
   async getAssociationById(id: string): Promise<IClientFinancialEntity | null> {
     return this.repository.findById(id);
   }

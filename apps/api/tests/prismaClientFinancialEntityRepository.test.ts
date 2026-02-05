@@ -111,6 +111,14 @@ describe('PrismaClientFinancialEntityRepository', () => {
         })
       }))
     })
+
+    it('should rethrow generic errors', async () => {
+      const error = new Error('DB Error')
+      vi.mocked(prisma.clientFinancialEntity.create).mockRejectedValue(error)
+      
+      await expect(repo.create({ clientId: 'c1', financialEntityId: 'f1', balance: 100 }))
+        .rejects.toThrow('DB Error')
+    })
   })
 
   describe('update', () => {
@@ -178,6 +186,28 @@ describe('PrismaClientFinancialEntityRepository', () => {
       const result = await repo.findAll()
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe('1')
+    })
+  })
+
+  describe('findAllWithClients', () => {
+    it('should return entities with client included', async () => {
+      const mockEntity = {
+        id: '1',
+        balance: 100,
+        clientId: 'c1',
+        financialEntityId: 'f1',
+        financialEntity: { id: 'f1', name: 'Bank' },
+        client: { id: 'c1', firstName: 'Test', lastName: 'User', email: 'test@test.com' },
+        valueHistory: []
+      }
+      vi.mocked(prisma.clientFinancialEntity.findMany).mockResolvedValue([mockEntity] as any)
+      
+      const result = await (repo as any).findAllWithClients()
+      
+      expect(prisma.clientFinancialEntity.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        include: expect.objectContaining({ client: true })
+      }))
+      expect(result).toHaveLength(1)
     })
   })
 

@@ -16,13 +16,21 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
+// Mock dinámico para useAuth
+const mockUseAuth = vi.fn()
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => mockUseAuth(),
+}))
+
 describe('ProductsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorage.clear()
+    // Valor por defecto para la mayoría de tests (USER)
+    mockUseAuth.mockReturnValue({ token: 'test-token', user: { role: 'USER' } })
   })
 
   it('redirects to login if no token', () => {
+    mockUseAuth.mockReturnValue({ token: null, user: null })
     render(
       <MemoryRouter>
         <ProductsPage />
@@ -32,8 +40,6 @@ describe('ProductsPage', () => {
   })
 
   it('renders products list correctly', async () => {
-    localStorage.setItem('token', 'test-token')
-
     const mockProducts = [
       {
         id: 'prod-1',
@@ -74,7 +80,6 @@ describe('ProductsPage', () => {
 
   it('displays error message on fetch failure', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    localStorage.setItem('token', 'test-token')
     vi.mocked(axios.get).mockRejectedValue(new Error('Failed'))
 
     render(
@@ -92,7 +97,6 @@ describe('ProductsPage', () => {
   })
 
   it('navigates to edit page when clicking on product name', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       {
         id: 'prod-1',
@@ -119,7 +123,6 @@ describe('ProductsPage', () => {
   })
 
   it('deletes a product from the list after confirmation', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       {
         id: 'prod-1',
@@ -159,10 +162,34 @@ describe('ProductsPage', () => {
     confirmSpy.mockRestore()
   })
 
+  it('cancels delete action when user declines confirmation', async () => {
+    const mockProducts = [
+      {
+        id: 'prod-1',
+        name: 'Cuenta Segura',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
+    ]
+    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+
+    await waitFor(() => expect(screen.getByText('Cuenta Segura')).toBeInTheDocument())
+
+    const deleteBtn = screen.getByTitle('Eliminar producto')
+    fireEvent.click(deleteBtn)
+
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(axios.delete).not.toHaveBeenCalled()
+    confirmSpy.mockRestore()
+  })
+
   // --- Nuevos Tests de Filtrado y Ordenación ---
 
   it('filters products by name (case insensitive)', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'Mi Cuenta Ahorro', type: 'SAVINGS_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
       { id: '2', name: 'Mi Fondo Inversión', type: 'INVESTMENT_FUND', status: 'ACTIVE', currentBalance: 200 },
@@ -180,7 +207,6 @@ describe('ProductsPage', () => {
   })
 
   it('filters products by type', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'P1', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
       { id: '2', name: 'P2', type: 'STOCKS', status: 'ACTIVE', currentBalance: 200 },
@@ -198,7 +224,6 @@ describe('ProductsPage', () => {
   })
 
   it('filters products by multiple entities', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'P1', financialEntityName: 'Bank A', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
       { id: '2', name: 'P2', financialEntityName: 'Bank B', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
@@ -222,7 +247,6 @@ describe('ProductsPage', () => {
   })
 
   it('sorts products by balance', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'Low', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
       { id: '2', name: 'High', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1000 },
@@ -253,7 +277,6 @@ describe('ProductsPage', () => {
   })
 
   it('filters products by status', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'Active', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
       { id: '2', name: 'Paused', type: 'CURRENT_ACCOUNT', status: 'PAUSED', currentBalance: 100 },
@@ -271,7 +294,6 @@ describe('ProductsPage', () => {
   })
 
   it('displays error message on delete failure', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'Product to Delete', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
     ]
@@ -293,7 +315,6 @@ describe('ProductsPage', () => {
   })
 
   it('redirects to login on 401 error during fetch', async () => {
-    localStorage.setItem('token', 'test-token')
     const error: any = new Error('Unauthorized')
     error.response = { status: 401 }
     vi.mocked(axios.isAxiosError).mockReturnValue(true)
@@ -310,7 +331,6 @@ describe('ProductsPage', () => {
   })
 
   it('redirects to login on 401 error during fetch', async () => {
-    localStorage.setItem('token', 'test-token')
     const error: any = new Error('Unauthorized')
     error.response = { status: 401 }
     vi.mocked(axios.isAxiosError).mockReturnValue(true)
@@ -327,7 +347,6 @@ describe('ProductsPage', () => {
   })
 
   it('redirects to login on 401 error during fetch', async () => {
-    localStorage.setItem('token', 'test-token')
     const error: any = new Error('Unauthorized')
     error.response = { status: 401 }
     vi.mocked(axios.isAxiosError).mockReturnValue(true)
@@ -344,7 +363,6 @@ describe('ProductsPage', () => {
   })
 
   it('redirects to login on 401 error during fetch', async () => {
-    localStorage.setItem('token', 'test-token')
     const error: any = new Error('Unauthorized')
     error.response = { status: 401 }
     vi.mocked(axios.isAxiosError).mockReturnValue(true)
@@ -378,7 +396,6 @@ describe('ProductsPage', () => {
   })
 
   it('renders correct status colors', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
       { id: '2', name: 'P2', status: 'PAUSED', type: 'CURRENT_ACCOUNT' },
@@ -404,7 +421,6 @@ describe('ProductsPage', () => {
   })
 
   it('sorts products by name (string comparison) and cycles sort direction', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'Alpha', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
       { id: '2', name: 'Beta', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
@@ -433,7 +449,6 @@ describe('ProductsPage', () => {
   })
 
   it('clears filters', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'Alpha', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
       { id: '2', name: 'Beta', status: 'PAUSED', type: 'SAVINGS_ACCOUNT' },
@@ -454,7 +469,6 @@ describe('ProductsPage', () => {
   })
 
   it('displays empty state message when no products found', async () => {
-    localStorage.setItem('token', 'test-token')
     vi.mocked(axios.get).mockResolvedValue({ data: [] })
 
     render(<MemoryRouter><ProductsPage /></MemoryRouter>)
@@ -467,7 +481,6 @@ describe('ProductsPage', () => {
   })
 
   it('renders sort icons correctly', async () => {
-    localStorage.setItem('token', 'test-token')
     // Provide data to ensure the table is rendered
     vi.mocked(axios.get).mockResolvedValue({
       data: [{ id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' }]
@@ -491,7 +504,6 @@ describe('ProductsPage', () => {
   })
 
   it('displays "No results found" when filter matches nothing', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [{ id: '1', name: 'Alpha', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' }]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
@@ -505,7 +517,6 @@ describe('ProductsPage', () => {
   })
 
   it('renders product with fallback balance', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'P1', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: null, initialBalance: 50 }
     ]
@@ -519,7 +530,6 @@ describe('ProductsPage', () => {
   })
 
   it('sorts products with equal values stably', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'A', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
       { id: '2', name: 'A', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
@@ -537,7 +547,6 @@ describe('ProductsPage', () => {
   })
 
   it('sorts products by differential', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'A', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1000, initialBalance: 800 }, // Diff 200
       { id: '2', name: 'B', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 500, initialBalance: 600 },  // Diff -100
@@ -560,7 +569,6 @@ describe('ProductsPage', () => {
   })
 
   it('renders sort icons for differential column', async () => {
-    localStorage.setItem('token', 'test-token')
     vi.mocked(axios.get).mockResolvedValue({
       data: [{ id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' }]
     })
@@ -576,7 +584,6 @@ describe('ProductsPage', () => {
   })
 
   it('renders differential column correctly (Badge vs Dash)', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'With Diff', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1100, initialBalance: 1000 },
       { id: '2', name: 'No Diff', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1000, initialBalance: null },
@@ -606,7 +613,6 @@ describe('ProductsPage', () => {
   })
 
   it('triggers sort for all sortable columns', async () => {
-    localStorage.setItem('token', 'test-token')
     vi.mocked(axios.get).mockResolvedValue({
       data: [{ id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' }]
     })
@@ -624,7 +630,6 @@ describe('ProductsPage', () => {
   })
 
   it('renders unknown status with default color', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'P1', status: 'UNKNOWN_STATUS', type: 'CURRENT_ACCOUNT' },
     ]
@@ -638,7 +643,6 @@ describe('ProductsPage', () => {
   })
 
   it('handles products with missing financial entity name in filter', async () => {
-    localStorage.setItem('token', 'test-token')
     const mockProducts = [
       { id: '1', name: 'P1', financialEntityName: null, type: 'CURRENT_ACCOUNT' },
       { id: '2', name: 'P2', financialEntityName: 'Bank A', type: 'CURRENT_ACCOUNT' },
@@ -654,5 +658,38 @@ describe('ProductsPage', () => {
     // Should not have empty option from null value
     const options = within(entitySelect).getAllByRole('option')
     expect(options.map(o => o.textContent)).not.toContain('')
+  })
+
+  describe('ADMIN Role', () => {
+    beforeEach(() => {
+      mockUseAuth.mockReturnValue({ token: 'test-token', user: { role: 'ADMIN' } })
+    })
+
+    it('should NOT render "Nuevo Producto" button', async () => {
+      vi.mocked(axios.get).mockResolvedValue({ data: [] })
+      render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+      await waitFor(() => expect(screen.getByText('Productos Financieros')).toBeInTheDocument())
+      
+      expect(screen.queryByText('Nuevo Producto')).not.toBeInTheDocument()
+    })
+
+    it('should NOT render delete button and NOT navigate on row click', async () => {
+      const mockProducts = [
+        { id: '1', name: 'P1', type: 'CURRENT_ACCOUNT', status: 'ACTIVE' }
+      ]
+      vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+
+      render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+      await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
+
+      // Check delete button is missing
+      expect(screen.queryByTitle('Eliminar producto')).not.toBeInTheDocument()
+
+      // Check navigation is disabled
+      const nameCell = screen.getByText('P1')
+      fireEvent.click(nameCell)
+      expect(mockNavigate).not.toHaveBeenCalled()
+      expect(nameCell).not.toHaveClass('cursor-pointer')
+    })
   })
 })

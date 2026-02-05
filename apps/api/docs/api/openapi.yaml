@@ -42,6 +42,25 @@ paths:
   /auth/login:
     $ref: './paths/auth/login.yaml'
 
+  /clients:
+    get:
+      summary: Listar todos los clientes
+      operationId: getAllClients
+      tags:
+        - Clients
+      responses:
+        '200':
+          description: Lista de clientes recuperada
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /clients-financial-entities:
+    $ref: './paths/client-financial-entities/list.yaml'
+
   /clients/{id}:
     $ref: './paths/clients/update.yaml'
 

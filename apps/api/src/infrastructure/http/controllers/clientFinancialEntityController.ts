@@ -23,6 +23,15 @@ export class ClientFinancialEntityController {
     }
   }
 
+  getAllAssociations = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const associations = await this.useCases.getAllAssociations()
+      res.status(200).json(associations)
+    } catch {
+      res.status(500).json({ error: 'Internal Server Error' })
+    }
+  }
+
   getAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const filters: any = {}

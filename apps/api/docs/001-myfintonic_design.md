@@ -320,6 +320,11 @@ La API seguirá los principios REST, utilizando sustantivos en plural para las c
 
 ### Endpoints de Vinculación (Cliente-Entidad)
 
+- **`GET /clients/financial-entities`**: Obtiene todas las asociaciones del sistema (Solo ADMIN).
+  - **Respuestas**:
+    - `200 OK`: Lista completa con datos del cliente.
+    - `403 Forbidden`: Acceso denegado.
+
 - **`POST /clients/{clientId}/financial-entities`**: Crea una asociación entre un cliente y una entidad financiera del catálogo.
 - **`GET /clients/{clientId}/financial-entities`**: Obtiene las asociaciones de un cliente.
 - **`GET /clients/{clientId}/financial-entities/{id}`**: Obtiene el detalle de una asociación.

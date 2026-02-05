@@ -122,6 +122,15 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     return this.mapToDomain(entity);
   }
 
+  async findAllWithClients(): Promise<IClientFinancialEntity[]> {
+    const entities = await prisma.clientFinancialEntity.findMany({
+      include: {
+        financialEntity: true,
+        client: true
+      }
+    });
+    return entities.map((e: any) => this.mapToDomain(e));
+  }
 
   
   async findAll(filters?: Partial<IClientFinancialEntity> & { name?: string }): Promise<IClientFinancialEntity[]> {
@@ -142,11 +151,18 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
   }
 
   private mapToDomain(prismaEntity: any): IClientFinancialEntity {
+    //TODO MEJORAR PARA SEGMENTARLO MEJOR EN DISTINTOS TIPOS
     return {
       id: prismaEntity.id,
       balance: prismaEntity.balance ? Number(prismaEntity.balance) : 0,
       initialBalance: prismaEntity.initialBalance ? Number(prismaEntity.initialBalance) : undefined,
       clientId: prismaEntity.clientId,
+      client: prismaEntity.client ? {
+        id: prismaEntity.client.id,
+        firstName: prismaEntity.client.firstName,
+        lastName: prismaEntity.client.lastName,
+        email: prismaEntity.client.email
+      } : undefined,
       financialEntityId: prismaEntity.financialEntityId,
       financialEntity: prismaEntity.financialEntity ? {
         id: prismaEntity.financialEntity.id,

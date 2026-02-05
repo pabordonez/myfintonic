@@ -9,3 +9,10 @@ export interface IClient {
   createdAt: Date;
   updatedAt: Date;
 }
+export interface IClientDetails {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  nickname?:string;
+}

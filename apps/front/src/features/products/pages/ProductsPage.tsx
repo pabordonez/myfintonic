@@ -4,6 +4,7 @@ import axios from 'axios'
 import { Briefcase, Trash2 } from 'lucide-react'
 import { productService } from '../services/product.service'
 import { ProfitabilityBadge } from '../../financial-entities/components/ProfitabilityBadge'
+import { useAuth } from '@/hooks/useAuth'
 
 const productTypes: Record<string, string> = {
   CURRENT_ACCOUNT: 'Cuenta Corriente',
@@ -36,10 +37,10 @@ interface SortConfig {
 
 export const ProductsPage = () => {
   const navigate = useNavigate()
+  const { token, user } = useAuth()
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const token = localStorage.getItem('token')
 
   // Estados de Filtros y Ordenación
   const [filterName, setFilterName] = useState('')
@@ -186,12 +187,14 @@ export const ProductsPage = () => {
           <Briefcase className="h-8 w-8 text-indigo-600" />
           Productos Financieros
         </h1>
-        <Link
-          to="/products/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Nuevo Producto
-        </Link>
+        {user?.role !== 'ADMIN' && (
+          <Link
+            to="/products/new"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Nuevo Producto
+          </Link>
+        )}
       </div>
 
       {error && (
@@ -346,8 +349,8 @@ export const ProductsPage = () => {
                 {processedData.map((item: any) => (
                   <tr key={item.id}>
                     <td
-                      className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600"
-                      onClick={() => navigate(`/products/${item.id}`)}
+                      className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ${user?.role !== 'ADMIN' ? 'cursor-pointer hover:text-blue-600' : ''}`}
+                      onClick={() => user?.role !== 'ADMIN' && navigate(`/products/${item.id}`)}
                     >
                       {item.name}
                     </td>
@@ -386,13 +389,15 @@ export const ProductsPage = () => {
                       {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="text-gray-400 hover:text-red-600 transition-colors"
-                        title="Eliminar producto"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
+                      {user?.role !== 'ADMIN' && (
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="text-gray-400 hover:text-red-600 transition-colors"
+                          title="Eliminar producto"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
