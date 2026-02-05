@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
+import { Briefcase } from 'lucide-react'
 import { productService } from '../services/product.service'
 import { ProfitabilityBadge } from '../../financial-entities/components/ProfitabilityBadge'
 
@@ -181,7 +182,8 @@ export const ProductsPage = () => {
   return (
     <div>
       <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800">
+        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <Briefcase className="h-8 w-8 text-indigo-600" />
           Productos Financieros
         </h1>
         <Link

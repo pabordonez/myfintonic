@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { Plus, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown, Wallet, Users } from 'lucide-react'
 import axios from 'axios'
 import { API_URL } from '@/config/api'
 import { ProfitabilityBadge } from '../../financial-entities/components/ProfitabilityBadge'
@@ -118,10 +118,18 @@ export const DashboardPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {user.role === 'ADMIN'
-            ? 'Gestión de Clientes'
-            : 'Mis Entidades Financieras'}
+        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          {user.role === 'ADMIN' ? (
+            <>
+              <Users className="h-8 w-8 text-indigo-600" />
+              Gestión de Clientes
+            </>
+          ) : (
+            <>
+              <Wallet className="h-8 w-8 text-indigo-600" />
+              Mis Entidades Financieras
+            </>
+          )}
         </h1>
         {user.role === 'USER' && (
           <Link
