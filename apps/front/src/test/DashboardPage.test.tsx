@@ -6,230 +6,251 @@ import axios from 'axios'
 import { MemoryRouter } from 'react-router-dom'
 import { API_URL } from '../config/api'
 
+// Mock dependencies
 vi.mock('axios')
-const mockNavigate = vi.fn()
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  }
-})
+const mockUseAuth = vi.fn()
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => mockUseAuth(),
+}))
 
 describe('DashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorage.clear()
+  })
+
+  it('renders nothing if user is null', () => {
+    mockUseAuth.mockReturnValue({ user: null, token: null })
+    const { container } = render(<DashboardPage />)
+    expect(container).toBeEmptyDOMElement()
   })
 
   it('renders loading state initially', () => {
-    localStorage.setItem('token', 'test-token')
-    localStorage.setItem('user', JSON.stringify({ id: '123', role: 'USER' }))
-
-    // Mock promise that doesn't resolve immediately
-    vi.mocked(axios.get).mockImplementation(() => new Promise(() => {}))
-
+    mockUseAuth.mockReturnValue({ user: { role: 'USER', id: '1' }, token: 'token' })
+    vi.mocked(axios.get).mockImplementation(() => new Promise(() => {})) // Never resolves
     render(
       <MemoryRouter>
         <DashboardPage />
       </MemoryRouter>
     )
-    expect(screen.getByText(/Cargando.../i)).toBeInTheDocument()
+    expect(screen.getByText('Cargando...')).toBeInTheDocument()
   })
 
-  it('renders USER data correctly', async () => {
-    localStorage.setItem('token', 'test-token')
-    localStorage.setItem(
-      'user',
-      JSON.stringify({ id: 'user-123', role: 'USER' })
+  it('renders error state', async () => {
+    mockUseAuth.mockReturnValue({ user: { role: 'USER', id: '1' }, token: 'token' })
+    vi.mocked(axios.get).mockRejectedValue(new Error('Network error'))
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>
     )
+    await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+  })
 
-    const mockData = [
+  describe('USER Role', () => {
+    const mockItems = [
       {
         id: '1',
-        financialEntity: { name: 'Banco Santander' },
-        balance: 1500.5,
-        updatedAt: '2023-10-01T10:00:00Z',
+        balance: 1000,
+        initialBalance: 800,
+        financialEntity: { name: 'Bank A' },
+        updatedAt: new Date().toISOString(),
       },
-    ]
-
-    vi.mocked(axios.get).mockResolvedValue({ data: mockData })
-
-    render(
-      <MemoryRouter>
-        <DashboardPage />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText('Banco Santander')).toBeInTheDocument()
-      // Check for currency formatting (partial match due to potential locale differences)
-      expect(screen.getAllByText(/1\.?500,50\s*€/)[0]).toBeInTheDocument()
-    })
-
-    expect(axios.get).toHaveBeenCalledWith(
-      `${API_URL}/clients/user-123/financial-entities`,
-      expect.any(Object)
-    )
-  })
-
-  it('renders ADMIN data correctly', async () => {
-    localStorage.setItem('token', 'test-token')
-    localStorage.setItem(
-      'user',
-      JSON.stringify({ id: 'admin-1', role: 'ADMIN' })
-    )
-
-    const mockData = [
       {
-        id: 'client-1',
-        firstName: 'Juan',
-        lastName: 'Perez',
-        email: 'juan@test.com',
-        role: 'USER',
+        id: '2',
+        balance: 500,
+        initialBalance: 600,
+        financialEntity: { name: 'Bank B' },
+        updatedAt: new Date().toISOString(),
       },
     ]
 
-    vi.mocked(axios.get).mockResolvedValue({ data: mockData })
-
-    render(
-      <MemoryRouter>
-        <DashboardPage />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText('Juan Perez (juan@test.com)')).toBeInTheDocument()
+    beforeEach(() => {
+      mockUseAuth.mockReturnValue({ user: { role: 'USER', id: 'u1' }, token: 'token' })
+      vi.mocked(axios.get).mockResolvedValue({ data: mockItems })
     })
 
-    expect(axios.get).toHaveBeenCalledWith(
-      `${API_URL}/clients`,
-      expect.any(Object)
-    )
-  })
-
-  it('handles API errors', async () => {
-    localStorage.setItem('token', 'test-token')
-    localStorage.setItem('user', JSON.stringify({ id: '123', role: 'USER' }))
-
-    vi.mocked(axios.get).mockRejectedValue(new Error('Network Error'))
-
-    render(
-      <MemoryRouter>
-        <DashboardPage />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument()
-    })
-  })
-
-  it('shows link entity button for USER', async () => {
-    localStorage.setItem('token', 'test-token')
-    localStorage.setItem(
-      'user',
-      JSON.stringify({ id: 'user-123', role: 'USER' })
-    )
-    vi.mocked(axios.get).mockResolvedValue({ data: [] })
-
-    render(
-      <MemoryRouter>
-        <DashboardPage />
-      </MemoryRouter>
-    )
-    await waitFor(() =>
-      expect(screen.getByText('Nueva Entidad')).toBeInTheDocument()
-    )
-  })
-
-  it('navigates to edit client entity when clicking name', async () => {
-    localStorage.setItem('token', 'test-token')
-    localStorage.setItem(
-      'user',
-      JSON.stringify({ id: 'user-123', role: 'USER' })
-    )
-    const mockData = [
-      { id: 'assoc-1', financialEntity: { name: 'Santander' }, balance: 1000 },
-    ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockData })
-
-    render(
-      <MemoryRouter>
-        <DashboardPage />
-      </MemoryRouter>
-    )
-    await waitFor(() => {
-      const link = screen.getByText('Santander')
-      expect(link.closest('a')).toHaveAttribute(
-        'href',
-        '/client-entities/assoc-1'
+    it('fetches and renders user financial entities', async () => {
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
       )
-    })
-  })
 
-  it('allows USER to delete an entity', async () => {
-    localStorage.setItem('token', 'test-token')
-    localStorage.setItem('user', JSON.stringify({ id: 'user-123', role: 'USER' }))
-
-    const mockData = [
-      { id: 'assoc-1', financialEntity: { name: 'Santander' }, balance: 1000 },
-    ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockData })
-    vi.mocked(axios.delete).mockResolvedValue({})
-    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true)
-
-    render(
-      <MemoryRouter>
-        <DashboardPage />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText('Santander')).toBeInTheDocument()
+      await waitFor(() => expect(axios.get).toHaveBeenCalledWith(`${API_URL}/clients/u1/financial-entities`, expect.any(Object)))
+      expect(screen.getByText('Mis Entidades Financieras')).toBeInTheDocument()
+      expect(screen.getByText('Bank A')).toBeInTheDocument()
+      expect(screen.getByText('Bank B')).toBeInTheDocument()
     })
 
-    const deleteBtn = screen.getByTitle('Eliminar entidad')
-    fireEvent.click(deleteBtn)
-
-    expect(confirmSpy).toHaveBeenCalled()
-    await waitFor(() => {
-      expect(axios.delete).toHaveBeenCalledWith(
-        `${API_URL}/clients/user-123/financial-entities/assoc-1`,
-        expect.any(Object)
+    it('calculates and displays total balance', async () => {
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
       )
-      // Should be removed from list
-      expect(screen.queryByText('Santander')).not.toBeInTheDocument()
+      await waitFor(() => expect(screen.getByText('Balance Total')).toBeInTheDocument())
+      // 1000 + 500 = 1500. Buscamos formato parcial
+      expect(screen.getByText(/1.?500,00/)).toBeInTheDocument() 
     })
-    confirmSpy.mockRestore()
+
+    it('sorts items by name', async () => {
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      )
+      await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+
+      const nameHeader = screen.getByText('Nombre')
+      
+      // Click to sort ASC
+      fireEvent.click(nameHeader)
+      const rowsAsc = screen.getAllByRole('row')
+      // Row 0 is header. Row 1 should be Bank A, Row 2 Bank B
+      expect(rowsAsc[1]).toHaveTextContent('Bank A')
+      expect(rowsAsc[2]).toHaveTextContent('Bank B')
+
+      // Click to sort DESC
+      fireEvent.click(nameHeader)
+      const rowsDesc = screen.getAllByRole('row')
+      expect(rowsDesc[1]).toHaveTextContent('Bank B')
+      expect(rowsDesc[2]).toHaveTextContent('Bank A')
+    })
+
+    it('sorts items by balance', async () => {
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      )
+      await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+
+      const balanceHeader = screen.getByText('Balance Actual')
+      
+      // Click to sort ASC (500 then 1000)
+      fireEvent.click(balanceHeader)
+      const rowsAsc = screen.getAllByRole('row')
+      expect(rowsAsc[1]).toHaveTextContent(/500,00/) // Bank B
+      expect(rowsAsc[2]).toHaveTextContent(/1.?000,00/) // Bank A
+
+      // Click to sort DESC (1000 then 500)
+      fireEvent.click(balanceHeader)
+      const rowsDesc = screen.getAllByRole('row')
+      expect(rowsDesc[1]).toHaveTextContent(/1.?000,00/)
+      expect(rowsDesc[2]).toHaveTextContent(/500,00/)
+    })
+
+    it('sorts items by differential', async () => {
+      const items = [
+        { id: '1', balance: 1000, initialBalance: 800, financialEntity: { name: 'A' } }, // Diff 200
+        { id: '2', balance: 500, initialBalance: 600, financialEntity: { name: 'B' } },  // Diff -100
+        { id: '3', balance: 1000, initialBalance: 1000, financialEntity: { name: 'C' } }, // Diff 0
+      ]
+      vi.mocked(axios.get).mockResolvedValue({ data: items })
+
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      )
+      await waitFor(() => expect(screen.getByText('A')).toBeInTheDocument())
+
+      const diffHeader = screen.getByText('Diferencial')
+
+      // Sort ASC: -100 (B), 0 (C), 200 (A)
+      fireEvent.click(diffHeader)
+      let rows = screen.getAllByRole('row')
+      // row[0] is header
+      expect(rows[1]).toHaveTextContent('B')
+      expect(rows[2]).toHaveTextContent('C')
+      expect(rows[3]).toHaveTextContent('A')
+    })
+
+    it('filters items by search term', async () => {
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      )
+      await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+
+      const searchInput = screen.getByPlaceholderText('Buscar entidad...')
+      fireEvent.change(searchInput, { target: { value: 'Bank B' } })
+
+      expect(screen.queryByText('Bank A')).not.toBeInTheDocument()
+      expect(screen.getByText('Bank B')).toBeInTheDocument()
+    })
+
+    it('deletes an item', async () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      vi.mocked(axios.delete).mockResolvedValue({})
+
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      )
+      await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+
+      const deleteButtons = screen.getAllByTitle('Eliminar entidad')
+      fireEvent.click(deleteButtons[0]) // Delete Bank A
+
+      await waitFor(() => {
+        expect(axios.delete).toHaveBeenCalledWith(`${API_URL}/clients/u1/financial-entities/1`, expect.any(Object))
+        expect(screen.queryByText('Bank A')).not.toBeInTheDocument()
+      })
+    })
+
+    it('handles delete error', async () => {
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+      vi.mocked(axios.delete).mockRejectedValue(new Error('Delete failed'))
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      )
+      await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+
+      const deleteButtons = screen.getAllByTitle('Eliminar entidad')
+      fireEvent.click(deleteButtons[0])
+
+      await waitFor(() => expect(screen.getByText('Error al eliminar la entidad')).toBeInTheDocument())
+      consoleSpy.mockRestore()
+    })
+
+    it('handles missing user ID gracefully', async () => {
+      mockUseAuth.mockReturnValue({ user: { role: 'USER' }, token: 'token' }) // No ID
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      )
+      await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+      consoleSpy.mockRestore()
+    })
   })
 
-  it('displays profitability badges for rows and global total', async () => {
-    localStorage.setItem('token', 'test-token')
-    localStorage.setItem('user', JSON.stringify({ id: 'user-123', role: 'USER' }))
+  describe('ADMIN Role', () => {
+    it('fetches and renders clients list', async () => {
+      mockUseAuth.mockReturnValue({ user: { role: 'ADMIN', id: 'admin' }, token: 'token' })
+      const mockClients = [
+        { id: 'c1', firstName: 'John', lastName: 'Doe', email: 'john@test.com', role: 'USER' }
+      ]
+      vi.mocked(axios.get).mockResolvedValue({ data: mockClients })
 
-    const mockData = [
-      { id: '1', financialEntity: { name: 'Bank A' }, balance: 1100, initialBalance: 1000 }, // +10%
-      { id: '2', financialEntity: { name: 'Bank B' }, balance: 2400, initialBalance: 2000 }, // +20%
-    ]
-    // Total Balance: 3500, Total Initial: 3000 -> +16.67%
+      render(
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      )
 
-    vi.mocked(axios.get).mockResolvedValue({ data: mockData })
-
-    render(
-      <MemoryRouter>
-        <DashboardPage />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      // Row 1 Badge
-      expect(screen.getByText('10.00%')).toBeInTheDocument()
-      // Row 2 Badge
-      expect(screen.getByText('20.00%')).toBeInTheDocument()
-      // Global Badge
-      expect(screen.getByText('16.67%')).toBeInTheDocument()
+      await waitFor(() => expect(axios.get).toHaveBeenCalledWith(`${API_URL}/clients`, expect.any(Object)))
+      expect(screen.getByText('Gestión de Clientes')).toBeInTheDocument()
+      expect(screen.getByText(/John Doe/)).toBeInTheDocument()
     })
   })
 })

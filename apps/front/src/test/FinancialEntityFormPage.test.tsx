@@ -104,4 +104,42 @@ describe('FinancialEntityFormPage', () => {
       )
     })
   })
+
+  it('displays error message on load failure', async () => {
+    mockUseParams.mockReturnValue({ id: 'ent-1' })
+    vi.mocked(axios.get).mockRejectedValue(new Error('Load failed'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <FinancialEntityFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByText(/Error/i)).toBeInTheDocument())
+    consoleSpy.mockRestore()
+  })
+
+  it('displays error message on submit failure', async () => {
+    vi.mocked(axios.post).mockRejectedValue(new Error('Submit failed'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(<MemoryRouter><FinancialEntityFormPage /></MemoryRouter>)
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: 'New Bank' } })
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => expect(screen.getByText(/Error/i)).toBeInTheDocument())
+    consoleSpy.mockRestore()
+  })
+
+  it('shows validation error when submitting empty form', async () => {
+    render(<MemoryRouter><FinancialEntityFormPage /></MemoryRouter>)
+    
+    fireEvent.click(screen.getByText(/Guardar/i))
+    
+    await waitFor(() => {
+        expect(screen.getByText(/El nombre es requerido/i)).toBeInTheDocument()
+    })
+  })
 })

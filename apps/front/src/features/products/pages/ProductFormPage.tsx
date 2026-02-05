@@ -23,6 +23,10 @@ export const ProductFormPage = () => {
       setLoading(true)
       try {
         // Cargar catálogo de entidades
+        const token = localStorage.getItem('token')
+        if (!token) throw new Error('Token not found')
+        const userStr = localStorage.getItem('user')
+        if (!userStr) throw new Error('User not found')
         const entitiesData = await productService.getFinancialEntities()
         setEntities(entitiesData)
 
@@ -119,6 +123,10 @@ export const ProductFormPage = () => {
           updateData.initialBalance = balanceValue
         } else {
           updateData.currentBalance = balanceValue
+          // Fix: Backend validation fails if initialBalance is sent for INVESTMENT_FUND updates
+          if (typeToUse === 'INVESTMENT_FUND') {
+            delete updateData.initialBalance
+          }
         }
 
         await productService.update(id as string, updateData)

@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test-silent": "vitest run --reporter=dot --silent"
+    "test-silent": "vitest run --reporter=dot --silent",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

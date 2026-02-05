@@ -42,4 +42,15 @@ describe('ProfitabilityBadge', () => {
     expect(screen.getByText(/Total:/)).toBeInTheDocument()
     expect(screen.getByText(/10\.00%/)).toBeInTheDocument()
   })
+
+  it('handles zero initial value gracefully', () => {
+    render(<ProfitabilityBadge currentValue={100} initialValue={0} />)
+    expect(screen.getByText(/%/)).toBeInTheDocument()
+  })
+
+  it('handles null initial value', () => {
+    // @ts-ignore
+    render(<ProfitabilityBadge currentValue={100} initialValue={null} />)
+    expect(screen.getByText(/%/)).toBeInTheDocument()
+  })
 })

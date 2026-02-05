@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, createEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductFormPage } from '../features/products/pages/ProductFormPage'
@@ -30,7 +30,7 @@ describe('ProductFormPage', () => {
     vi.clearAllMocks()
     mockUseParams.mockReturnValue({}) // Por defecto modo crear (sin ID)
     localStorage.setItem('token', 'test-token')
-    localStorage.setItem('userId', 'user-123')
+    localStorage.setItem('user', JSON.stringify({ id: 'user-123' }))
   })
 
   it('renders create form with type selection enabled', async () => {
@@ -647,5 +647,265 @@ describe('ProductFormPage', () => {
         expect.any(Object)
       )
     })
+  })
+
+  it('INVESTMENT_FUND (Edit): should not send initialBalance in payload', async () => {
+    mockUseParams.mockReturnValue({ id: 'fund-1' })
+    const mockFund = {
+      id: 'fund-1',
+      name: 'My Fund',
+      type: 'INVESTMENT_FUND',
+      financialEntityId: 'ent-1',
+      currentBalance: 20000,
+      initialBalance: 15000,
+      numberOfUnits: 100,
+      netAssetValue: 200
+    }
+
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Banco Santander' }] })
+      .mockResolvedValueOnce({ data: mockFund })
+
+    vi.mocked(axios.put).mockResolvedValue({})
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByDisplayValue('My Fund')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      const putCall = vi.mocked(axios.put).mock.calls[0]
+      const payload = putCall[1] as any
+      expect(payload).not.toHaveProperty('initialBalance')
+    })
+  })
+
+  it('displays error message on load failure', async () => {
+    vi.mocked(axios.get).mockRejectedValue(new Error('Load failed'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+  })
+
+  it('displays error message on submit failure', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: [{ id: 'ent-1', name: 'Banco Santander' }] })
+    vi.mocked(axios.post).mockRejectedValue(new Error('Submit failed'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument())
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => expect(screen.getByText('Error al guardar el producto')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+  })
+
+  it('displays error on delete failure', async () => {
+    mockUseParams.mockReturnValue({ id: 'prod-1' })
+    const mockProduct = { id: 'prod-1', name: 'P1', type: 'CURRENT_ACCOUNT', financialEntityId: 'ent-1' }
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] }).mockResolvedValueOnce({ data: mockProduct })
+    vi.mocked(axios.delete).mockRejectedValue(new Error('Delete failed'))
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText(/Eliminar/i)).toBeInTheDocument())
+
+    fireEvent.click(screen.getByText(/Eliminar/i))
+
+    await waitFor(() => expect(screen.getByText('Error al eliminar el producto')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+  })
+
+  it('handles missing user gracefully', async () => {
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+      if (key === 'token') return 'test-token'
+      if (key === 'user') return null // Force user missing
+      return null
+    })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+    getItemSpy.mockRestore()
+  })
+
+  it('handles missing user gracefully', async () => {
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+      if (key === 'token') return 'test-token'
+      if (key === 'user') return null
+      return null
+    })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+    getItemSpy.mockRestore()
+  })
+
+  it('cancels status change', async () => {
+    mockUseParams.mockReturnValue({ id: 'prod-1' })
+    const mockProduct = { id: 'prod-1', name: 'P1', type: 'CURRENT_ACCOUNT', financialEntityId: 'ent-1', status: 'ACTIVE' }
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] }).mockResolvedValueOnce({ data: mockProduct })
+    
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByLabelText(/Estado/i)).toBeInTheDocument())
+
+    // Usamos createEvent para poder espiar preventDefault
+    const select = screen.getByLabelText(/Estado/i)
+    const event = createEvent.change(select, { target: { value: 'PAUSED' } })
+    const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
+    
+    fireEvent(select, event)
+
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(preventDefaultSpy).toHaveBeenCalled()
+    expect(axios.patch).not.toHaveBeenCalled()
+    confirmSpy.mockRestore()
+  })
+
+  it('displays error on status change failure', async () => {
+    mockUseParams.mockReturnValue({ id: 'prod-1' })
+    const mockProduct = { id: 'prod-1', name: 'P1', type: 'CURRENT_ACCOUNT', financialEntityId: 'ent-1', status: 'ACTIVE' }
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] }).mockResolvedValueOnce({ data: mockProduct })
+    vi.mocked(axios.patch).mockRejectedValue(new Error('Patch failed'))
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByLabelText(/Estado/i)).toBeInTheDocument())
+
+    fireEvent.change(screen.getByLabelText(/Estado/i), { target: { value: 'PAUSED' } })
+
+    await waitFor(() => expect(screen.getByText('Error al actualizar el estado')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+  })
+
+  it('handles missing token gracefully', async () => {
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+      if (key === 'token') return null
+      return JSON.stringify({ id: 'user-123' }) // Return user for other calls
+    })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+    getItemSpy.mockRestore()
+  })
+
+  it('cancels delete action', async () => {
+    mockUseParams.mockReturnValue({ id: 'prod-1' })
+    const mockProduct = {
+      id: 'prod-1',
+      name: 'Cuenta Vieja',
+      type: 'CURRENT_ACCOUNT',
+      financialEntityId: 'ent-1',
+      currentBalance: 500,
+    }
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({ data: mockProduct })
+    
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByText(/Eliminar/i)).toBeInTheDocument())
+
+    fireEvent.click(screen.getByText(/Eliminar/i))
+
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(axios.delete).not.toHaveBeenCalled()
+    confirmSpy.mockRestore()
+  })
+
+  it('removes empty string fields before submission', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: [{ id: 'ent-1', name: 'Bank' }] })
+    vi.mocked(axios.post).mockResolvedValue({ data: {} })
+
+    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
+    await waitFor(() => expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument())
+
+    // Rellenar campos mínimos y luego vaciar uno explícitamente
+    const nameInput = screen.getByLabelText(/Nombre/i)
+    fireEvent.change(nameInput, { target: { value: 'Temp' } })
+    fireEvent.change(nameInput, { target: { value: '' } })
+
+    fireEvent.change(screen.getByLabelText(/Tipo/i), { target: { value: 'CURRENT_ACCOUNT' } })
+    fireEvent.change(screen.getByLabelText(/Entidad/i), { target: { value: 'ent-1' } })
+    
+    
+    // Enviar formulario
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalled()
+      const postCall = vi.mocked(axios.post).mock.calls[0]
+      const payload = postCall[1] as any
+      // Verificar que no hay claves con string vacío
+      Object.values(payload).forEach(val => {
+        expect(val).not.toBe('')
+      })
+      // Asegurar que 'name' fue eliminado porque era string vacío
+      expect(payload).not.toHaveProperty('name')
+    })
+  })
+
+  it('renders edit form for FIXED_TERM_DEPOSIT with dates', async () => {
+    mockUseParams.mockReturnValue({ id: 'deposit-1' })
+    const mockDeposit = {
+      id: 'deposit-1',
+      name: 'My Deposit',
+      type: 'FIXED_TERM_DEPOSIT',
+      financialEntityId: 'ent-1',
+      initialBalance: 1000,
+      initialDate: '2023-01-01T00:00:00Z',
+      maturityDate: '2024-01-01T00:00:00Z',
+      annualInterestRate: 0.05,
+      interestPaymentFrequency: 'Annual'
+    }
+
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
+      .mockResolvedValueOnce({ data: mockDeposit })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByDisplayValue('2023-01-01')).toBeInTheDocument())
+    expect(screen.getByDisplayValue('2024-01-01')).toBeInTheDocument()
   })
 })

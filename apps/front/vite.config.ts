@@ -17,6 +17,12 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    // Añade el archivo de cliente de prisma a las exclusiones
+    exclude: [
+        '**/*.d.ts',
+        '**/node_modules/**',
+        '**/dist/**',
+    ],
   },
   server: {
     host: true, // Escuchar en todas las interfaces (0.0.0.0)

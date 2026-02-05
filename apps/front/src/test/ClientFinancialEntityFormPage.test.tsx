@@ -188,4 +188,101 @@ describe('ClientFinancialEntityFormPage', () => {
       expect(screen.getByText('Association already exists')).toBeInTheDocument()
     )
   })
+
+  it('displays error message on load failure', async () => {
+    vi.mocked(axios.get).mockRejectedValue(new Error('Load failed'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <ClientFinancialEntityFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByText('Error al cargar datos')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+  })
+
+  it('displays generic error message on submit failure', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: [{ id: 'bank-1', name: 'Santander' }] })
+    vi.mocked(axios.post).mockRejectedValue(new Error('Network error'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <ClientFinancialEntityFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByLabelText(/Entidad Financiera/i)).toBeInTheDocument())
+
+    fireEvent.change(screen.getByLabelText(/Entidad Financiera/i), {
+      target: { value: 'bank-1' },
+    })
+    fireEvent.change(screen.getByLabelText(/Balance/i), {
+      target: { value: '1000' },
+    })
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => expect(screen.getByText('Error al guardar')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+  })
+
+  it('handles missing user ID gracefully', async () => {
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+      if (key === 'user') return null
+      return 'test-token'
+    })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <ClientFinancialEntityFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() => expect(screen.getByText('Error al cargar datos')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+    getItemSpy.mockRestore()
+  })
+
+  it('handles missing token gracefully', async () => {
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+      if (key === 'token') return null
+      return JSON.stringify({ id: 'user-123', role: 'USER' }) // Return user for other calls
+    })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <ClientFinancialEntityFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() => expect(screen.getByText('Error al cargar datos')).toBeInTheDocument())
+    consoleSpy.mockRestore()
+    getItemSpy.mockRestore()
+  })
+
+  it('renders value history in edit mode', async () => {
+    mockUseParams.mockReturnValue({ id: 'assoc-1' })
+    vi.mocked(axios.get).mockImplementation((url) => {
+      if (url.includes('/financial-entities') && !url.includes('/clients/')) {
+        return Promise.resolve({ data: [{ id: 'bank-1', name: 'Santander' }] })
+      }
+      return Promise.resolve({
+        data: { 
+            id: 'assoc-1', 
+            financialEntityId: 'bank-1', 
+            balance: 500,
+            initialBalance: 400,
+            valueHistory: [{ date: '2023-01-01', value: 500, previousValue: 400 }]
+        },
+      })
+    })
+
+    render(<MemoryRouter><ClientFinancialEntityFormPage /></MemoryRouter>)
+
+    await waitFor(() => expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument())
+    expect(screen.getByText('01/01/2023')).toBeInTheDocument()
+  })
 })

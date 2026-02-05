@@ -24,6 +24,13 @@ export const EditProfilePage = () => {
     formState: { errors },
   } = useForm<UpdateClientData>()
 
+  // Redirigir si no hay usuario o token
+  useEffect(() => {
+    if (!user && !token) {
+      navigate('/auth/login')
+    }
+  }, [user, token, navigate])
+
   // Cargar datos iniciales
   useEffect(() => {
     if (user) {

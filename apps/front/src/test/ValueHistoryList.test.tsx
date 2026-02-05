@@ -92,4 +92,16 @@ describe('ValueHistoryList', () => {
     })
     expect(totalBadge).toBeInTheDocument()
   })
+
+  it('renders correctly when history is empty', () => {
+    render(<ValueHistoryList history={[]} />)
+    expect(screen.getByText('No hay historial disponible.')).toBeInTheDocument()
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0)
+  })
+
+  it('renders correctly when history is undefined', () => {
+    render(<ValueHistoryList history={undefined as any} />)
+    expect(screen.getByText('No hay historial disponible.')).toBeInTheDocument()
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0)
+  })
 })

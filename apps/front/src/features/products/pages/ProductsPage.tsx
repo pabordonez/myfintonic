@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import { productService } from '../services/product.service'
+import { ProfitabilityBadge } from '../../financial-entities/components/ProfitabilityBadge'
 
 const productTypes: Record<string, string> = {
   CURRENT_ACCOUNT: 'Cuenta Corriente',
@@ -119,7 +120,10 @@ export const ProductsPage = () => {
       result.sort((a, b) => {
         let valA, valB
 
-        if (sortConfig.key === 'balance') {
+        if (sortConfig.key === 'differential') {
+          valA = (Number(a.currentBalance ?? a.initialBalance) || 0) - (Number(a.initialBalance) || 0)
+          valB = (Number(b.currentBalance ?? b.initialBalance) || 0) - (Number(b.initialBalance) || 0)
+        } else if (sortConfig.key === 'balance') {
           valA = a.currentBalance ?? a.initialBalance ?? 0
           valB = b.currentBalance ?? b.initialBalance ?? 0
         } else {
@@ -309,6 +313,12 @@ export const ProductsPage = () => {
                   </th>
                   <th 
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    onClick={() => handleSort('differential')}
+                  >
+                    <div className="flex items-center">Diferencial {renderSortIcon('differential')}</div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                     onClick={() => handleSort('balance')}
                   >
                     <div className="flex items-center">Balance {renderSortIcon('balance')}</div>
@@ -344,6 +354,16 @@ export const ProductsPage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {productTypes[item.type] || item.type}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.initialBalance != null && Number(item.initialBalance) !== 0 ? (
+                        <ProfitabilityBadge
+                          currentValue={item.currentBalance ?? item.initialBalance ?? 0}
+                          initialValue={item.initialBalance}
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Intl.NumberFormat('es-ES', {

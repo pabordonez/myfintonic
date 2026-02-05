@@ -38,8 +38,10 @@ export const ClientFinancialEntityFormPage = () => {
       setLoading(true)
       try {
         const token = localStorage.getItem('token')
+        if (!token) throw new Error('Token not found')
         const userStr = localStorage.getItem('user')
-        const userId = userStr ? JSON.parse(userStr).id : null
+        if (!userStr) throw new Error('User not found')
+        const userId = JSON.parse(userStr).id
 
         // Load catalog
         const catalogRes = await axios.get(`${API_URL}/financial-entities`, {

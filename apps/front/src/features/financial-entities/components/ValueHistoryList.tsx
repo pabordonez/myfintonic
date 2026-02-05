@@ -13,7 +13,7 @@ interface ValueHistoryListProps {
 
 export const ValueHistoryList = ({ history, initialBalance }: ValueHistoryListProps) => {
   // Ordenar por fecha descendente (más reciente primero) y tomar los últimos 10
-  const sortedHistory = [...history]
+  const sortedHistory = [...(history || [])]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10)
 

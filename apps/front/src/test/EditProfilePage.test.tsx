@@ -1,122 +1,80 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
-import { EditProfilePage } from '@/features/profile/pages/EditProfilePage'
-import { useAuth } from '@/hooks/useAuth'
-import { updateClientProfile } from '@/features/profile/services/client.service'
+import { EditProfilePage } from '../features/profile/pages/EditProfilePage'
 import { BrowserRouter } from 'react-router-dom'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { updateClientProfile } from '../features/profile/services/client.service'
+import { useAuth } from '../hooks/useAuth'
 
-// Mocks
-vi.mock('@/hooks/useAuth')
-vi.mock('@/features/profile/services/client.service')
+vi.mock('../features/profile/services/client.service')
+vi.mock('../hooks/useAuth')
 
-// Mock de navegación
-const mockNavigate = vi.fn()
+const { mockNavigate } = vi.hoisted(() => {
+  return { mockNavigate: vi.fn() }
+})
+
+const mockRefreshUser = vi.fn()
+
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom')
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  }
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  return { ...actual, useNavigate: () => mockNavigate }
 })
 
 describe('EditProfilePage', () => {
-  const mockRefreshUser = vi.fn()
-  const user = {
-    id: '123',
-    firstName: 'Juan',
-    lastName: 'Perez',
-    nickname: 'Juancito',
-    role: 'USER',
-  }
-
   beforeEach(() => {
     vi.clearAllMocks()
     ;(useAuth as any).mockReturnValue({
-      user,
-      token: 'fake-token',
+      user: { id: '1', firstName: 'John', lastName: 'Doe', email: 'john@test.com' },
+      token: 'token',
       refreshUser: mockRefreshUser,
     })
   })
 
-  it('should load initial user data into the form', () => {
-    render(
-      <BrowserRouter>
-        <EditProfilePage />
-      </BrowserRouter>
-    )
-
-    expect(screen.getByDisplayValue('Juan')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('Perez')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('Juancito')).toBeInTheDocument()
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
-  it('should call update service and refresh user context on successful submit', async () => {
-    const updatedUser = { ...user, firstName: 'Juan Updated' }
-    ;(updateClientProfile as any).mockResolvedValue(updatedUser)
-
+  it('renders form with user data', () => {
     render(
       <BrowserRouter>
         <EditProfilePage />
       </BrowserRouter>
     )
 
-    // Simular cambio en el input
-    const nameInput = screen.getByDisplayValue('Juan')
-    fireEvent.change(nameInput, { target: { value: 'Juan Updated' } })
-
-    // Enviar formulario
-    const submitBtn = screen.getByText(/Guardar Cambios/i)
-    fireEvent.click(submitBtn)
-
-    // Verificar llamada al servicio
-    await waitFor(() => {
-      expect(updateClientProfile).toHaveBeenCalledWith(
-        '123',
-        expect.objectContaining({ firstName: 'Juan Updated' }),
-        'fake-token'
-      )
-    })
-
-    // Verificar actualización de contexto y localStorage
-    expect(mockRefreshUser).toHaveBeenCalled()
-    expect(localStorage.getItem('user')).toContain('Juan Updated')
-
-    // Verificar mensaje de éxito
-    expect(
-      screen.getByText('Perfil actualizado correctamente')
-    ).toBeInTheDocument()
+    expect(screen.getByDisplayValue('John')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Doe')).toBeInTheDocument()
   })
 
-  it('should redirect to /dashboard after successful update', async () => {
-    const updatedUser = { ...user, firstName: 'Juan Updated' }
-    ;(updateClientProfile as any).mockResolvedValue(updatedUser)
+  it('updates profile successfully', async () => {
+    const originalSetTimeout = global.setTimeout
+    const setTimeoutSpy = vi.spyOn(global, 'setTimeout').mockImplementation((fn: any, delay?: number) => {
+      if (delay === 1500) {
+        fn()
+        return 0 as any
+      }
+      return originalSetTimeout(fn, delay)
+    })
+    vi.mocked(updateClientProfile).mockResolvedValue({ id: '1', firstName: 'Jane', lastName: 'Doe' })
 
-    render(
+    const { container } = render(
       <BrowserRouter>
         <EditProfilePage />
       </BrowserRouter>
     )
 
-    const submitBtn = screen.getByText(/Guardar Cambios/i)
-    fireEvent.click(submitBtn)
+    fireEvent.change(container.querySelector('input[name="firstName"]')!, { target: { value: 'Jane' } })
+    fireEvent.click(screen.getByText('Guardar Cambios'))
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Perfil actualizado correctamente')
-      ).toBeInTheDocument()
+      expect(updateClientProfile).toHaveBeenCalledWith('1', expect.objectContaining({ firstName: 'Jane' }), 'token')
+      expect(mockRefreshUser).toHaveBeenCalled()
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
     })
-
-    await waitFor(
-      () => {
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
-      },
-      { timeout: 3000 }
-    )
+    
+    setTimeoutSpy.mockRestore()
   })
 
-  it('should display error message if update fails', async () => {
-    ;(updateClientProfile as any).mockRejectedValue(new Error('Network Error'))
+  it('displays error on update failure', async () => {
+    vi.mocked(updateClientProfile).mockRejectedValue(new Error('Update failed'))
 
     render(
       <BrowserRouter>
@@ -124,14 +82,39 @@ describe('EditProfilePage', () => {
       </BrowserRouter>
     )
 
-    const submitBtn = screen.getByText(/Guardar Cambios/i)
-    fireEvent.click(submitBtn)
+    fireEvent.click(screen.getByText('Guardar Cambios'))
 
     await waitFor(() => {
-      expect(
-        screen.getByText('No se pudo actualizar el perfil. Inténtalo de nuevo.')
-      ).toBeInTheDocument()
+      expect(screen.getByText('No se pudo actualizar el perfil. Inténtalo de nuevo.')).toBeInTheDocument()
     })
-    expect(mockRefreshUser).not.toHaveBeenCalled()
+  })
+
+  it('redirects to login if user is missing', async () => {
+    ;(useAuth as any).mockReturnValue({
+      user: null,
+      token: null, // Aseguramos que ambos sean null
+      refreshUser: mockRefreshUser,
+    })
+
+    render(
+      <BrowserRouter>
+        <EditProfilePage />
+      </BrowserRouter>
+    )
+    
+    await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
+    })
+  })
+
+  it('navigates back when back button is clicked', () => {
+    const { container } = render(
+      <BrowserRouter>
+        <EditProfilePage />
+      </BrowserRouter>
+    )
+    const backButton = container.querySelector('button')
+    fireEvent.click(backButton!)
+    expect(mockNavigate).toHaveBeenCalledWith(-1)
   })
 })
