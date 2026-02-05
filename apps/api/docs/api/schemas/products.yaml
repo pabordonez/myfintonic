@@ -209,6 +209,8 @@ FixedTermDepositUpdate:
       properties:
         initialBalance:
           type: number
+        currentBalance:
+          type: number          
         initialDate:
           type: string
           format: date-time

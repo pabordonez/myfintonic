@@ -329,12 +329,12 @@ describe('ProductFormPage', () => {
 
     // 1. Check if the currentBalance is displayed in the balance field (or initial if current is null)
     await waitFor(() => {
-      const balanceInput = screen.getByLabelText(/Balance/i)
+      const balanceInput = screen.getByLabelText(/^Balance$/i)
       expect(balanceInput).toHaveValue(7600)
     })
 
     // 2. Change the value and submit
-    const balanceInput = screen.getByLabelText(/Balance/i)
+    const balanceInput = screen.getByLabelText(/^Balance$/i)
     fireEvent.change(balanceInput, { target: { value: '8000' } })
     fireEvent.click(screen.getByText(/Guardar/i))
 
@@ -940,5 +940,53 @@ describe('ProductFormPage', () => {
 
     await waitFor(() => expect(screen.getByDisplayValue('2023-01-01')).toBeInTheDocument())
     expect(screen.getByDisplayValue('2024-01-01')).toBeInTheDocument()
+  })
+
+  it('allows editing initialBalance for FIXED_TERM_DEPOSIT in edit mode', async () => {
+    mockUseParams.mockReturnValue({ id: 'dep-1' })
+    const mockDeposit = {
+      id: 'dep-1',
+      name: 'My Deposit',
+      type: 'FIXED_TERM_DEPOSIT',
+      financialEntityId: 'ent-1',
+      initialBalance: 10000,
+      currentBalance: 10500,
+    }
+
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
+      .mockResolvedValueOnce({ data: mockDeposit })
+    
+    vi.mocked(axios.put).mockResolvedValue({})
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByDisplayValue('My Deposit')).toBeInTheDocument())
+    
+    // Check for Initial Balance input
+    const initialBalanceInput = screen.getByLabelText(/Balance Inicial/i)
+    expect(initialBalanceInput).toBeInTheDocument()
+    expect(initialBalanceInput).toHaveValue(10000)
+
+    // Update Initial Balance
+    fireEvent.change(initialBalanceInput, { target: { value: '12000' } })
+    
+    // Submit
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(axios.put).toHaveBeenCalledWith(
+        expect.stringContaining('/products/dep-1'),
+        expect.objectContaining({
+          initialBalance: 12000,
+          currentBalance: 10500
+        }),
+        expect.any(Object)
+      )
+    })
   })
 })

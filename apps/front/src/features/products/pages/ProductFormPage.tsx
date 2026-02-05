@@ -279,6 +279,20 @@ export const ProductFormPage = () => {
 
         {selectedType === 'FIXED_TERM_DEPOSIT' && (
           <div>
+            {isEditMode && (
+              <>
+                <label htmlFor="initialBalance" className="block text-sm font-medium">
+                  Balance Inicial
+                </label>
+                <input
+                  id="initialBalance"
+                  type="number"
+                  step="0.01"
+                  {...register('initialBalance')}
+                  className="mt-1 block w-full border rounded p-2"
+                />
+              </>
+            )}
             <label htmlFor="initialDate" className="block text-sm font-medium">
               Fecha Inicio
             </label>
