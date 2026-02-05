@@ -77,7 +77,7 @@ describe('RegisterPage', () => {
   })
 
   it('displays validation errors for empty fields', async () => {
-    const { container } = render(
+    render(
       <BrowserRouter>
         <RegisterPage />
       </BrowserRouter>

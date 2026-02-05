@@ -49,7 +49,7 @@ describe('ProfitabilityBadge', () => {
   })
 
   it('handles null initial value', () => {
-    // @ts-ignore
+    // @ts-expect-error Testing invalid prop type
     render(<ProfitabilityBadge currentValue={100} initialValue={null} />)
     expect(screen.getByText(/%/)).toBeInTheDocument()
   })

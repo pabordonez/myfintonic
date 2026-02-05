@@ -57,7 +57,7 @@ describe('ValueHistoryList', () => {
      render(<ValueHistoryList history={mockHistory} />)
      // Check for formatted currency string. 
      // 1.100,00 €
-     const currencyElements = screen.getAllByText(/1[\.\s]?100,00\s*€/)
+     const currencyElements = screen.getAllByText(/1[\s]?100,00\s*€/)
      expect(currencyElements.length).toBeGreaterThan(0)
   })
 

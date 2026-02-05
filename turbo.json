@@ -6,11 +6,9 @@
       "outputs": ["dist/**", ".next/**", "build/**"]
     },
     "test": {
-      "dependsOn": [],
       "outputs": []
     },
     "test:silent": {
-      "dependsOn": [],
       "outputs": []
     },
     "test:watch": {
@@ -18,8 +16,7 @@
       "persistent": true
     },
     "test:coverage": {
-      "dependsOn": [],
-      "outputs": []
+      "outputs": ["coverage/**"]
     },
     "lint": {
       "outputs": []

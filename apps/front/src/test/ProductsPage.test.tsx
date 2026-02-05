@@ -553,7 +553,7 @@ describe('ProductsPage', () => {
 
     // Sort ASC: -100 (B), 0 (C), 200 (A)
     fireEvent.click(diffHeader)
-    let rows = screen.getAllByRole('row')
+    const rows = screen.getAllByRole('row')
     expect(within(rows[1]).getByText('B')).toBeInTheDocument()
     expect(within(rows[2]).getByText('C')).toBeInTheDocument()
     expect(within(rows[3]).getByText('A')).toBeInTheDocument()

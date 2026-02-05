@@ -159,7 +159,7 @@ describe('DashboardPage', () => {
 
       // Sort ASC: -100 (B), 0 (C), 200 (A)
       fireEvent.click(diffHeader)
-      let rows = screen.getAllByRole('row')
+      const rows = screen.getAllByRole('row')
       // row[0] is header
       expect(rows[1]).toHaveTextContent('B')
       expect(rows[2]).toHaveTextContent('C')

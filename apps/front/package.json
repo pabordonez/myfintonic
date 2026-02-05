@@ -7,12 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "lint-quiet": "eslint . --quiet",
+    "lint:quiet": "eslint . --quiet",
     "format": "prettier --write .",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test-silent": "vitest run --reporter=dot --silent",
+    "test:silent": "vitest run --reporter=dot --silent",
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
