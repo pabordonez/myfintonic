@@ -92,6 +92,7 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `monthlyInterestRate` (Number): Porcentaje de interés (e.g., 0.01 para 1%).
 
 **FixedTermDeposit** (hereda de `FinancialProduct`)
+- `currentBalance` (Number): Valor actual del depósito (permite seguimiento de valoración).
 - `initialDate` (Date): Fecha de inicio del depósito.
 - `maturityDate` (Date): Fecha de finalización del depósito.
 - `annualInterestRate` (Number): Tasa de interés nominal anual (e.g., 0.05 para 5%).
@@ -161,6 +162,7 @@ A continuación se detallan los esquemas JSON esperados en el cuerpo de las peti
   "financialEntity": "ca1c82a9-e536-46c8-9e26-e08b7ed20652",
   "status": "ACTIVE",
   "initialBalance": 5000.0,
+  "currentBalance": 5000.0,
   "initialDate": "2024-01-01T00:00:00Z",
   "maturityDate": "2024-12-31T23:59:59Z",
   "annualInterestRate": 0.035,

@@ -19,6 +19,7 @@ const savingsAccountSchema = z.object({
 
 const fixedTermDepositSchema = z.object({
   initialBalance: z.number({ required_error: 'Missing required field: initialBalance' }),
+  currentBalance: z.number().optional(),
   initialDate: z.coerce.date({ required_error: 'Missing required field: initialDate' }),
   maturityDate: z.coerce.date({ required_error: 'Missing required field: maturityDate' }),
   annualInterestRate: z.number({ required_error: 'Missing required field: annualInterestRate' }),

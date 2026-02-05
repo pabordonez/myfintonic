@@ -459,11 +459,10 @@ describe('Financial Products API', () => {
       const getRes = await request(app).get(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`)
       expect(getRes.body).toHaveProperty('annualInterestRate')
       expect(getRes.body).toHaveProperty('interestPaymentFrequency')
-      expect(getRes.body).not.toHaveProperty('currentBalance') // Depósitos usan initialBalance
 
-      // Intentar actualizar un campo inválido (currentBalance no existe en Depósitos)
+      // Actualizar currentBalance (Ahora permitido para seguimiento de valoración)
       const updateRes = await request(app).put(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`).send({ currentBalance: 500 })
-      expect(updateRes.status).toBe(400)
+      expect(updateRes.status).toBe(204)
 
       // Intentar actualizar con un valor de enum inválido
       const updateResEnum = await request(app).put(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`).send({ interestPaymentFrequency: 'END' })

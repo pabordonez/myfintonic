@@ -78,6 +78,31 @@ describe('PrismaProductRepository', () => {
       }))
     })
 
+    it('should create valueHistory when updating currentBalance for FIXED_TERM_DEPOSIT', async () => {
+      vi.mocked(prisma.financialProduct.findUnique).mockResolvedValue({
+        id: '1',
+        type: 'FIXED_TERM_DEPOSIT',
+        currentBalance: 1000,
+        initialBalance: 1000
+      } as any)
+      vi.mocked(prisma.financialProduct.update).mockResolvedValue({} as any)
+
+      await repo.update('1', { currentBalance: 1050 })
+
+      expect(prisma.financialProduct.update).toHaveBeenCalledWith(expect.objectContaining({
+        where: { id: '1' },
+        data: expect.objectContaining({
+          currentBalance: 1050,
+          valueHistory: {
+            create: expect.objectContaining({
+              value: 1050,
+              previousValue: 1000
+            })
+          }
+        })
+      }))
+    })
+
     it('should map interestPaymentFrequency correctly', async () => {
       await repo.update('1', { interestPaymentFrequency: 'Monthly' } as any)
       

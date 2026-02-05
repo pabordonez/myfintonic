@@ -48,6 +48,21 @@ describe('ProductUseCases', () => {
       expect(mockFactory.validateUpdate).toHaveBeenCalled()
       expect(mockRepo.update).toHaveBeenCalled()
     })
+
+    it('should allow updating currentBalance for FIXED_TERM_DEPOSIT', async () => {
+      const existingProduct = {
+        id: '1',
+        type: 'FIXED_TERM_DEPOSIT',
+        currentBalance: 1000,
+        initialBalance: 1000
+      }
+      vi.mocked(mockRepo.findById).mockResolvedValue(existingProduct as any)
+
+      await useCases.updateProduct('1', { currentBalance: 1050 })
+
+      expect(mockFactory.validateUpdate).toHaveBeenCalled()
+      expect(mockRepo.update).toHaveBeenCalledWith('1', { currentBalance: 1050 })
+    })
   })
 
   describe('deleteProduct', () => {

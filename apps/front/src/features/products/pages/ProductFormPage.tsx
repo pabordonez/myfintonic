@@ -119,9 +119,10 @@ export const ProductFormPage = () => {
         delete updateData.currentBalance
 
         // Re-assign balance to the correct field based on type
-        if (typeToUse === 'FIXED_TERM_DEPOSIT') {
-          updateData.initialBalance = balanceValue
-        } else {
+        // FIXED_TERM_DEPOSIT now supports currentBalance updates for valuation tracking
+        // Only update initialBalance if it's a correction logic, but standard flow is updating current value.
+        // For now, we treat it like other variable products in edit mode.
+        {
           updateData.currentBalance = balanceValue
           // Fix: Backend validation fails if initialBalance is sent for INVESTMENT_FUND updates
           if (typeToUse === 'INVESTMENT_FUND') {
@@ -483,6 +484,7 @@ export const ProductFormPage = () => {
         (selectedType === 'CURRENT_ACCOUNT' ||
           selectedType === 'SAVINGS_ACCOUNT' ||
           selectedType === 'INVESTMENT_FUND' ||
+          selectedType === 'FIXED_TERM_DEPOSIT' ||
           selectedType === 'STOCKS') &&
         valueHistory.length > 0 && (
           <div className="mt-8">

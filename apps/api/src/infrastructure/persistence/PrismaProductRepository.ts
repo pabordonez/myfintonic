@@ -221,6 +221,7 @@ export class PrismaProductRepository implements IProductRepository {
       case 'FIXED_TERM_DEPOSIT':
         specificFields = {
           initialBalance: prismaProduct.initialBalance,
+          currentBalance: prismaProduct.currentBalance,
           initialDate: prismaProduct.initialDate,
           maturityDate: prismaProduct.maturityDate,
           annualInterestRate: prismaProduct.annualInterestRate,

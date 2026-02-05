@@ -302,7 +302,7 @@ describe('ProductFormPage', () => {
     })
   })
 
-  it('should display initialBalance for deposits and submit it correctly', async () => {
+  it('should display currentBalance for deposits in edit mode and submit it correctly', async () => {
     mockUseParams.mockReturnValue({ id: 'prod-deposit-1' })
     const mockDeposit = {
       id: 'prod-deposit-1',
@@ -310,7 +310,7 @@ describe('ProductFormPage', () => {
       type: 'FIXED_TERM_DEPOSIT',
       financialEntityId: 'ent-1',
       initialBalance: 7500,
-      currentBalance: null, // This is key, as deposits don't have currentBalance
+      currentBalance: 7600, // Now deposits have currentBalance for tracking
     }
 
     vi.mocked(axios.get)
@@ -327,10 +327,10 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    // 1. Check if the initialBalance is displayed in the balance field
+    // 1. Check if the currentBalance is displayed in the balance field (or initial if current is null)
     await waitFor(() => {
       const balanceInput = screen.getByLabelText(/Balance/i)
-      expect(balanceInput).toHaveValue(7500)
+      expect(balanceInput).toHaveValue(7600)
     })
 
     // 2. Change the value and submit
@@ -338,13 +338,13 @@ describe('ProductFormPage', () => {
     fireEvent.change(balanceInput, { target: { value: '8000' } })
     fireEvent.click(screen.getByText(/Guardar/i))
 
-    // 3. Check if the submitted payload has initialBalance and not currentBalance
+    // 3. Check if the submitted payload has currentBalance updated
     await waitFor(() => {
       const putCall = vi.mocked(axios.put).mock.calls[0]
       const payload = putCall[1] as any
 
-      expect(payload).toHaveProperty('initialBalance', 8000)
-      expect(payload).not.toHaveProperty('currentBalance')
+      expect(payload).toHaveProperty('currentBalance', 8000)
+      // initialBalance should not be updated or sent if we only want to update current value
     })
   })
 
@@ -513,6 +513,39 @@ describe('ProductFormPage', () => {
 
     await waitFor(() => {
        expect(screen.getByDisplayValue('Fondo')).toBeInTheDocument()
+    })
+    
+    expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
+  })
+
+  it('renders history for FIXED_TERM_DEPOSIT', async () => {
+    mockUseParams.mockReturnValue({ id: 'prod-deposit-1' })
+    const mockProduct = {
+      id: 'prod-deposit-1',
+      name: 'Depósito Rentable',
+      type: 'FIXED_TERM_DEPOSIT',
+      financialEntityId: 'ent-1',
+      currentBalance: 1050,
+      initialBalance: 1000,
+      valueHistory: [
+        { date: '2023-10-01', value: 1050, previousValue: 1000 }
+      ]
+    }
+
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({
+        data: [{ id: 'ent-1', name: 'Banco Santander' }],
+      })
+      .mockResolvedValueOnce({ data: mockProduct })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+       expect(screen.getByDisplayValue('Depósito Rentable')).toBeInTheDocument()
     })
     
     expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
