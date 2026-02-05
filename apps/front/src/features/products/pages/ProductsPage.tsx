@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
-import { Briefcase } from 'lucide-react'
+import { Briefcase, Trash2 } from 'lucide-react'
 import { productService } from '../services/product.service'
 import { ProfitabilityBadge } from '../../financial-entities/components/ProfitabilityBadge'
 
@@ -337,7 +337,7 @@ export const ProductsPage = () => {
                   >
                     <div className="flex items-center">Actualizado {renderSortIcon('updatedAt')}</div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
@@ -385,12 +385,13 @@ export const ProductsPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-gray-400 hover:text-red-600 transition-colors"
+                        title="Eliminar producto"
                       >
-                        Eliminar
+                        <Trash2 className="h-5 w-5" />
                       </button>
                     </td>
                   </tr>

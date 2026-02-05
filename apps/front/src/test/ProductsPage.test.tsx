@@ -145,7 +145,7 @@ describe('ProductsPage', () => {
       expect(screen.getByText('Cuenta Borrar')).toBeInTheDocument()
     )
 
-    const deleteBtn = screen.getByRole('button', { name: /eliminar/i })
+    const deleteBtn = screen.getByTitle('Eliminar producto')
     deleteBtn.click()
 
     expect(confirmSpy).toHaveBeenCalled()
@@ -283,7 +283,7 @@ describe('ProductsPage', () => {
     render(<MemoryRouter><ProductsPage /></MemoryRouter>)
     await waitFor(() => expect(screen.getByText('Product to Delete')).toBeInTheDocument())
 
-    const deleteBtn = screen.getByText('Eliminar')
+    const deleteBtn = screen.getByTitle('Eliminar producto')
     fireEvent.click(deleteBtn)
 
     await waitFor(() => expect(screen.getByText('Error al eliminar el producto.')).toBeInTheDocument())
