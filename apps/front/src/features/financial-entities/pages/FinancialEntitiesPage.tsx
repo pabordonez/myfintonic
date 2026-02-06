@@ -44,6 +44,8 @@ export const FinancialEntitiesPage = () => {
     }
   }
 
+  const headerClass = "px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+
   if (loading) return <div className="p-6 text-center">Cargando...</div>
 
   return (
@@ -74,14 +76,14 @@ export const FinancialEntitiesPage = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className={`text-left ${headerClass}`}>
                 Nombre
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className={`text-left ${headerClass}`}>
                 Creada
               </th>
               {user?.role === 'ADMIN' && (
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                <th scope="col" className={`text-right whitespace-nowrap ${headerClass}`}>
                   Acciones
                 </th>
               )}

@@ -118,6 +118,8 @@ export const DashboardPage = () => {
     return sortConfig.direction === 'asc' ? <ArrowUp className="ml-1 h-4 w-4 text-indigo-600" /> : <ArrowDown className="ml-1 h-4 w-4 text-indigo-600" />
   }
 
+  const headerClass = "px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+
   if (!user) return null
 
   return (
@@ -300,13 +302,13 @@ export const DashboardPage = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className={`text-left ${headerClass}`}>
                       Nombre
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className={`text-left ${headerClass}`}>
                       Rol
                     </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className={`text-right ${headerClass}`}>
                       Actualizado
                     </th>
                   </tr>
