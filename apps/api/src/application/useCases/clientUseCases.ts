@@ -1,9 +1,9 @@
-import { ClientRepository } from '@domain/repository/IClientRepository';
+import { IClientRepository } from '@domain/repository/IClientRepository';
 import { RegisterClientDto, UpdateClientDto } from '@application/dtos/client.dto';
 import bcrypt from 'bcrypt';
 
 export class ClientUseCases {
-  constructor(private clientRepository: ClientRepository) {}
+  constructor(private clientRepository: IClientRepository) {}
 
   async register(data: RegisterClientDto) {
     const hashedPassword = await bcrypt.hash(data.password, 10);

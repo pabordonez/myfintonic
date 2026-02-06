@@ -14,7 +14,7 @@ describe('AuthController', () => {
   let status: any
 
   beforeEach(() => {
-    useCases = new AuthUseCases()
+    useCases = new AuthUseCases({} as any)
     controller = new AuthController(useCases)
     json = vi.fn()
     status = vi.fn().mockReturnValue({ json })

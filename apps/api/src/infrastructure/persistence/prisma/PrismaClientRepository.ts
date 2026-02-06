@@ -1,8 +1,8 @@
-import { ClientRepository } from '@domain/repository/IClientRepository';
+import { IClientRepository } from '@domain/repository/IClientRepository';
 import prisma from '@infrastructure/persistence/prisma/client';
 import { RegisterClientDto, UpdateClientDto } from '@application/dtos/client.dto';
 
-export class PrismaClientRepository implements ClientRepository {
+export class PrismaClientRepository implements IClientRepository {
   async create(data: RegisterClientDto) {
     try {
       return await prisma.client.create({
@@ -25,6 +25,10 @@ export class PrismaClientRepository implements ClientRepository {
 
   async findById(id: string) {
     return prisma.client.findUnique({ where: { id } });
+  }
+
+  async findByEmail(email: string) {
+    return prisma.client.findUnique({ where: { email } });
   }
 
   async update(id: string, data: UpdateClientDto) {

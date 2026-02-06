@@ -1,16 +1,16 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-//TODO CAMBIAR ESTO
-import prisma from '@infrastructure/persistence/prisma/client'
+import { IClientRepository } from '@domain/repository/IClientRepository'
 import { env } from '@config/env'
 
 export class AuthUseCases {
+  constructor(private readonly clientRepository: IClientRepository) {}
 
   async login(data: any) {
     const { email, password } = data
     if (!email || !password) throw new Error('Invalid credentials')
 
-    const user = await prisma.client.findUnique({ where: { email } }) as any // Cast any temporal hasta actualizar modelo
+    const user = await this.clientRepository.findByEmail(email)
     if (!user) throw new Error('Invalid credentials')
 
     const isValid = await bcrypt.compare(password, user.password)

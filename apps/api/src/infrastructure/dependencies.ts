@@ -35,7 +35,7 @@ export const clientRepository = new PrismaClientRepository()
 const clientUseCases = new ClientUseCases(clientRepository)
 export const clientController = new ClientController(clientUseCases)
 
-const authUseCases = new AuthUseCases()
+const authUseCases = new AuthUseCases(clientRepository)
 export const authController = new AuthController(authUseCases)
 
 export const healthController = new HealthController()

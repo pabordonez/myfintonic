@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductUseCases } from '../../src/application/useCases/productUseCases'
-import { IProductRepository } from '../src/domain/repository/IProductRepository'
+import { IProductRepository } from '../../src/domain/repository/IProductRepository'
 import { IProductFactory } from '../../src/domain/factories/productFactory'
 
 const mockRepo = {
