@@ -117,4 +117,16 @@ describe('EditProfilePage', () => {
     fireEvent.click(backButton!)
     expect(mockNavigate).toHaveBeenCalledWith(-1)
   })
+
+  it('renders change password link', () => {
+    render(
+      <BrowserRouter>
+        <EditProfilePage />
+      </BrowserRouter>
+    )
+    
+    const changePasswordLink = screen.getByText('Cambiar Contraseña')
+    expect(changePasswordLink).toBeInTheDocument()
+    expect(changePasswordLink.closest('a')).toHaveAttribute('href', '/clients/1/change-password')
+  })
 })

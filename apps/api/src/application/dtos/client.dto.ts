@@ -10,4 +10,5 @@ export interface UpdateClientDto {
   firstName?: string;
   lastName?: string;
   nickname?: string;
+  password: string;
 }

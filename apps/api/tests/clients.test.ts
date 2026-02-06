@@ -3,41 +3,129 @@ import request from 'supertest'
 import { app } from '../src/app'
 import jwt from 'jsonwebtoken'
 import { env } from '../src/config/env'
+import bcrypt from 'bcrypt'
 
 // Mock Prisma
-const { mockDb } = vi.hoisted(() => ({ mockDb: [] as any[] }))
+const { mockClientDb } = vi.hoisted(() => ({ mockClientDb: [] as any[] }))
 
 vi.mock('../src/infrastructure/persistence/prisma/client', async () => {
   return {
     default: {
       client: {
-        findMany: vi.fn().mockResolvedValue(mockDb),
-        findUnique: vi.fn().mockImplementation(async ({ where }) => {
-          return mockDb.find(c => c.id === where.id) || null
+        findUnique: vi.fn().mockImplementation(({ where }) => {
+          return Promise.resolve(mockClientDb.find(c => c.id === where.id) || null)
         }),
-        update: vi.fn().mockImplementation(async ({ where, data }) => {
-          const index = mockDb.findIndex(c => c.id === where.id)
-          if (index === -1) throw new Error('Not found')
-          mockDb[index] = { ...mockDb[index], ...data }
-          return mockDb[index]
-        })
+        findMany: vi.fn().mockImplementation(() => {
+          return Promise.resolve(mockClientDb)
+        }),
+        update: vi.fn().mockImplementation(({ where, data }) => {
+          const index = mockClientDb.findIndex(c => c.id === where.id)
+          if (index !== -1) {
+            mockClientDb[index] = { ...mockClientDb[index], ...data }
+            return Promise.resolve(mockClientDb[index])
+          }
+          return Promise.reject(new Error('Record to update not found.'))
+        }),
       }
     }
   }
 })
 
-describe('Clients API', () => {
-  const adminToken = jwt.sign({ id: 'admin', role: 'ADMIN' }, env.JWT_SECRET)
+describe('Client API', () => {
+  const adminToken = jwt.sign({ id: 'admin-id', role: 'ADMIN' }, env.JWT_SECRET)
   const userToken = jwt.sign({ id: 'user-1', role: 'USER' }, env.JWT_SECRET)
 
+  const hashedOldPassword = bcrypt.hashSync('oldPassword123', 10)
+
   beforeEach(() => {
-    mockDb.length = 0
-    mockDb.push({ id: 'user-1', email: 'user@test.com', role: 'USER', firstName: 'User' })
-    mockDb.push({ id: 'admin', email: 'admin@test.com', role: 'ADMIN', firstName: 'Admin' })
+    mockClientDb.length = 0
+    mockClientDb.push({
+      id: 'user-1',
+      email: 'user1@test.com',
+      password: hashedOldPassword,
+      role: 'USER',
+      firstName: 'User',
+      lastName: 'One'
+    })
+    mockClientDb.push({
+      id: 'user-2',
+      email: 'user2@test.com',
+      password: hashedOldPassword,
+      role: 'USER',
+      firstName: 'User',
+      lastName: 'Two'
+    })
   })
 
-  describe('GET /clients', () => {
-    it('should return all clients for ADMIN', async () => {
+  describe('Change Password', () => {
+    it('ADMIN should change password of any user without current password', async () => {
+      const res = await request(app)
+        .put('/clients/user-1/change-password')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ newPassword: 'newAdminPassword' })
+
+      expect(res.status).toBe(204)
+      
+      // Verify in mock db
+      const user = mockClientDb.find(u => u.id === 'user-1')
+      const isMatch = await bcrypt.compare('newAdminPassword', user.password)
+      expect(isMatch).toBe(true)
+    })
+
+    it('USER should change their own password with correct current password', async () => {
+      const res = await request(app)
+        .put('/clients/user-1/change-password')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ 
+          currentPassword: 'oldPassword123',
+          newPassword: 'newUserPassword' 
+        })
+
+      expect(res.status).toBe(204)
+
+      const user = mockClientDb.find(u => u.id === 'user-1')
+      const isMatch = await bcrypt.compare('newUserPassword', user.password)
+      expect(isMatch).toBe(true)
+    })
+
+    it('USER should fail to change password without sending current password', async () => {
+      const res = await request(app)
+        .put('/clients/user-1/change-password')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ newPassword: 'newUserPassword' })
+
+      expect(res.status).toBe(400)
+      expect(res.body.error).toMatch(/Current password is required/i)
+    })
+
+    it('USER should fail to change password with incorrect current password', async () => {
+      const res = await request(app)
+        .put('/clients/user-1/change-password')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ 
+          currentPassword: 'WRONGPassword',
+          newPassword: 'newUserPassword' 
+        })
+
+      expect(res.status).toBe(400)
+      expect(res.body.error).toMatch(/Invalid current password/i)
+    })
+
+    it('USER should fail to change password of another user', async () => {
+      const res = await request(app)
+        .put('/clients/user-2/change-password')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ 
+          currentPassword: 'oldPassword123',
+          newPassword: 'hackedPassword' 
+        })
+
+      expect(res.status).toBe(403)
+    })
+  })
+
+  describe('Get Clients', () => {
+    it('ADMIN should get all clients', async () => {
       const res = await request(app)
         .get('/clients')
         .set('Authorization', `Bearer ${adminToken}`)
@@ -45,36 +133,37 @@ describe('Clients API', () => {
       expect(res.status).toBe(200)
       expect(res.body).toHaveLength(2)
     })
+  })
 
-    it('should return 403 for USER', async () => {
+  describe('Get Client By ID', () => {
+    it('USER should get their own profile', async () => {
       const res = await request(app)
-        .get('/clients')
+        .get('/clients/user-1')
+        .set('Authorization', `Bearer ${userToken}`)
+      
+      expect(res.status).toBe(200)
+      expect(res.body.id).toBe('user-1')
+    })
+
+    it('USER should not get other profile', async () => {
+      const res = await request(app)
+        .get('/clients/user-2')
         .set('Authorization', `Bearer ${userToken}`)
       
       expect(res.status).toBe(403)
     })
   })
 
-  describe('GET /clients/:id', () => {
-    it('should return client details for ADMIN', async () => {
-      const res = await request(app)
-        .get('/clients/user-1')
-        .set('Authorization', `Bearer ${adminToken}`)
-      
-      expect(res.status).toBe(200)
-      expect(res.body.id).toBe('user-1')
-    })
-  })
-
-  describe('PUT /clients/:id', () => {
-    it('should update own details', async () => {
+  describe('Update Client', () => {
+    it('USER should update their own profile', async () => {
       const res = await request(app)
         .put('/clients/user-1')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ firstName: 'Updated' })
+        .send({ firstName: 'UpdatedName' })
       
       expect(res.status).toBe(200)
-      expect(res.body.firstName).toBe('Updated')
+      const user = mockClientDb.find(u => u.id === 'user-1')
+      expect(user.firstName).toBe('UpdatedName')
     })
   })
 })

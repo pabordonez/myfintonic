@@ -10,6 +10,7 @@ import { ProductFormPage } from '@/features/products/pages/ProductFormPage'
 import { FinancialEntityFormPage } from '@/features/financial-entities/pages/FinancialEntityFormPage'
 import { ClientFinancialEntityFormPage } from '@/features/client-financial-entities/pages/ClientFinancialEntityFormPage'
 import { EditProfilePage } from '@/features/profile/pages/EditProfilePage'
+import { ChangePasswordPage } from './features/clients/pages/ChangePasswordPage'
 
 function App() {
   return (
@@ -43,6 +44,12 @@ function App() {
             path="/client-entities/:id"
             element={<ClientFinancialEntityFormPage />}
           />
+
+         <Route
+            path="/clients/:id/change-password"
+            element={<ChangePasswordPage />}
+          />
+
           <Route path="/profile/edit" element={<EditProfilePage />} />
         </Route>
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown, Wallet, Users } from 'lucide-react'
+import { Plus, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown, Wallet, Users, Key } from 'lucide-react'
 import axios from 'axios'
 import { API_URL } from '@/config/api'
 import { ProfitabilityBadge } from '../../financial-entities/components/ProfitabilityBadge'
@@ -311,6 +311,9 @@ export const DashboardPage = () => {
                     <th scope="col" className={`text-right ${headerClass}`}>
                       Actualizado
                     </th>
+                    <th scope="col" className={`text-right ${headerClass}`}>
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -336,6 +339,15 @@ export const DashboardPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
                         {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Link
+                          to={`/clients/${item.id}/change-password`}
+                          className="text-indigo-600 hover:text-indigo-900 inline-flex items-center"
+                          title="Cambiar Contraseña"
+                        >
+                          <Key className="h-5 w-5" />
+                        </Link>
                       </td>
                     </tr>
                   ))}

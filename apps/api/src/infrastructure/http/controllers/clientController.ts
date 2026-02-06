@@ -55,4 +55,33 @@ export class ClientController {
     const updatedClient = await this.clientUseCases.updateClient(id as string, req.body);
     return res.status(200).json(updatedClient);
   }
+
+    async changePassword(req: Request, res: Response) {
+    try {
+      const { id } = req.params
+      const { newPassword, currentPassword } = req.body
+      const requestorRole = (req as any).user?.role
+      const requestorId = (req as any).user?.id
+
+      if (!newPassword) {
+        return res.status(400).json({ error: 'New password is required' })
+      }
+
+      await this.clientUseCases.changePassword(id as string, newPassword, currentPassword, requestorRole, requestorId)
+      res.status(204).send()
+    } catch (error: any) {
+      if (error.message.includes('Forbidden')) {
+        return res.status(403).json({ error: error.message })
+      }
+      if (error.message.includes('Invalid') || error.message.includes('required')) {
+        return res.status(400).json({ error: error.message })
+      }
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ error: error.message })
+      }
+      console.error(error)
+      res.status(500).json({ error: 'Internal Server Error' })
+    }
+  }
+
 }

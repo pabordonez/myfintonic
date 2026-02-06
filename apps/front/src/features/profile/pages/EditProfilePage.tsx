@@ -1,163 +1,135 @@
 import { useEffect, useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import {
-  updateClientProfile,
-  UpdateClientData,
-} from '../services/client.service'
-import { Save, ArrowLeft } from 'lucide-react'
+import { updateClientProfile } from '../services/client.service'
+import { ArrowLeft, Save, Key } from 'lucide-react'
 
 export const EditProfilePage = () => {
-  const { user, token, refreshUser } = useAuth()
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState<{
-    type: 'success' | 'error'
-    text: string
-  } | null>(null)
+  const { user, token, refreshUser } = useAuth()
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  
+  const { register, handleSubmit, setValue } = useForm()
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<UpdateClientData>()
-
-  // Redirigir si no hay usuario o token
   useEffect(() => {
-    if (!user && !token) {
+    if (!user) {
       navigate('/auth/login')
+      return
     }
-  }, [user, token, navigate])
+    setValue('firstName', user.firstName)
+    setValue('lastName', user.lastName)
+    setValue('email', user.email)
+    setValue('nickname', user.nickname)
+  }, [user, navigate, setValue])
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    if (user) {
-      setValue('firstName', user.firstName)
-      setValue('lastName', user.lastName)
-      setValue('nickname', user.nickname || '')
-    }
-  }, [user, setValue])
-
-  const onSubmit = async (data: UpdateClientData) => {
+  const onSubmit = async (data: any) => {
     if (!user || !token) return
-
-    setIsLoading(true)
-    setMessage(null)
+    setError(null)
+    setSuccess(null)
 
     try {
-      const updatedUser = await updateClientProfile(user.id, data, token)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-      if (refreshUser) await refreshUser() // Actualizar contexto
-
-      setMessage({ type: 'success', text: 'Perfil actualizado correctamente' })
-
-      // Redirigir tras breve pausa
+      await updateClientProfile(user.id, data, token)
+      await refreshUser()
+      setSuccess('Perfil actualizado correctamente')
       setTimeout(() => {
         navigate('/dashboard')
       }, 1500)
-    } catch {
-      setMessage({
-        type: 'error',
-        text: 'No se pudo actualizar el perfil. Inténtalo de nuevo.',
-      })
-    } finally {
-      setIsLoading(false)
+    } catch (err) {
+      console.error(err)
+      setError('No se pudo actualizar el perfil. Inténtalo de nuevo.')
     }
   }
 
+  if (!user) return null
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h2 className="text-xl font-bold text-gray-900">Editar Perfil</h2>
-        </div>
-
-        <div className="p-6">
-          {message && (
-            <div
-              className={`mb-4 p-3 rounded text-sm ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}
-            >
-              {message.text}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Nombre
-              </label>
-              <input
-                type="text"
-                {...register('firstName', {
-                  required: 'El nombre es obligatorio',
-                })}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.firstName && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors.firstName.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Apellidos
-              </label>
-              <input
-                type="text"
-                {...register('lastName', {
-                  required: 'Los apellidos son obligatorios',
-                })}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.lastName && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors.lastName.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Nickname{' '}
-                <span className="text-gray-400 font-normal">(Opcional)</span>
-              </label>
-              <input
-                type="text"
-                {...register('nickname')}
-                placeholder="Cómo quieres que te llamemos"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Este nombre será visible en la barra superior.
-              </p>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                'Guardando...'
-              ) : (
-                <>
-                  <Save size={18} /> Guardar Cambios
-                </>
-              )}
-            </button>
-          </form>
-        </div>
+    <div className="max-w-2xl mx-auto bg-white p-8 rounded shadow">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">
+          Editar Perfil
+        </h1>
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="h-5 w-5 mr-1" />
+          Volver
+        </button>
       </div>
+
+      {error && <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4 border border-red-200">{error}</div>}
+      {success && <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4 border border-green-200">{success}</div>}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre
+            </label>
+            <input
+              id="firstName"
+              {...register('firstName', { required: true })}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+              Apellido
+            </label>
+            <input
+              id="lastName"
+              {...register('lastName', { required: true })}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="nickname" className="block text-sm font-medium text-gray-700 mb-1">
+            Apodo (Opcional)
+          </label>
+          <input
+            id="nickname"
+            {...register('nickname')}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            {...register('email', { required: true })}
+            disabled
+            className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
+          />
+        </div>
+
+        <div className="pt-2">
+            <Link 
+                to={`/clients/${user.id}/change-password`}
+                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center"
+            >
+                <Key className="h-4 w-4 mr-1" />
+                Cambiar Contraseña
+            </Link>
+        </div>
+
+        <div className="pt-4">
+          <button
+            type="submit"
+            className="w-full flex justify-center items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+          >
+            <Save className="h-5 w-5 mr-2" />
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
     </div>
   )
 }

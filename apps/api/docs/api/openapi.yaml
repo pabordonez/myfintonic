@@ -64,6 +64,9 @@ paths:
   /clients/{id}:
     $ref: './paths/clients/update.yaml'
 
+  /clients/{id}/change-password:
+    $ref: './paths/clients/change-password.yaml'
+
   /products:
     $ref: './paths/products/list.yaml'
 
