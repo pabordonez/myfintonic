@@ -352,9 +352,9 @@ export const ProductsPage = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {processedData.map((item: any) => (
-                  <tr key={item.id}>
+                  <tr key={item.id} className="hover:bg-gray-50">
                     <td
-                      className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ${user?.role !== 'ADMIN' ? 'cursor-pointer hover:text-blue-600' : ''}`}
+                      className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ${user?.role !== 'ADMIN' ? 'cursor-pointer hover:text-indigo-600' : ''}`}
                       onClick={() => user?.role !== 'ADMIN' && navigate(`/products/${item.id}`)}
                     >
                       {item.name}

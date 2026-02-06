@@ -89,12 +89,12 @@ export const FinancialEntitiesPage = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {entities.map((entity) => (
-              <tr key={entity.id}>
+              <tr key={entity.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {user?.role === 'ADMIN' ? (
                     <Link
                       to={`/financial-entities/${entity.id}`}
-                      className="text-indigo-600 hover:text-indigo-900 hover:underline"
+                      className="hover:text-indigo-600"
                     >
                       {entity.name}
                     </Link>
