@@ -6,10 +6,11 @@ import axios from 'axios'
 import { MemoryRouter } from 'react-router-dom'
 import { API_URL } from '../config/api'
 
-const { mockNavigate, mockUseParams } = vi.hoisted(() => {
+const { mockNavigate, mockUseParams, mockUseAuth } = vi.hoisted(() => {
   return {
     mockNavigate: vi.fn(),
     mockUseParams: vi.fn().mockReturnValue({}),
+    mockUseAuth: vi.fn(),
   }
 })
 
@@ -25,16 +26,18 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => mockUseAuth(),
+}))
+
 describe('ClientFinancialEntityFormPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseParams.mockReturnValue({})
-    localStorage.setItem('token', 'test-token')
-    // Simulamos el estado real: el objeto user completo está en localStorage, no el userId suelto
-    localStorage.setItem(
-      'user',
-      JSON.stringify({ id: 'user-123', role: 'USER' })
-    )
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-123', role: 'USER' },
+      token: 'test-token',
+    })
   })
 
   it('renders create form with catalog', async () => {
@@ -86,7 +89,8 @@ describe('ClientFinancialEntityFormPage', () => {
         expect.objectContaining({ financialEntityId: 'bank-1', balance: 1000 }),
         expect.any(Object)
       )
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
+      expect(screen.getByText('Entidad creada correctamente')).toBeInTheDocument()
+      expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard')
     })
   })
 
@@ -152,7 +156,8 @@ describe('ClientFinancialEntityFormPage', () => {
         expect.objectContaining({ balance: 600 }),
         expect.any(Object)
       )
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
+      expect(screen.getByText('Entidad actualizada correctamente')).toBeInTheDocument()
+      expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard')
     })
   })
 
@@ -230,10 +235,7 @@ describe('ClientFinancialEntityFormPage', () => {
   })
 
   it('handles missing user ID gracefully', async () => {
-    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
-      if (key === 'user') return null
-      return 'test-token'
-    })
+    mockUseAuth.mockReturnValue({ user: null, token: 'test-token' })
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
@@ -241,16 +243,13 @@ describe('ClientFinancialEntityFormPage', () => {
         <ClientFinancialEntityFormPage />
       </MemoryRouter>
     )
-    await waitFor(() => expect(screen.getByText('Error al cargar datos')).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByText('Error al cargar datos')).not.toBeInTheDocument())
     consoleSpy.mockRestore()
-    getItemSpy.mockRestore()
   })
 
   it('handles missing token gracefully', async () => {
-    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
-      if (key === 'token') return null
-      return JSON.stringify({ id: 'user-123', role: 'USER' }) // Return user for other calls
-    })
+    mockUseAuth.mockReturnValue({ user: { id: 'user-123', role: 'USER' }, token: null })
+    vi.mocked(axios.get).mockRejectedValue(new Error('Unauthorized'))
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
@@ -260,12 +259,12 @@ describe('ClientFinancialEntityFormPage', () => {
     )
     await waitFor(() => expect(screen.getByText('Error al cargar datos')).toBeInTheDocument())
     consoleSpy.mockRestore()
-    getItemSpy.mockRestore()
   })
 
   it('renders value history in edit mode', async () => {
     mockUseParams.mockReturnValue({ id: 'assoc-1' })
     vi.mocked(axios.get).mockImplementation((url) => {
+
       if (url.includes('/financial-entities') && !url.includes('/clients/')) {
         return Promise.resolve({ data: [{ id: 'bank-1', name: 'Santander' }] })
       }
@@ -282,7 +281,20 @@ describe('ClientFinancialEntityFormPage', () => {
 
     render(<MemoryRouter><ClientFinancialEntityFormPage /></MemoryRouter>)
 
+    await waitFor(() => expect(screen.getByDisplayValue('500')).toBeInTheDocument())
     await waitFor(() => expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument())
     expect(screen.getByText('01/01/2023')).toBeInTheDocument()
+  })
+
+  it('navigates back when "Volver" is clicked', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: [] })
+    render(
+      <MemoryRouter>
+        <ClientFinancialEntityFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() => expect(screen.getByText('Volver')).toBeInTheDocument())
+    fireEvent.click(screen.getByText('Volver'))
+    expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
   })
 })

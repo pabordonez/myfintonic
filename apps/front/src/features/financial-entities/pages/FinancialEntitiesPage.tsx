@@ -1,70 +1,53 @@
-import { useEffect, useState, useMemo } from 'react'
-import { Search, ArrowUpDown, ArrowUp, ArrowDown, Building2, Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import axios from 'axios'
+import { Building2, Trash2, Plus } from 'lucide-react'
 import { API_URL } from '@/config/api'
 import { useAuth } from '@/hooks/useAuth'
-import { Link, useNavigate } from 'react-router-dom'
 
 export const FinancialEntitiesPage = () => {
-  const { token, user } = useAuth()
-  const navigate = useNavigate()
+  const { user, token } = useAuth()
   const [entities, setEntities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  // Estados para filtrado y ordenación
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchEntities = async () => {
-      try {
-        setLoading(true)
-        const response = await axios.get(`${API_URL}/financial-entities`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        setEntities(response.data)
-      } catch (err) {
-        console.error(err)
-        setError('Error al cargar el catálogo de entidades')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (token) {
-      fetchEntities()
-    }
+    fetchEntities()
   }, [token])
 
-  // Lógica de filtrado y ordenación (Client-side)
-  const processedEntities = useMemo(() => {
-    return [...(entities || [])]
-      .filter((entity) =>
-        (entity?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      .sort((a, b) => {
-        if (!sortDirection) return 0
-        const comparison = (a?.name || '').localeCompare(b?.name || '')
-        return sortDirection === 'asc' ? comparison : -comparison
+  const fetchEntities = async () => {
+    try {
+      setLoading(true)
+      const response = await axios.get(`${API_URL}/financial-entities`, {
+        headers: { Authorization: `Bearer ${token}` }
       })
-  }, [entities, searchTerm, sortDirection])
-
-  const handleSort = () => {
-    setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'))
+      setEntities(response.data)
+    } catch (err) {
+      console.error(err)
+      setError('Error al cargar las entidades')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const SortIcon = () => {
-    if (!sortDirection) return <ArrowUpDown className="ml-1 h-4 w-4 text-gray-400" />
-    return sortDirection === 'asc' ? (
-      <ArrowUp className="ml-1 h-4 w-4 text-indigo-600" />
-    ) : (
-      <ArrowDown className="ml-1 h-4 w-4 text-indigo-600" />
-    )
+  const handleDelete = async (id: string, name: string) => {
+    if (!window.confirm(`¿Estás seguro de eliminar la entidad ${name}?`)) return
+
+    try {
+      await axios.delete(`${API_URL}/financial-entities/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setEntities(prev => prev.filter(e => e.id !== id))
+    } catch (err) {
+      console.error(err)
+      setError('Error al eliminar la entidad')
+    }
   }
+
+  if (loading) return <div className="p-6 text-center">Cargando...</div>
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Building2 className="h-8 w-8 text-indigo-600" />
@@ -81,71 +64,69 @@ export const FinancialEntitiesPage = () => {
         )}
       </div>
 
-      {/* Barra de Búsqueda */}
-      <div className="relative max-w-xs w-full">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          {error}
         </div>
-        <input
-          type="text"
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          placeholder="Buscar entidad..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+      )}
 
-      {/* Tabla de Resultados */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center text-gray-500">Cargando catálogo...</div>
-        ) : error ? (
-          <div className="p-8 text-center text-red-500">{error}</div>
-        ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="w-full px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                  onClick={handleSort}
-                >
-                  <div className="flex items-center">
-                    Nombre
-                    <SortIcon />
-                  </div>
+      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Nombre
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Creada
+              </th>
+              {user?.role === 'ADMIN' && (
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  Acciones
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actualizado
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {processedEntities.length === 0 ? (
-                <tr>
-                  <td colSpan={2} className="px-6 py-4 text-center text-sm text-gray-500">
-                    {searchTerm ? 'No se encontraron entidades con ese nombre.' : 'No hay entidades disponibles.'}
-                  </td>
-                </tr>
-              ) : (
-                processedEntities.map((entity) => (
-                  <tr
-                    key={entity.id}
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => navigate(`/financial-entities/${entity.id}`)}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {entity.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                      {entity.updatedAt ? new Date(entity.updatedAt).toLocaleDateString() : '-'}
-                    </td>
-                  </tr>
-                ))
               )}
-            </tbody>
-          </table>
-        )}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {entities.map((entity) => (
+              <tr key={entity.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {user?.role === 'ADMIN' ? (
+                    <Link
+                      to={`/financial-entities/${entity.id}`}
+                      className="text-indigo-600 hover:text-indigo-900 hover:underline"
+                    >
+                      {entity.name}
+                    </Link>
+                  ) : (
+                    entity.name
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {new Date(entity.createdAt).toLocaleDateString()}
+                </td>
+                {user?.role === 'ADMIN' && (
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => handleDelete(entity.id, entity.name)}
+                      className="text-gray-400 hover:text-red-600 transition-colors"
+                      title="Eliminar entidad"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+            {entities.length === 0 && (
+              <tr>
+                <td colSpan={user?.role === 'ADMIN' ? 3 : 2} className="px-6 py-4 text-center text-sm text-gray-500">
+                  No hay entidades registradas.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   )

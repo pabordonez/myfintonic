@@ -14,6 +14,8 @@ export const ProductFormPage = () => {
   const [valueHistory, setValueHistory] = useState<ValueHistory[]>([])
   const [initialBalance, setInitialBalance] = useState<number | undefined>(undefined)
   const [statusLoading, setStatusLoading] = useState(false)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const { register, handleSubmit, watch, reset } = useForm()
   const selectedType = watch('type')
@@ -78,10 +80,12 @@ export const ProductFormPage = () => {
       }
     }
     loadData()
-  }, [id, isEditMode, reset])
+  }, [id, isEditMode, reset, refreshKey])
 
   const onSubmit = async (data: any) => {
     try {
+      setSuccess(null)
+      setError(null)
       // Preparar datos (conversión de tipos y limpieza) para ambos modos (Create/Update)
       const preparedData = { ...data }
 
@@ -131,10 +135,13 @@ export const ProductFormPage = () => {
         }
 
         await productService.update(id as string, updateData)
+        setSuccess('Producto actualizado correctamente')
       } else {
         await productService.create(preparedData)
+        setSuccess('Producto creado correctamente')
+        reset()
       }
-      navigate('/products')
+      setRefreshKey((prev) => prev + 1)
     } catch (err) {
       console.error(err)
       setError('Error al guardar el producto')
@@ -182,6 +189,7 @@ export const ProductFormPage = () => {
         {isEditMode ? 'Editar Producto' : 'Crear Producto'}
       </h1>
       {error && <div className="text-red-500 mb-4">{error}</div>}
+      {success && <div className="text-green-500 mb-4">{success}</div>}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>

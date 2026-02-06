@@ -178,7 +178,8 @@ describe('ProductFormPage', () => {
         }),
         expect.any(Object)
       )
-      expect(mockNavigate).toHaveBeenCalledWith('/products')
+      expect(screen.getByText('Producto creado correctamente')).toBeInTheDocument()
+      expect(mockNavigate).not.toHaveBeenCalledWith('/products')
     })
   })
 
@@ -221,6 +222,7 @@ describe('ProductFormPage', () => {
       const payload = putCall[1] as any
       expect(payload.name).toBe('Cuenta Actualizada')
       expect(payload.type).toBeUndefined()
+      expect(screen.getByText('Producto actualizado correctamente')).toBeInTheDocument()
     })
   })
 
