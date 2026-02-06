@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
-import { app } from '../src/app'
+import { app } from '../../src/app'
 import jwt from 'jsonwebtoken'
-import { env } from '../src/config/env'
+import { env } from '../../src/config/env'
 
 // 1. Hoisted variable to simulate the catalog in-memory
 const { mockCatalog } = vi.hoisted(() => ({
@@ -10,7 +10,7 @@ const { mockCatalog } = vi.hoisted(() => ({
 }))
 
 // 2. Mock Prisma client (Infrastructure)
-vi.mock('../src/infrastructure/persistence/prisma/client', async importOriginal => {
+vi.mock('../../src/infrastructure/persistence/prisma/client', async importOriginal => {
   const actual = await importOriginal()
   return {
     ...(actual as any),

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Request, Response } from 'express'
-import { ClientFinancialEntityController } from '../src/infrastructure/http/controllers/clientFinancialEntityController'
-import { ClientFinancialEntityUseCases } from '../src/application/useCases/clientFinancialEntityUseCases'
+import { ClientFinancialEntityController } from '../../src/infrastructure/http/controllers/clientFinancialEntityController'
+import { ClientFinancialEntityUseCases } from '../../src/application/useCases/clientFinancialEntityUseCases'
 
 const mockUseCases = {
   createAssociation: vi.fn(),

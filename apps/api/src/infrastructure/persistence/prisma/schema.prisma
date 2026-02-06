@@ -102,9 +102,9 @@ model FinancialProduct {
   interestPaymentFreq  String?
 
   // Fondos y Acciones
-  numberOfUnits        Decimal?  @db.Decimal(15, 6) // Participaciones pueden tener muchos decimales
+  numberOfUnits        Decimal?  @db.Decimal(15, 6) 
   netAssetValue        Decimal?  @db.Decimal(15, 2)
-  numberOfShares       Decimal?  @db.Decimal(15, 2) // A veces hay acciones fraccionarias
+  numberOfShares       Decimal?  @db.Decimal(15, 2)
   unitPurchasePrice    Decimal?  @db.Decimal(15, 2)
   currentMarketPrice   Decimal?  @db.Decimal(15, 2)
 

@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
-import { app } from '../src/app'
+import { app } from '../../src/app'
 import jwt from 'jsonwebtoken'
-import { env } from '../src/config/env'
+import { env } from '../../src/config/env'
 import bcrypt from 'bcrypt'
 
 // Mock Prisma
 const { mockClientDb } = vi.hoisted(() => ({ mockClientDb: [] as any[] }))
 
-vi.mock('../src/infrastructure/persistence/prisma/client', async () => {
+vi.mock('../../src/infrastructure/persistence/prisma/client', async () => {
   return {
     default: {
       client: {

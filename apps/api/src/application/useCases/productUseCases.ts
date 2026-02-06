@@ -1,7 +1,7 @@
-import { IFinancialProduct } from '../../domain/entities/IFinancialProduct'
-import { IProductFactory } from '../../domain/factories/productFactory'
-import { IProductRepository } from '../../domain/IProductRepository'
-import { CreateProductDto, UpdateProductDto } from '../dtos/productDto'
+import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
+import { IProductFactory } from '@domain/factories/productFactory'
+import { IProductRepository } from '@domain/repository/IProductRepository'
+import { CreateProductDto, UpdateProductDto } from '@application/dtos/productDto'
 
 export class ProductUseCases {
   constructor(

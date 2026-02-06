@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Request, Response } from 'express'
-import { ProductController } from '../src/infrastructure/http/controllers/productController'
-import { ProductUseCases } from '../src/application/useCases/productUseCases'
+import { ProductController } from '../../src/infrastructure/http/controllers/productController'
+import { ProductUseCases } from '../../src/application/useCases/productUseCases'
 
 const mockUseCases = {
   createProduct: vi.fn(),

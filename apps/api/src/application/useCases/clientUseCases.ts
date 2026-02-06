@@ -1,4 +1,4 @@
-import { ClientRepository } from '@domain/IClientRepository';
+import { ClientRepository } from '@domain/repository/IClientRepository';
 import { RegisterClientDto, UpdateClientDto } from '@application/dtos/client.dto';
 import bcrypt from 'bcrypt';
 

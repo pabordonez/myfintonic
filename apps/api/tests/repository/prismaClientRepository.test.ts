@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { PrismaClientRepository } from '../src/infrastructure/persistence/PrismaClientRepository'
-import prisma from '../src/infrastructure/persistence/prisma/client'
-import { RegisterClientDto } from '../src/application/dtos/client.dto'
+import { PrismaClientRepository } from '../../src/infrastructure/persistence/prisma/PrismaClientRepository'
+import prisma from '../../src/infrastructure/persistence/prisma/client'
+import { RegisterClientDto } from '../../src/application/dtos/client.dto'
 
 // Mock de prisma
-vi.mock('../src/infrastructure/persistence/prisma/client', () => ({
+vi.mock('../../src/infrastructure/persistence/prisma/client', () => ({
   default: {
     client: {
       create: vi.fn(),

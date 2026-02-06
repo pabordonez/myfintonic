@@ -289,6 +289,16 @@ La API seguirá los principios REST, utilizando sustantivos en plural para las c
     - `204 No Content`: Producto eliminado.
     - `404 Not Found`: Producto no encontrado.
 
+- **`POST /products/{id}/transactions`**: Agrega una nueva transacción a un producto (Solo Cuentas Corrientes y de Ahorro).
+  - **Body**:
+    ```json
+    { "description": "Salary", "date": "2023-10-27T10:00:00Z", "amount": 1500.00 }
+    ```
+  - **Respuestas**:
+    - `201 Created`: Transacción creada y saldo actualizado.
+    - `400 Bad Request`: Tipo de producto inválido o datos incorrectos.
+    - `404 Not Found`: Producto no encontrado.
+
 ### Endpoints de Entidades Financieras
 
 - **`GET /financial-entities`**: Obtiene una lista de entidades financieras.

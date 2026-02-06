@@ -1,5 +1,5 @@
 import { IFinancialEntity } from '@domain/entities/IFinancialEntity';
-import { IFinancialEntityRepository } from '@domain/IFinancialEntityRepository';
+import { IFinancialEntityRepository } from '@domain/repository/IFinancialEntityRepository';
 import { CreateFinancialEntityDto, UpdateFinancialEntityDto } from '@application/dtos/financialEntityDto';
 
 export class FinancialEntityUseCases {

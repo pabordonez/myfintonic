@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { PrismaProductRepository } from '../src/infrastructure/persistence/PrismaProductRepository'
-import prisma from '../src/infrastructure/persistence/prisma/client'
+import { PrismaProductRepository } from '../../src/infrastructure/persistence/prisma/PrismaProductRepository'
+import prisma from '../../src/infrastructure/persistence/prisma/client'
 
-vi.mock('../src/infrastructure/persistence/prisma/client', () => ({
+vi.mock('../../src/infrastructure/persistence/prisma/client', () => ({
   default: {
     financialProduct: {
       create: vi.fn(),

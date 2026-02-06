@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
-import { ClientController } from '../src/infrastructure/http/controllers/clientController';
-import { ClientUseCases } from '../src/application/useCases/clientUseCases';
+import { ClientController } from '../../src/infrastructure/http/controllers/clientController';
+import { ClientUseCases } from '../../src/application/useCases/clientUseCases';
 
 // Mock de dependencias
-vi.mock('../src/application/useCases/clientUseCases');
+vi.mock('../../src/application/useCases/clientUseCases');
 
 describe('ClientController', () => {
   let controller: ClientController;

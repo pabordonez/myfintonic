@@ -1,5 +1,5 @@
-import { IFinancialEntity } from './entities/IFinancialEntity';
-import { CreateFinancialEntityDto } from '../application/dtos/financialEntityDto';
+import { IFinancialEntity } from '@domain/entities/IFinancialEntity';
+import { CreateFinancialEntityDto } from '@application/dtos/financialEntityDto';
 
 export interface IFinancialEntityRepository {
   findAll(filters?: Partial<IFinancialEntity> & { name?: string }): Promise<IFinancialEntity[]>;

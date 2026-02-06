@@ -1,5 +1,5 @@
 import { IClientFinancialEntity } from '@domain/entities/IClientFinancialEntity';
-import { IClientFinancialEntityRepository } from '@domain/IClientFinancialEntityRepository';
+import { IClientFinancialEntityRepository } from '@domain/repository/IClientFinancialEntityRepository';
 import { CreateClientFinancialEntityDto, UpdateClientFinancialEntityDto } from '@application/dtos/clientFinancialEntityDto';
 
 export class ClientFinancialEntityUseCases {

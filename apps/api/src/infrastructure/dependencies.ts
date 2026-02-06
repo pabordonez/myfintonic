@@ -1,7 +1,7 @@
-import { PrismaProductRepository } from '@infrastructure/persistence/PrismaProductRepository'
-import { PrismaFinancialEntityRepository } from '@infrastructure/persistence/PrismaFinancialEntityRepository'
-import { PrismaClientFinancialEntityRepository} from "@infrastructure/persistence/PrismaClientFinancialEntityRepository"
-import { PrismaClientRepository } from '@infrastructure/persistence/PrismaClientRepository'
+import { PrismaProductRepository } from '@infrastructure/persistence/prisma/PrismaProductRepository'
+import { PrismaFinancialEntityRepository } from '@infrastructure/persistence/prisma/PrismaFinancialEntityRepository'
+import { PrismaClientFinancialEntityRepository} from "@infrastructure/persistence/prisma/PrismaClientFinancialEntityRepository"
+import { PrismaClientRepository } from '@infrastructure/persistence/prisma/PrismaClientRepository'
 
 import { ProductUseCases } from '@application/useCases/productUseCases'
 import { FinancialEntityUseCases } from '@application/useCases/financialEntityUseCases'

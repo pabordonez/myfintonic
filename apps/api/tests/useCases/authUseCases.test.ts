@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { AuthUseCases } from '../src/application/useCases/authUseCases'
-import prisma from '../src/infrastructure/persistence/prisma/client'
+import { AuthUseCases } from '../../src/application/useCases/authUseCases'
+import prisma from '../../src/infrastructure/persistence/prisma/client'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
-vi.mock('../src/infrastructure/persistence/prisma/client', () => ({
+vi.mock('../../src/infrastructure/persistence/prisma/client', () => ({
   default: {
     client: {
       findUnique: vi.fn(),

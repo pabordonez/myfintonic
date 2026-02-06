@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Request, Response } from 'express'
-import { AuthController } from '../src/infrastructure/http/controllers/authController'
-import { AuthUseCases } from '../src/application/useCases/authUseCases'
+import { AuthController } from '../../src/infrastructure/http/controllers/authController'
+import { AuthUseCases } from '../../src/application/useCases/authUseCases'
 
-vi.mock('../src/application/useCases/authUseCases')
+vi.mock('../../src/application/useCases/authUseCases')
 
 describe('AuthController', () => {
   let controller: AuthController

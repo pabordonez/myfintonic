@@ -1,5 +1,5 @@
 import { IClientFinancialEntity } from '@domain/entities/IClientFinancialEntity';
-import { IClientFinancialEntityRepository } from '@domain/IClientFinancialEntityRepository';
+import { IClientFinancialEntityRepository } from '@domain/repository/IClientFinancialEntityRepository';
 import { CreateClientFinancialEntityDto } from '@application/dtos/clientFinancialEntityDto';
 import prisma from '@infrastructure/persistence/prisma/client';
 

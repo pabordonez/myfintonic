@@ -1,5 +1,5 @@
 import { IFinancialProduct } from '@domain/entities/IFinancialProduct';
-import { IProductRepository } from '@domain/IProductRepository';
+import { IProductRepository } from '@domain/repository/IProductRepository';
 import prisma from '@infrastructure/persistence/prisma/client';
 
 export class PrismaProductRepository implements IProductRepository {

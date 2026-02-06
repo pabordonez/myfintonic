@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ClientUseCases } from '../src/application/useCases/clientUseCases'
-import { ClientRepository } from '../src/domain/IClientRepository'
+import { ClientUseCases } from '../../src/application/useCases/clientUseCases'
+import { ClientRepository } from '../src/domain/repository/IClientRepository'
 
 const mockRepo = {
   create: vi.fn(),

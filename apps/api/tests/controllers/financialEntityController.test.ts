@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Request, Response } from 'express'
-import { FinancialEntityController } from '../src/infrastructure/http/controllers/financialEntityController'
-import { FinancialEntityUseCases } from '../src/application/useCases/financialEntityUseCases'
+import { FinancialEntityController } from '../../src/infrastructure/http/controllers/financialEntityController'
+import { FinancialEntityUseCases } from '../../src/application/useCases/financialEntityUseCases'
 
 // Mock de los casos de uso
 const mockUseCases = {
