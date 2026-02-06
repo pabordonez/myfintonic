@@ -3,30 +3,26 @@ import { ProductController } from '../controllers/productController'
 import { authenticate } from '../middlewares/authenticate'
 import { productOwnershipMiddleware } from '../middlewares/ownershipMiddleware'
 
-export const createProductRoutes = (productController: ProductController) => {
-  const productRouter = Router()
+export const createProductRouter = (productController: ProductController): Router => {
+  const router = Router()
 
   // Middleware para permitir acceso a ADMIN o verificar propiedad
   const adminOrOwnership = (req: Request, res: Response, next: NextFunction) => {
-    if ((req as any).user?.role === 'ADMIN') {
+    if (req.user?.role === 'ADMIN') {
       return next()
     }
     return productOwnershipMiddleware(req, res, next)
   }
 
-  // 1. Autenticación requerida para todas las rutas de productos
-  productRouter.use(authenticate)
+  router.use(authenticate)
 
-  // 2. Rutas de colección
-  productRouter.get('/', productController.getAll)
-  productRouter.post('/', productController.create)
+  router.post('/', productController.create)
+  router.get('/', productController.getAll)
+  router.get('/:id', adminOrOwnership, productController.getById)
+  router.get('/:id/history', adminOrOwnership, productController.getHistory)
+  router.put('/:id', adminOrOwnership, productController.update)
+  router.patch('/:id', adminOrOwnership, productController.patch)
+  router.delete('/:id', adminOrOwnership, productController.delete)
 
-  // 3. Rutas de recurso (Protegidas por Ownership)
-  productRouter.get('/:id', adminOrOwnership, productController.getById)
-  productRouter.put('/:id', adminOrOwnership, productController.update)
-  productRouter.patch('/:id', adminOrOwnership, productController.patch)
-  productRouter.delete('/:id', adminOrOwnership, productController.delete)
-  productRouter.get('/:id/history', adminOrOwnership, productController.getHistory)
-  
-  return productRouter
+  return router
 }

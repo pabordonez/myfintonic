@@ -1,6 +1,6 @@
 import { IClientRepository } from '@domain/repository/IClientRepository';
 import prisma from '@infrastructure/persistence/prisma/client';
-import { RegisterClientDto, UpdateClientDto } from '@application/dtos/client.dto';
+import { RegisterClientDto, UpdateClientDto } from '@application/dtos/clientDto';
 
 export class PrismaClientRepository implements IClientRepository {
   async create(data: RegisterClientDto) {

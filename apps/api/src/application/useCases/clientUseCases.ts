@@ -1,5 +1,5 @@
 import { IClientRepository } from '@domain/repository/IClientRepository';
-import { RegisterClientDto, UpdateClientDto } from '@application/dtos/client.dto';
+import { RegisterClientDto, UpdateClientDto } from '@application/dtos/clientDto';
 import bcrypt from 'bcrypt';
 
 export class ClientUseCases {

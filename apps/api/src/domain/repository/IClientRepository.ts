@@ -1,4 +1,4 @@
-import { RegisterClientDto, UpdateClientDto } from '@application/dtos/client.dto';
+import { RegisterClientDto, UpdateClientDto } from '@application/dtos/clientDto';
 
 // Definimos una interfaz parcial para el Cliente para evitar dependencias circulares o de infraestructura aquí
 export interface IClientRepository {
