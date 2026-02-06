@@ -1,16 +1,16 @@
-import { IProductTransactionRepository, AddTransactionParams } from '@domain/repository/IProductTransactionRepository'
-import { IProductTransaction } from '@domain/entities/IProductTransaction'
+import { IProductTransactionRepository } from '@domain/repository/IProductTransactionRepository'
+import { IProductTransaction,IProductTransactionDetail } from '@domain/entities/IProductTransaction'
 import prisma from '@infrastructure/persistence/prisma/client'
 
 export class PrismaProductTransactionRepository implements IProductTransactionRepository {
   
-  async findById(id: string): Promise<IProductTransaction | null> {
+  async findById(id: string): Promise<IProductTransactionDetail | null> {
     const tx = await prisma.productTransaction.findUnique({ where: { id } })
     if (!tx) return null
     return this.mapToDomain(tx)
   }
 
-  async findAllByProductId(productId: string): Promise<IProductTransaction[]> {
+  async findAllByProductId(productId: string): Promise<IProductTransactionDetail[]> {
     const txs = await prisma.productTransaction.findMany({
       where: { productId },
       orderBy: { date: 'desc' }
@@ -18,7 +18,7 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
     return txs.map(tx => this.mapToDomain(tx))
   }
 
-  async addTransaction(params: AddTransactionParams): Promise<IProductTransaction> {
+  async addTransaction(params: IProductTransaction): Promise<IProductTransactionDetail> {
     const { productId, amount, date, description } = params
 
     // Ejecutamos todo dentro de una transacción interactiva de Prisma
@@ -63,10 +63,9 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
     })
   }
 
-  private mapToDomain(prismaTx: any): IProductTransaction {
+  private mapToDomain(prismaTx: any): IProductTransactionDetail {
     return {
       id: prismaTx.id,
-      productId: prismaTx.productId,
       description: prismaTx.description,
       date: prismaTx.date,
       amount: Number(prismaTx.amount)

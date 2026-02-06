@@ -2,7 +2,7 @@ import { IProductTransactionRepository } from '@domain/repository/IProductTransa
 import { IProductRepository } from '@domain/repository/IProductRepository'
 import { ProductType } from '@domain/types'
 import { ProductTransactionDto } from '@application/dtos/productTransactionDto'
-import { IProductTransaction } from '@domain/entities/IProductTransaction'
+import { IProductTransaction, IProductTransactionDetail } from '@domain/entities/IProductTransaction'
 
 interface AddTransactionRequest extends ProductTransactionDto {
   userId: string
@@ -41,11 +41,11 @@ export class ProductTransactionUseCases {
       productId,
       description,
       date,
-      amount,
-    })
+      amount
+    } as IProductTransaction)
   }
 
-  async getProductTransactions(productId: string): Promise<IProductTransaction[]> {
+  async getProductTransactions(productId: string): Promise<IProductTransactionDetail[]> {
     // Verificamos que el producto exista antes de buscar sus transacciones
     const product = await this.productRepository.findById(productId)
     if (!product) {

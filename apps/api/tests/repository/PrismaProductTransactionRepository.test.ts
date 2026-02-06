@@ -48,7 +48,6 @@ describe('PrismaProductTransactionRepository', () => {
       const result = await repo.findById('1')
       expect(result).toEqual({
         id: '1',
-        productId: 'p1',
         description: 'desc',
         date: dbTx.date,
         amount: 100

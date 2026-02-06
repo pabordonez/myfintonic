@@ -76,6 +76,9 @@ paths:
   /products/{id}/history:
     $ref: './paths/products/history.yaml'
 
+  /products/{id}/transactions:
+    $ref: './paths/products/transactions.yaml'
+
   /investment-funds/{id}/redeem:
     $ref: './paths/products/redeem.yaml'
 

@@ -1,14 +1,7 @@
-import { IProductTransaction } from '@domain/entities/IProductTransaction'
-
-export interface AddTransactionParams {
-  productId: string
-  description: string
-  date: Date
-  amount: number
-}
+import { IProductTransaction, IProductTransactionDetail} from '@domain/entities/IProductTransaction'
 
 export interface IProductTransactionRepository {
-  findById(id: string): Promise<IProductTransaction | null>
-  findAllByProductId(productId: string): Promise<IProductTransaction[]>
-  addTransaction(params: AddTransactionParams): Promise<IProductTransaction>
+  findById(id: string): Promise<IProductTransactionDetail | null>
+  findAllByProductId(productId: string): Promise<IProductTransactionDetail[]>
+  addTransaction(params: IProductTransaction): Promise<IProductTransactionDetail>
 }
