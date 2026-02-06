@@ -3,5 +3,4 @@ export interface IValueHistory {
   date: Date
   value: number
   previousValue?: number
-  financialEntityId?: string
 }

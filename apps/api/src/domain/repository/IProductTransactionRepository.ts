@@ -1,5 +1,4 @@
-import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
-import { ProductTransaction } from '@domain/entities/ProductTransaction'
+import { IProductTransaction } from '@domain/entities/IProductTransaction'
 
 export interface AddTransactionParams {
   productId: string
@@ -9,6 +8,7 @@ export interface AddTransactionParams {
 }
 
 export interface IProductTransactionRepository {
-  findById(id: string): Promise<IFinancialProduct | null>
-  addTransaction(params: AddTransactionParams): Promise<ProductTransaction>
+  findById(id: string): Promise<IProductTransaction | null>
+  findAllByProductId(productId: string): Promise<IProductTransaction[]>
+  addTransaction(params: AddTransactionParams): Promise<IProductTransaction>
 }

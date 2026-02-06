@@ -1,4 +1,4 @@
-export interface ProductTransaction {
+export interface IProductTransaction {
   id: string
   productId: string
   description: string

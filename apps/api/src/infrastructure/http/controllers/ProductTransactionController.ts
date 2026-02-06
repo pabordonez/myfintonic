@@ -1,10 +1,10 @@
 import { Request, Response } from 'express'
 import { z } from 'zod'
-import { AddTransactionToProductUseCases } from '@application/useCases/AddTransactionToProductUseCases'
+import { ProductTransactionUseCases } from '@application/useCases/ProductTransactionUseCases'
 import { AddTransactionSchema } from '@infrastructure/http/dtos/AddTransactionSchema'
 
 export class ProductTransactionController {
-  constructor(private readonly useCase: AddTransactionToProductUseCases) {}
+  constructor(private readonly useCase: ProductTransactionUseCases) {}
 
   addTransaction = async (req: Request, res: Response) => {
     try {
@@ -21,7 +21,7 @@ export class ProductTransactionController {
       const dto = AddTransactionSchema.parse(req.body)
 
       // 2. Ejecución del Caso de Uso
-      await this.useCase.execute({
+      await this.useCase.add({
         userId,
         productId,
         ...dto,
@@ -46,6 +46,19 @@ export class ProductTransactionController {
       }
 
       console.error('Unexpected error:', error)
+      return res.status(500).json({ error: 'Internal Server Error' })
+    }
+  }
+
+  getTransaction = async (req: Request, res: Response) => {
+    try {
+      const productId = req.params.id as string
+      const transactions = await this.useCase.getProductTransactions(productId)
+      return res.status(200).json(transactions)
+    } catch (error: any) {
+      if (error.message === 'Product not found') {
+        return res.status(404).json({ error: error.message })
+      }
       return res.status(500).json({ error: 'Internal Server Error' })
     }
   }

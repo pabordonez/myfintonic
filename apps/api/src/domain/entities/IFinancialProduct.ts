@@ -1,4 +1,5 @@
 import { ProductStatus, ProductType } from '../types';
+import { IProductTransaction } from './IProductTransaction';
 
 export interface IFinancialProduct {
   id?: string;
@@ -8,6 +9,7 @@ export interface IFinancialProduct {
   status: ProductStatus;
   clientId?: string;
   valueHistory?: Array<{ date: Date; value: number }>;
+  transaction?: Array<IProductTransaction>;
   currentBalance?: number;
   //TODO MEJORAR ESTO
   [key: string]: any;

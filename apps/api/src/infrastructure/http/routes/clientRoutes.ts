@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { ClientController } from '../controllers/clientController'
-import { authenticate } from '../middlewares/authenticate' 
+import { ClientController } from '@infrastructure/http/controllers/clientController'
+import { authenticate } from '@infrastructure/http/middlewares/authenticate' 
 
 export const createClientRoutes = (clientController: ClientController) => {
   const clientRouter = Router()

@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { HealthController } from '../controllers/healthController'
+import { HealthController } from '@infrastructure/http/controllers/healthController'
 
 export const createHealthRouter = (healthController: HealthController): Router => {
   const router = Router()

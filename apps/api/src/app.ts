@@ -11,6 +11,7 @@ import {
   authController,
   clientController,
   productController,
+  productTransactionController,
   clientFinancialEntityController,
   healthController,
   financialEntityController
@@ -38,7 +39,7 @@ app.use(requestLogger)
 // Configuración de Rutas
 app.use('/auth', createAuthRoutes(authController, clientController))
 app.use('/health', createHealthRouter(healthController))
-app.use('/products', createProductRouter(productController))
+app.use('/products', createProductRouter(productController,productTransactionController))
 app.use('/financial-entities', createFinancialEntityRoutes(financialEntityController))
 app.use('/clients', createClientRoutes(clientController))
 app.use('/', createClientFinancialEntityRoutes(clientFinancialEntityController))

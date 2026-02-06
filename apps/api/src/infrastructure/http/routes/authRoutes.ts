@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { AuthController } from '../controllers/authController'
-import { ClientController } from '../controllers/clientController'
+import { AuthController } from '@infrastructure/http/controllers/authController'
+import { ClientController } from '@infrastructure/http/controllers/clientController'
 
 export const createAuthRoutes = (authController: AuthController, clientController: ClientController) => {
   const authRouter = Router()

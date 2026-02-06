@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { FinancialEntityController } from '@infrastructure/http/controllers/financialEntityController'
-import { authenticate } from '../middlewares/authenticate'
-import { isAdmin } from '../middlewares/isAdmin'
+import { authenticate } from '@infrastructure/http/middlewares/authenticate'
+import { isAdmin } from '@infrastructure/http/middlewares/isAdmin'
 
 export const createFinancialEntityRoutes = (controller: FinancialEntityController): Router => {
   const router = Router()
