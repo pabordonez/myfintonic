@@ -8,7 +8,8 @@ export class FinancialEntityController {
     try {
       const entity = await this.useCases.createEntity(req.body)
       res.status(201).json(entity)
-    } catch {
+    } catch (error) {
+      console.error('Error creating financial entity:', error)
       res.status(500).json({ error: 'Internal Server Error' })
     }
   }

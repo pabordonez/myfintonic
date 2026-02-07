@@ -47,7 +47,20 @@ export class PrismaFinancialEntityRepository implements IFinancialEntityReposito
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.financialEntity.delete({ where: { id } })
+    const entity = await prisma.financialEntity.findUnique({ where: { id } })
+
+    if (!entity) {
+      throw new Error('Financial Entity not found')
+    }
+
+    // Renombramos al borrar para liberar el nombre (Unique Constraint)
+    await prisma.financialEntity.update({
+      where: { id },
+      data: {
+        name: `${entity.name}_deleted_${Date.now()}`,
+        deletedAt: new Date(),
+      },
+    })
   }
 
   private mapToDomain(prismaEntity: any): IFinancialEntity {
