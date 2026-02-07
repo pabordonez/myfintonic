@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import axios from 'axios'
-import { API_URL } from '@/config/api'
 import { useAuth } from '@/hooks/useAuth'
 import { ArrowLeft, Save } from 'lucide-react'
+import { financialEntityService } from '../services/financialEntity.service'
 
 export const FinancialEntityFormPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user, token } = useAuth()
+  const { user } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -24,16 +23,11 @@ export const FinancialEntityFormPage = () => {
   }, [user, navigate])
 
   useEffect(() => {
-    if (id && token) {
+    if (id) {
       const fetchEntity = async () => {
         try {
-          const response = await axios.get(
-            `${API_URL}/financial-entities/${id}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          )
-          setValue('name', response.data.name)
+          const entity = await financialEntityService.getById(id)
+          setValue('name', entity.name)
         } catch (err) {
           console.error(err)
           setError('Error al cargar la entidad')
@@ -41,7 +35,7 @@ export const FinancialEntityFormPage = () => {
       }
       fetchEntity()
     }
-  }, [id, token, setValue])
+  }, [id, setValue])
 
   const onSubmit = async (data: { name: string }) => {
     setError(null)
@@ -49,14 +43,10 @@ export const FinancialEntityFormPage = () => {
 
     try {
       if (id) {
-        await axios.put(`${API_URL}/financial-entities/${id}`, data, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        await financialEntityService.update(id, data)
         setSuccess('Entidad actualizada correctamente')
       } else {
-        await axios.post(`${API_URL}/financial-entities`, data, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        await financialEntityService.create(data)
         setSuccess('Entidad creada correctamente')
         reset()
       }

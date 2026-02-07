@@ -1,27 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
 import { Building2, Trash2, Plus } from 'lucide-react'
-import { API_URL } from '@/config/api'
 import { useAuth } from '@/hooks/useAuth'
+import { financialEntityService } from '../services/financialEntity.service'
 
 export const FinancialEntitiesPage = () => {
-  const { user, token } = useAuth()
+  const { user } = useAuth()
   const [entities, setEntities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchEntities()
-  }, [token])
+  }, [])
 
   const fetchEntities = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`${API_URL}/financial-entities`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      setEntities(response.data)
+      const data = await financialEntityService.getAll()
+      setEntities(data)
     } catch (err) {
       console.error(err)
       setError('Error al cargar las entidades')
@@ -34,9 +31,7 @@ export const FinancialEntitiesPage = () => {
     if (!window.confirm(`¿Estás seguro de eliminar la entidad ${name}?`)) return
 
     try {
-      await axios.delete(`${API_URL}/financial-entities/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await financialEntityService.delete(id)
       setEntities((prev) => prev.filter((e) => e.id !== id))
     } catch (err) {
       console.error(err)

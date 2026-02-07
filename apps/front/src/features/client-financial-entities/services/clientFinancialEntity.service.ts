@@ -12,6 +12,14 @@ export const clientFinancialEntityService = {
     return response.data
   },
 
+  getById: async (clientId: string, id: string) => {
+    const response = await axios.get(
+      `${API_URL}/clients/${clientId}/financial-entities/${id}`,
+      axiosConfig
+    )
+    return response.data
+  },
+
   create: async (clientId: string, data: any) => {
     const response = await axios.post(
       `${API_URL}/clients/${clientId}/financial-entities`,
@@ -19,6 +27,14 @@ export const clientFinancialEntityService = {
       axiosConfig
     )
     return response.data
+  },
+
+  update: async (clientId: string, id: string, data: any) => {
+    await axios.put(
+      `${API_URL}/clients/${clientId}/financial-entities/${id}`,
+      data,
+      axiosConfig
+    )
   },
 
   delete: async (clientId: string, id: string) => {

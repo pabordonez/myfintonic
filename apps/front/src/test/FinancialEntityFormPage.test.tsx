@@ -2,9 +2,8 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FinancialEntityFormPage } from '../features/financial-entities/pages/FinancialEntityFormPage'
-import axios from 'axios'
 import { MemoryRouter } from 'react-router-dom'
-import { API_URL } from '../config/api'
+import { financialEntityService } from '../features/financial-entities/services/financialEntity.service'
 
 const { mockNavigate, mockUseParams } = vi.hoisted(() => {
   return {
@@ -13,7 +12,7 @@ const { mockNavigate, mockUseParams } = vi.hoisted(() => {
   }
 })
 
-vi.mock('axios')
+vi.mock('../features/financial-entities/services/financialEntity.service')
 
 vi.mock('react-router-dom', async () => {
   const actual =
@@ -62,8 +61,9 @@ describe('FinancialEntityFormPage', () => {
   })
 
   it('submits new entity successfully and resets form', async () => {
-    vi.mocked(axios.post).mockResolvedValue({
-      data: { id: 'new-ent', name: 'New Bank' },
+    vi.mocked(financialEntityService.create).mockResolvedValue({
+      id: 'new-ent',
+      name: 'New Bank',
     })
 
     render(
@@ -77,11 +77,9 @@ describe('FinancialEntityFormPage', () => {
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        `${API_URL}/financial-entities`,
-        { name: 'New Bank' },
-        expect.any(Object)
-      )
+      expect(financialEntityService.create).toHaveBeenCalledWith({
+        name: 'New Bank',
+      })
       expect(
         screen.getByText('Entidad creada correctamente')
       ).toBeInTheDocument()
@@ -91,7 +89,9 @@ describe('FinancialEntityFormPage', () => {
   })
 
   it('displays error on submission failure', async () => {
-    vi.mocked(axios.post).mockRejectedValue(new Error('Network error'))
+    vi.mocked(financialEntityService.create).mockRejectedValue(
+      new Error('Network error')
+    )
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
@@ -113,12 +113,11 @@ describe('FinancialEntityFormPage', () => {
 
   it('loads data and updates entity in edit mode', async () => {
     mockUseParams.mockReturnValue({ id: '123' })
-    vi.mocked(axios.get).mockResolvedValue({
-      data: { id: '123', name: 'Existing Bank' },
+    vi.mocked(financialEntityService.getById).mockResolvedValue({
+      id: '123',
+      name: 'Existing Bank',
     })
-    vi.mocked(axios.put).mockResolvedValue({
-      data: { id: '123', name: 'Updated Bank' },
-    })
+    vi.mocked(financialEntityService.update).mockResolvedValue()
 
     render(
       <MemoryRouter>
@@ -137,11 +136,9 @@ describe('FinancialEntityFormPage', () => {
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.put).toHaveBeenCalledWith(
-        `${API_URL}/financial-entities/123`,
-        { name: 'Updated Bank' },
-        expect.any(Object)
-      )
+      expect(financialEntityService.update).toHaveBeenCalledWith('123', {
+        name: 'Updated Bank',
+      })
       expect(
         screen.getByText('Entidad actualizada correctamente')
       ).toBeInTheDocument()
@@ -150,7 +147,9 @@ describe('FinancialEntityFormPage', () => {
 
   it('displays error message on load failure', async () => {
     mockUseParams.mockReturnValue({ id: '123' })
-    vi.mocked(axios.get).mockRejectedValue(new Error('Load failed'))
+    vi.mocked(financialEntityService.getById).mockRejectedValue(
+      new Error('Load failed')
+    )
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(

@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import axios from 'axios'
-import { API_URL } from '@/config/api'
 import { useAuth } from '@/hooks/useAuth'
 import { ValueHistoryList } from '../../financial-entities/components/ValueHistoryList'
+import { financialEntityService } from '../../financial-entities/services/financialEntity.service'
+import { clientFinancialEntityService } from '../services/clientFinancialEntity.service'
 
 export const ClientFinancialEntityFormPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user, token } = useAuth()
+  const { user } = useAuth()
   const isEditMode = !!id
 
   const [entities, setEntities] = useState<any[]>([])
@@ -30,19 +30,11 @@ export const ClientFinancialEntityFormPage = () => {
       setLoading(true)
       try {
         // Cargar catálogo
-        const entitiesRes = await axios.get(`${API_URL}/financial-entities`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        setEntities(entitiesRes.data)
+        const entitiesData = await financialEntityService.getAll()
+        setEntities(entitiesData)
 
         if (isEditMode) {
-          const assocRes = await axios.get(
-            `${API_URL}/clients/${user.id}/financial-entities/${id}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          )
-          const assoc = assocRes.data
+          const assoc = await clientFinancialEntityService.getById(user.id, id!)
 
           reset({
             financialEntityId: assoc.financialEntityId,
@@ -61,7 +53,7 @@ export const ClientFinancialEntityFormPage = () => {
       }
     }
     loadData()
-  }, [id, isEditMode, user, token, reset, refreshKey])
+  }, [id, isEditMode, user, reset, refreshKey])
 
   const onSubmit = async (data: any) => {
     if (!user) return
@@ -75,22 +67,10 @@ export const ClientFinancialEntityFormPage = () => {
       }
 
       if (isEditMode) {
-        await axios.put(
-          `${API_URL}/clients/${user.id}/financial-entities/${id}`,
-          payload,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        )
+        await clientFinancialEntityService.update(user.id, id!, payload)
         setSuccess('Entidad actualizada correctamente')
       } else {
-        await axios.post(
-          `${API_URL}/clients/${user.id}/financial-entities`,
-          payload,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        )
+        await clientFinancialEntityService.create(user.id, payload)
         setSuccess('Entidad creada correctamente')
         reset()
       }

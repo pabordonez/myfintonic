@@ -2,9 +2,9 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ClientFinancialEntityFormPage } from '../features/client-financial-entities/pages/ClientFinancialEntityFormPage'
-import axios from 'axios'
 import { MemoryRouter } from 'react-router-dom'
-import { API_URL } from '../config/api'
+import { financialEntityService } from '../features/financial-entities/services/financialEntity.service'
+import { clientFinancialEntityService } from '../features/client-financial-entities/services/clientFinancialEntity.service'
 
 const { mockNavigate, mockUseParams, mockUseAuth } = vi.hoisted(() => {
   return {
@@ -14,7 +14,10 @@ const { mockNavigate, mockUseParams, mockUseAuth } = vi.hoisted(() => {
   }
 })
 
-vi.mock('axios')
+vi.mock('../features/financial-entities/services/financialEntity.service')
+vi.mock(
+  '../features/client-financial-entities/services/clientFinancialEntity.service'
+)
 
 vi.mock('react-router-dom', async () => {
   const actual =
@@ -41,9 +44,9 @@ describe('ClientFinancialEntityFormPage', () => {
   })
 
   it('renders create form with catalog', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
-      data: [{ id: 'bank-1', name: 'Santander' }],
-    })
+    vi.mocked(financialEntityService.getAll).mockResolvedValue([
+      { id: 'bank-1', name: 'Santander' },
+    ])
 
     render(
       <MemoryRouter>
@@ -59,10 +62,10 @@ describe('ClientFinancialEntityFormPage', () => {
   })
 
   it('submits new association', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
-      data: [{ id: 'bank-1', name: 'Santander' }],
-    })
-    vi.mocked(axios.post).mockResolvedValue({})
+    vi.mocked(financialEntityService.getAll).mockResolvedValue([
+      { id: 'bank-1', name: 'Santander' },
+    ])
+    vi.mocked(clientFinancialEntityService.create).mockResolvedValue({})
 
     render(
       <MemoryRouter>
@@ -84,10 +87,9 @@ describe('ClientFinancialEntityFormPage', () => {
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        `${API_URL}/clients/user-123/financial-entities`,
-        expect.objectContaining({ financialEntityId: 'bank-1', balance: 1000 }),
-        expect.any(Object)
+      expect(clientFinancialEntityService.create).toHaveBeenCalledWith(
+        'user-123',
+        expect.objectContaining({ financialEntityId: 'bank-1', balance: 1000 })
       )
       expect(
         screen.getByText('Entidad creada correctamente')
@@ -98,16 +100,13 @@ describe('ClientFinancialEntityFormPage', () => {
 
   it('renders edit form with readonly entity', async () => {
     mockUseParams.mockReturnValue({ id: 'assoc-1' })
-    vi.mocked(axios.get).mockImplementation((url) => {
-      if (url.includes('/financial-entities') && !url.includes('/clients/')) {
-        return Promise.resolve({ data: [{ id: 'bank-1', name: 'Santander' }] })
-      }
-      if (url.includes('/clients/user-123/financial-entities/assoc-1')) {
-        return Promise.resolve({
-          data: { id: 'assoc-1', financialEntityId: 'bank-1', balance: 500 },
-        })
-      }
-      return Promise.reject(new Error('not found'))
+    vi.mocked(financialEntityService.getAll).mockResolvedValue([
+      { id: 'bank-1', name: 'Santander' },
+    ])
+    vi.mocked(clientFinancialEntityService.getById).mockResolvedValue({
+      id: 'assoc-1',
+      financialEntityId: 'bank-1',
+      balance: 500,
     })
 
     render(
@@ -124,16 +123,15 @@ describe('ClientFinancialEntityFormPage', () => {
 
   it('updates existing association', async () => {
     mockUseParams.mockReturnValue({ id: 'assoc-1' })
-    vi.mocked(axios.get).mockResolvedValue({ data: [] }) // Catalog mock simplified
-    vi.mocked(axios.get).mockImplementation((url) => {
-      if (url.includes('/financial-entities') && !url.includes('/clients/')) {
-        return Promise.resolve({ data: [{ id: 'bank-1', name: 'Santander' }] })
-      }
-      return Promise.resolve({
-        data: { id: 'assoc-1', financialEntityId: 'bank-1', balance: 500 },
-      })
+    vi.mocked(financialEntityService.getAll).mockResolvedValue([
+      { id: 'bank-1', name: 'Santander' },
+    ])
+    vi.mocked(clientFinancialEntityService.getById).mockResolvedValue({
+      id: 'assoc-1',
+      financialEntityId: 'bank-1',
+      balance: 500,
     })
-    vi.mocked(axios.put).mockResolvedValue({})
+    vi.mocked(clientFinancialEntityService.update).mockResolvedValue()
 
     render(
       <MemoryRouter>
@@ -151,12 +149,10 @@ describe('ClientFinancialEntityFormPage', () => {
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.put).toHaveBeenCalledWith(
-        expect.stringContaining(
-          `${API_URL}/clients/user-123/financial-entities/assoc-1`
-        ),
-        expect.objectContaining({ balance: 600 }),
-        expect.any(Object)
+      expect(clientFinancialEntityService.update).toHaveBeenCalledWith(
+        'user-123',
+        'assoc-1',
+        expect.objectContaining({ balance: 600 })
       )
       expect(
         screen.getByText('Entidad actualizada correctamente')
@@ -166,13 +162,12 @@ describe('ClientFinancialEntityFormPage', () => {
   })
 
   it('displays server error message on failure', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
-      data: [{ id: 'bank-1', name: 'Santander' }],
-    })
-    vi.mocked(axios.post).mockRejectedValue({
+    vi.mocked(financialEntityService.getAll).mockResolvedValue([
+      { id: 'bank-1', name: 'Santander' },
+    ])
+    vi.mocked(clientFinancialEntityService.create).mockRejectedValue({
       response: { data: { error: 'Association already exists' } },
     })
-    vi.mocked(axios.isAxiosError).mockReturnValue(true)
 
     render(
       <MemoryRouter>
@@ -199,7 +194,9 @@ describe('ClientFinancialEntityFormPage', () => {
   })
 
   it('displays error message on load failure', async () => {
-    vi.mocked(axios.get).mockRejectedValue(new Error('Load failed'))
+    vi.mocked(financialEntityService.getAll).mockRejectedValue(
+      new Error('Load failed')
+    )
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
@@ -215,10 +212,12 @@ describe('ClientFinancialEntityFormPage', () => {
   })
 
   it('displays generic error message on submit failure', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
-      data: [{ id: 'bank-1', name: 'Santander' }],
-    })
-    vi.mocked(axios.post).mockRejectedValue(new Error('Network error'))
+    vi.mocked(financialEntityService.getAll).mockResolvedValue([
+      { id: 'bank-1', name: 'Santander' },
+    ])
+    vi.mocked(clientFinancialEntityService.create).mockRejectedValue(
+      new Error('Network error')
+    )
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
@@ -264,11 +263,11 @@ describe('ClientFinancialEntityFormPage', () => {
   })
 
   it('handles missing token gracefully', async () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'user-123', role: 'USER' },
-      token: null,
-    })
-    vi.mocked(axios.get).mockRejectedValue(new Error('Unauthorized'))
+    // Token is handled by cookies now, but if user is present, it should try to load
+    // If load fails, it shows error
+    vi.mocked(financialEntityService.getAll).mockRejectedValue(
+      new Error('Unauthorized')
+    )
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
@@ -284,21 +283,15 @@ describe('ClientFinancialEntityFormPage', () => {
 
   it('renders value history in edit mode', async () => {
     mockUseParams.mockReturnValue({ id: 'assoc-1' })
-    vi.mocked(axios.get).mockImplementation((url) => {
-      if (url.includes('/financial-entities') && !url.includes('/clients/')) {
-        return Promise.resolve({ data: [{ id: 'bank-1', name: 'Santander' }] })
-      }
-      return Promise.resolve({
-        data: {
-          id: 'assoc-1',
-          financialEntityId: 'bank-1',
-          balance: 500,
-          initialBalance: 400,
-          valueHistory: [
-            { date: '2023-01-01', value: 500, previousValue: 400 },
-          ],
-        },
-      })
+    vi.mocked(financialEntityService.getAll).mockResolvedValue([
+      { id: 'bank-1', name: 'Santander' },
+    ])
+    vi.mocked(clientFinancialEntityService.getById).mockResolvedValue({
+      id: 'assoc-1',
+      financialEntityId: 'bank-1',
+      balance: 500,
+      initialBalance: 400,
+      valueHistory: [{ date: '2023-01-01', value: 500, previousValue: 400 }],
     })
 
     render(
@@ -317,7 +310,7 @@ describe('ClientFinancialEntityFormPage', () => {
   })
 
   it('navigates back when "Volver" is clicked', async () => {
-    vi.mocked(axios.get).mockResolvedValue({ data: [] })
+    vi.mocked(financialEntityService.getAll).mockResolvedValue([])
     render(
       <MemoryRouter>
         <ClientFinancialEntityFormPage />
