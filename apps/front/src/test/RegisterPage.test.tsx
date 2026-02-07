@@ -57,6 +57,7 @@ describe('RegisterPage', () => {
 
   it('displays error on registration failure', async () => {
     vi.mocked(axios.post).mockRejectedValue(new Error('Registration failed'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     const { container } = render(
       <BrowserRouter>
@@ -74,6 +75,7 @@ describe('RegisterPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/Error al registrar usuario/i)).toBeInTheDocument()
     })
+    consoleSpy.mockRestore()
   })
 
   it('displays validation errors for empty fields', async () => {

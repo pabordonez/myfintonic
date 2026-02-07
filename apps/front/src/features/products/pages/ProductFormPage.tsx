@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { productService } from '../services/product.service'
 import { ValueHistoryList, ValueHistory } from '../../financial-entities/components/ValueHistoryList'
+import { ProductTransactionButton } from '../components/ProductTransactionButton'
 
 export const ProductFormPage = () => {
   const { id } = useParams()
@@ -484,12 +485,20 @@ export const ProductFormPage = () => {
         )}
 
         <div className="pt-4 flex justify-between">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Guardar
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Guardar
+            </button>
+            {isEditMode && id && (
+              <ProductTransactionButton
+                productType={selectedType}
+                productId={id}
+              />
+            )}
+          </div>
           {isEditMode && (
             <button
               type="button"

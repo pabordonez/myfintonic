@@ -586,11 +586,14 @@ describe('ProductFormPage', () => {
     })
 
     expect(confirmSpy).toHaveBeenCalled()
-    expect(axios.patch).toHaveBeenCalledWith(
-      expect.stringContaining(`${API_URL}/products/prod-1`),
-      { status: 'PAUSED' },
-      expect.any(Object)
-    )
+    await waitFor(() => {
+      expect(axios.patch).toHaveBeenCalledWith(
+        expect.stringContaining(`${API_URL}/products/prod-1`),
+        { status: 'PAUSED' },
+        expect.any(Object)
+      )
+    })
+    await waitFor(() => expect(screen.queryByText('Actualizando...')).not.toBeInTheDocument())
     
     confirmSpy.mockRestore()
   })

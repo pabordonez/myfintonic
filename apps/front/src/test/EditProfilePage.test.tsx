@@ -75,6 +75,7 @@ describe('EditProfilePage', () => {
 
   it('displays error on update failure', async () => {
     vi.mocked(updateClientProfile).mockRejectedValue(new Error('Update failed'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
       <BrowserRouter>
@@ -87,6 +88,7 @@ describe('EditProfilePage', () => {
     await waitFor(() => {
       expect(screen.getByText('No se pudo actualizar el perfil. Inténtalo de nuevo.')).toBeInTheDocument()
     })
+    consoleSpy.mockRestore()
   })
 
   it('redirects to login if user is missing', async () => {

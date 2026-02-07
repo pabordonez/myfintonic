@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { API_URL } from '../../../config/api'
 
 export const LoginPage = () => {
   const { register, handleSubmit } = useForm()
@@ -11,8 +12,6 @@ export const LoginPage = () => {
 
   const onSubmit = async (data: any) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-
       // 1. Login para obtener token
       const loginRes = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',

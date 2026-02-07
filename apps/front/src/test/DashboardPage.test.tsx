@@ -38,12 +38,14 @@ describe('DashboardPage', () => {
   it('renders error state', async () => {
     mockUseAuth.mockReturnValue({ user: { role: 'USER', id: '1' }, token: 'token' })
     vi.mocked(axios.get).mockRejectedValue(new Error('Network error'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(
       <MemoryRouter>
         <DashboardPage />
       </MemoryRouter>
     )
     await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+    consoleSpy.mockRestore()
   })
 
   describe('USER Role', () => {

@@ -11,6 +11,8 @@ import { FinancialEntityFormPage } from '@/features/financial-entities/pages/Fin
 import { ClientFinancialEntityFormPage } from '@/features/client-financial-entities/pages/ClientFinancialEntityFormPage'
 import { EditProfilePage } from '@/features/profile/pages/EditProfilePage'
 import { ChangePasswordPage } from './features/clients/pages/ChangePasswordPage'
+import { TransactionListPage } from '@/features/products/pages/TransactionListPage'
+import { TransactionFormPage } from '@/features/products/pages/TransactionFormPage'
 
 function App() {
   return (
@@ -24,6 +26,14 @@ function App() {
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/new" element={<ProductFormPage />} />
           <Route path="/products/:id" element={<ProductFormPage />} />
+          <Route
+            path="/products/:id/transactions"
+            element={<TransactionListPage />}
+          />
+          <Route
+            path="/products/:id/transactions/new"
+            element={<TransactionFormPage />}
+          />
           <Route
             path="/financial-entities"
             element={<FinancialEntitiesPage />}
