@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { LoginPage } from '../features/auth/pages/LoginPage'
 import { BrowserRouter } from 'react-router-dom'
+import { authService } from '../features/auth/services/auth.service'
+import { getClientById } from '../features/profile/services/client.service'
+
+vi.mock('../features/auth/services/auth.service')
+vi.mock('../features/profile/services/client.service')
 
 // Hoist mocks to ensure stable references
 const { mockLogin, mockNavigate } = vi.hoisted(() => {
@@ -25,7 +30,6 @@ vi.mock('react-router-dom', async () => {
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    global.fetch = vi.fn()
   })
 
   it('renders login form elements', () => {
@@ -42,22 +46,11 @@ describe('LoginPage', () => {
   })
 
   it('calls login on form submit', async () => {
-    // Mock successful fetch response
-    const mockFetch = vi
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          token: 'header.payload.signature',
-          user: { id: 'user-123', role: 'USER' },
-        }),
-      })
-      .mockResolvedValueOnce({
-        // Second fetch for user profile
-        ok: true,
-        json: async () => ({ id: 'user-123', role: 'USER' }),
-      })
-    global.fetch = mockFetch
+    vi.mocked(authService.login).mockResolvedValue({
+      token: 'token',
+      user: { id: 'user-123' },
+    })
+    vi.mocked(getClientById).mockResolvedValue({ id: 'user-123', role: 'USER' })
 
     render(
       <BrowserRouter>
@@ -74,14 +67,8 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/auth/login'),
-        expect.objectContaining({ method: 'POST', credentials: 'include' })
-      )
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/clients/user-123'),
-        expect.objectContaining({ credentials: 'include' })
-      )
+      expect(authService.login).toHaveBeenCalled()
+      expect(getClientById).toHaveBeenCalledWith('user-123')
       expect(mockLogin).toHaveBeenCalled() // refreshUser
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
     })
@@ -89,10 +76,9 @@ describe('LoginPage', () => {
 
   it('displays error on login failure', async () => {
     // Mock failed fetch response
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      json: async () => ({}),
-    })
+    vi.mocked(authService.login).mockRejectedValue(
+      new Error('Credenciales inválidas')
+    )
 
     render(
       <BrowserRouter>
@@ -109,7 +95,6 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalled()
       expect(screen.getByText(/Credenciales inválidas/i)).toBeInTheDocument()
     })
   })

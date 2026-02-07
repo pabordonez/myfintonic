@@ -23,6 +23,19 @@ describe('financialEntityService', () => {
     expect(result).toEqual(mockData)
   })
 
+  it('getById calls axios.get with credentials', async () => {
+    const mockData = { id: '1', name: 'Bank' }
+    vi.mocked(axios.get).mockResolvedValue({ data: mockData })
+
+    const result = await financialEntityService.getById('1')
+
+    expect(axios.get).toHaveBeenCalledWith(
+      `${API_URL}/financial-entities/1`,
+      expect.objectContaining({ withCredentials: true })
+    )
+    expect(result).toEqual(mockData)
+  })
+
   it('create calls axios.post with credentials', async () => {
     const mockData = { id: '1', name: 'Bank' }
     const payload = { name: 'Bank' }

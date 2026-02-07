@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   updateClientProfile,
   getClients,
+  getClientById,
 } from '../features/profile/services/client.service'
 
 describe('client.service', () => {
@@ -68,6 +69,33 @@ describe('client.service', () => {
       global.fetch = vi.fn().mockResolvedValue({ ok: false })
 
       await expect(getClients()).rejects.toThrow('Error al obtener clientes')
+    })
+  })
+
+  describe('getClientById', () => {
+    it('should call fetch with correct parameters', async () => {
+      const mockResponse = { id: '1', firstName: 'User' }
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse,
+      })
+      global.fetch = mockFetch
+
+      const result = await getClientById('1')
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/clients/1'),
+        expect.objectContaining({ credentials: 'include' })
+      )
+      expect(result).toEqual(mockResponse)
+    })
+
+    it('should throw error on failure', async () => {
+      global.fetch = vi.fn().mockResolvedValue({ ok: false })
+
+      await expect(getClientById('1')).rejects.toThrow(
+        'Error al obtener perfil'
+      )
     })
   })
 })

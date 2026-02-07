@@ -145,6 +145,37 @@ describe('FinancialEntityFormPage', () => {
     })
   })
 
+  it('displays error on update failure', async () => {
+    mockUseParams.mockReturnValue({ id: '123' })
+    vi.mocked(financialEntityService.getById).mockResolvedValue({
+      id: '123',
+      name: 'Existing Bank',
+    })
+    vi.mocked(financialEntityService.update).mockRejectedValue(
+      new Error('Update failed')
+    )
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <FinancialEntityFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Existing Bank')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Error al actualizar la entidad')
+      ).toBeInTheDocument()
+    })
+    consoleSpy.mockRestore()
+  })
+
   it('displays error message on load failure', async () => {
     mockUseParams.mockReturnValue({ id: '123' })
     vi.mocked(financialEntityService.getById).mockRejectedValue(

@@ -74,4 +74,17 @@ describe('clientFinancialEntityService', () => {
       expect.objectContaining({ withCredentials: true })
     )
   })
+
+  it('getAllAssociations calls axios.get with credentials', async () => {
+    const mockData = [{ id: '1', balance: 100 }]
+    vi.mocked(axios.get).mockResolvedValue({ data: mockData })
+
+    const result = await clientFinancialEntityService.getAllAssociations()
+
+    expect(axios.get).toHaveBeenCalledWith(
+      `${API_URL}/clients-financial-entities`,
+      expect.objectContaining({ withCredentials: true })
+    )
+    expect(result).toEqual(mockData)
+  })
 })

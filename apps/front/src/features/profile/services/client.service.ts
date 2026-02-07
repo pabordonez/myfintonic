@@ -32,3 +32,11 @@ export const getClients = async () => {
   if (!response.ok) throw new Error('Error al obtener clientes')
   return response.json()
 }
+
+export const getClientById = async (id: string) => {
+  const response = await fetch(`${API_URL}/clients/${id}`, {
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al obtener perfil')
+  return response.json()
+}

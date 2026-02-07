@@ -113,6 +113,26 @@ describe('FinancialEntitiesPage', () => {
     // En un test real de integración, la lista se actualizaría. Aquí mockeamos la llamada.
   })
 
+  it('does not delete entity when cancelled', async () => {
+    mockUseAuth.mockReturnValue({ user: { role: 'ADMIN' }, token: 'token' })
+    const mockEntities = [
+      { id: '1', name: 'Bank A', createdAt: new Date().toISOString() },
+    ]
+    vi.mocked(financialEntityService.getAll).mockResolvedValue(mockEntities)
+
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+    render(
+      <MemoryRouter>
+        <FinancialEntitiesPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+    fireEvent.click(screen.getByTitle('Eliminar entidad'))
+    expect(financialEntityService.delete).not.toHaveBeenCalled()
+  })
+
   it('renders entity name as link for ADMIN and text for USER', async () => {
     const mockEntities = [
       { id: '1', name: 'Bank Link', createdAt: new Date().toISOString() },

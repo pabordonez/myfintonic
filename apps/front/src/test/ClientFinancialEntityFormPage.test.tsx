@@ -320,4 +320,21 @@ describe('ClientFinancialEntityFormPage', () => {
     fireEvent.click(screen.getByText('Volver'))
     expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
   })
+
+  it('does not submit if user is missing', async () => {
+    mockUseAuth.mockReturnValue({ user: null, token: 'test-token' })
+    vi.mocked(financialEntityService.getAll).mockResolvedValue([])
+
+    render(
+      <MemoryRouter>
+        <ClientFinancialEntityFormPage />
+      </MemoryRouter>
+    )
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(clientFinancialEntityService.create).not.toHaveBeenCalled()
+    })
+  })
 })

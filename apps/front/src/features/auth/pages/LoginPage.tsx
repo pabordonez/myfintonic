@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { API_URL } from '../../../config/api'
+import { authService } from '../services/auth.service'
+import { getClientById } from '../../profile/services/client.service'
 
 export const LoginPage = () => {
   const { register, handleSubmit } = useForm()
@@ -13,23 +14,10 @@ export const LoginPage = () => {
   const onSubmit = async (data: any) => {
     try {
       // 1. Login para obtener token
-      const loginRes = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-
-      if (!loginRes.ok) throw new Error('Credenciales inválidas')
-      const { token, user: loginUser } = await loginRes.json()
+      const { token, user: loginUser } = await authService.login(data)
 
       // 3. Obtener datos completos del usuario
-      const userRes = await fetch(`${API_URL}/clients/${loginUser.id}`, {
-        credentials: 'include',
-      })
-
-      if (!userRes.ok) throw new Error('Error al obtener perfil')
-      const user = await userRes.json()
+      const user = await getClientById(loginUser.id)
 
       // 4. Guardar sesión
       localStorage.setItem('token', token)
