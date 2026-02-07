@@ -13,7 +13,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:silent": "vitest run --reporter=dot --silent",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "audit": "npm audit --audit-level=high"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

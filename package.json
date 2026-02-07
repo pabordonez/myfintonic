@@ -19,6 +19,7 @@
     "lint:fix": "turbo run lint:fix",
     "lint-quiet": "turbo run lint:quiet",
     "format": "turbo run format",
+    "audit": "turbo run audit",
     "clean": "turbo run clean && rm -rf node_modules",
     "db:generate": "npm run db:generate -w @myfintonic/api",
     "db:migrate": "npm run db:migrate -w @myfintonic/api",
