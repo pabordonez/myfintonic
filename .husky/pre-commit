@@ -2,17 +2,10 @@
 
 echo "🔍 Running Quality Gates (pre-commit)..."
 
- # Fortmat 
-  echo "📝 Format code style .."
-  npm run format || {
-    echo "❌ ESLint failed!"
-    exit 1
-  }
-
-  # Gate 1: Linting 
-  echo "📝 Checking code style..."
-  npm run lint-quiet || {
-    echo "❌ ESLint failed!"
+ # Gate 1: Lint-staged (Format & Lint staged files)
+  echo "📝 Running lint-staged..."
+  npx lint-staged || {
+    echo "❌ lint-staged failed!"
     exit 1
   }
 
