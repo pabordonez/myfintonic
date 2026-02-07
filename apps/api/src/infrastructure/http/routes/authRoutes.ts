@@ -11,5 +11,6 @@ export const createAuthRoutes = (
     clientController.register(req, res)
   )
   authRouter.post('/login', authController.login)
+  authRouter.post('/logout', authController.logout)
   return authRouter
 }

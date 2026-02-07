@@ -90,4 +90,17 @@ describe('Auth API', () => {
       expect(response.body).toHaveProperty('token')
     })
   })
+
+  describe('POST /auth/logout', () => {
+    it('should clear the cookie and return 200', async () => {
+      const response = await request(app).post('/auth/logout')
+
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({ message: 'Logged out successfully' })
+
+      const cookies = response.headers['set-cookie']
+      expect(cookies).toBeDefined()
+      expect(cookies[0]).toContain('Max-Age=0')
+    })
+  })
 })

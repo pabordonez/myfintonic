@@ -48,4 +48,18 @@ describe('AuthController', () => {
       expect(json).toHaveBeenCalledWith({ error: 'Invalid' })
     })
   })
+
+  describe('logout', () => {
+    it('should clear cookie and return 200', async () => {
+      await controller.logout(req as Request, res as Response)
+
+      expect(cookie).toHaveBeenCalledWith(
+        'token',
+        '',
+        expect.objectContaining({ maxAge: 0, httpOnly: true })
+      )
+      expect(status).toHaveBeenCalledWith(200)
+      expect(json).toHaveBeenCalledWith({ message: 'Logged out successfully' })
+    })
+  })
 })

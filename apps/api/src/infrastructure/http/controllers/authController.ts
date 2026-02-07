@@ -21,4 +21,14 @@ export class AuthController {
       res.status(401).json({ error: error.message || 'Invalid credentials' })
     }
   }
+
+  logout = async (req: Request, res: Response) => {
+    res.cookie('token', '', {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 0, // Expire immediately
+    })
+    res.status(200).json({ message: 'Logged out successfully' })
+  }
 }

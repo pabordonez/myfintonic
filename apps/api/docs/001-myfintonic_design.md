@@ -216,7 +216,7 @@ La API seguirá los principios REST, utilizando sustantivos en plural para las c
 
 ### Endpoints Principales
 
-> **Nota de Seguridad**: Todos los endpoints (excepto `/auth/*` y `/health`) requieren un token JWT válido en la cabecera `Authorization: Bearer <token>`.
+> **Nota de Seguridad**: Todos los endpoints (excepto `/auth/*` y `/health`) requieren un token JWT válido enviado mediante una **Cookie HttpOnly** llamada `token`.
 
 - **`POST /auth/register`**: Registra un nuevo usuario con rol `USER`.
   - **Body**: `{ "email": "...", "password": "...", "firstName": "...", "lastName": "..." }`
@@ -225,6 +225,9 @@ La API seguirá los principios REST, utilizando sustantivos en plural para las c
 - **`POST /auth/login`**: Autentica un usuario y devuelve un token JWT.
   - **Body**: `{ "email": "...", "password": "..." }`
   - **Respuestas**: `200 OK` (con token), `401 Unauthorized`.
+
+- **`POST /auth/logout`**: Cierra la sesión del usuario limpiando la cookie de autenticación.
+  - **Respuestas**: `200 OK`.
 
 - **`GET /clients`**: Obtiene una lista de todos los clientes registrados (Solo ADMIN).
   - **Respuestas**:
