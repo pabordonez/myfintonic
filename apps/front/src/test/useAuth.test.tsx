@@ -54,7 +54,7 @@ describe('useAuth', () => {
       json: async () => user,
     })
     global.fetch = mockFetch
-    
+
     // Mock axios as well in case useAuth uses it
     vi.mocked(axios.get).mockResolvedValue({ data: user })
 
@@ -81,7 +81,7 @@ describe('useAuth', () => {
     await act(async () => {
       await result.current.refreshUser()
     })
-    
+
     consoleSpy.mockRestore()
   })
 })

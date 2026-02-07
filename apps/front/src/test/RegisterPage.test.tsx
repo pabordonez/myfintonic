@@ -8,7 +8,8 @@ vi.mock('axios')
 const mockNavigate = vi.fn()
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
@@ -29,7 +30,9 @@ describe('RegisterPage', () => {
     expect(screen.getByText(/Apellido/i)).toBeInTheDocument()
     expect(screen.getByText(/Email/i)).toBeInTheDocument()
     expect(screen.getByText(/Password/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Registrarse/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /Registrarse/i })
+    ).toBeInTheDocument()
   })
 
   it('submits registration form successfully', async () => {
@@ -42,15 +45,26 @@ describe('RegisterPage', () => {
       </BrowserRouter>
     )
 
-    fireEvent.change(container.querySelector('input[name="firstName"]')!, { target: { value: 'John' } })
-    fireEvent.change(container.querySelector('input[name="lastName"]')!, { target: { value: 'Doe' } })
-    fireEvent.change(container.querySelector('input[name="email"]')!, { target: { value: 'john@test.com' } })
-    fireEvent.change(container.querySelector('input[name="password"]')!, { target: { value: 'password123' } })
+    fireEvent.change(container.querySelector('input[name="firstName"]')!, {
+      target: { value: 'John' },
+    })
+    fireEvent.change(container.querySelector('input[name="lastName"]')!, {
+      target: { value: 'Doe' },
+    })
+    fireEvent.change(container.querySelector('input[name="email"]')!, {
+      target: { value: 'john@test.com' },
+    })
+    fireEvent.change(container.querySelector('input[name="password"]')!, {
+      target: { value: 'password123' },
+    })
 
     fireEvent.click(screen.getByRole('button', { name: /Registrarse/i }))
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('/auth/register'), expect.any(Object))
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/auth/register'),
+        expect.any(Object)
+      )
       expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
     })
   })
@@ -65,15 +79,25 @@ describe('RegisterPage', () => {
       </BrowserRouter>
     )
 
-    fireEvent.change(container.querySelector('input[name="firstName"]')!, { target: { value: 'John' } })
-    fireEvent.change(container.querySelector('input[name="lastName"]')!, { target: { value: 'Doe' } })
-    fireEvent.change(container.querySelector('input[name="email"]')!, { target: { value: 'john@test.com' } })
-    fireEvent.change(container.querySelector('input[name="password"]')!, { target: { value: 'password123' } })
+    fireEvent.change(container.querySelector('input[name="firstName"]')!, {
+      target: { value: 'John' },
+    })
+    fireEvent.change(container.querySelector('input[name="lastName"]')!, {
+      target: { value: 'Doe' },
+    })
+    fireEvent.change(container.querySelector('input[name="email"]')!, {
+      target: { value: 'john@test.com' },
+    })
+    fireEvent.change(container.querySelector('input[name="password"]')!, {
+      target: { value: 'password123' },
+    })
 
     fireEvent.click(screen.getByRole('button', { name: /Registrarse/i }))
 
     await waitFor(() => {
-      expect(screen.getByText(/Error al registrar usuario/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/Error al registrar usuario/i)
+      ).toBeInTheDocument()
     })
     consoleSpy.mockRestore()
   })

@@ -1,19 +1,27 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ProductType } from '../types/transaction.types';
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ProductType } from '../types/transaction.types'
 
 interface Props {
-  productType: string;
-  productId: string;
+  productType: string
+  productId: string
 }
 
-const ALLOWED_TYPES = [ProductType.CURRENT_ACCOUNT, ProductType.SAVINGS_ACCOUNT, 'CURRENT_ACCOUNT', 'SAVINGS_ACCOUNT'];
+const ALLOWED_TYPES = [
+  ProductType.CURRENT_ACCOUNT,
+  ProductType.SAVINGS_ACCOUNT,
+  'CURRENT_ACCOUNT',
+  'SAVINGS_ACCOUNT',
+]
 
-export const ProductTransactionButton: React.FC<Props> = ({ productType, productId }) => {
-  const navigate = useNavigate();
+export const ProductTransactionButton: React.FC<Props> = ({
+  productType,
+  productId,
+}) => {
+  const navigate = useNavigate()
 
   if (!productId || !ALLOWED_TYPES.includes(productType)) {
-    return null;
+    return null
   }
 
   return (
@@ -24,5 +32,5 @@ export const ProductTransactionButton: React.FC<Props> = ({ productType, product
     >
       Ver Transacciones
     </button>
-  );
-};
+  )
+}

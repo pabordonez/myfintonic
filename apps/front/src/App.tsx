@@ -55,7 +55,7 @@ function App() {
             element={<ClientFinancialEntityFormPage />}
           />
 
-         <Route
+          <Route
             path="/clients/:id/change-password"
             element={<ChangePasswordPage />}
           />

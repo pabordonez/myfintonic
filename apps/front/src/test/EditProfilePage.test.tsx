@@ -15,7 +15,8 @@ const { mockNavigate } = vi.hoisted(() => {
 const mockRefreshUser = vi.fn()
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
@@ -23,7 +24,12 @@ describe('EditProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     ;(useAuth as any).mockReturnValue({
-      user: { id: '1', firstName: 'John', lastName: 'Doe', email: 'john@test.com' },
+      user: {
+        id: '1',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@test.com',
+      },
       token: 'token',
       refreshUser: mockRefreshUser,
     })
@@ -46,14 +52,20 @@ describe('EditProfilePage', () => {
 
   it('updates profile successfully', async () => {
     const originalSetTimeout = global.setTimeout
-    const setTimeoutSpy = vi.spyOn(global, 'setTimeout').mockImplementation((fn: any, delay?: number) => {
-      if (delay === 1500) {
-        fn()
-        return 0 as any
-      }
-      return originalSetTimeout(fn, delay)
+    const setTimeoutSpy = vi
+      .spyOn(global, 'setTimeout')
+      .mockImplementation((fn: any, delay?: number) => {
+        if (delay === 1500) {
+          fn()
+          return 0 as any
+        }
+        return originalSetTimeout(fn, delay)
+      })
+    vi.mocked(updateClientProfile).mockResolvedValue({
+      id: '1',
+      firstName: 'Jane',
+      lastName: 'Doe',
     })
-    vi.mocked(updateClientProfile).mockResolvedValue({ id: '1', firstName: 'Jane', lastName: 'Doe' })
 
     const { container } = render(
       <BrowserRouter>
@@ -61,15 +73,21 @@ describe('EditProfilePage', () => {
       </BrowserRouter>
     )
 
-    fireEvent.change(container.querySelector('input[name="firstName"]')!, { target: { value: 'Jane' } })
+    fireEvent.change(container.querySelector('input[name="firstName"]')!, {
+      target: { value: 'Jane' },
+    })
     fireEvent.click(screen.getByText('Guardar Cambios'))
 
     await waitFor(() => {
-      expect(updateClientProfile).toHaveBeenCalledWith('1', expect.objectContaining({ firstName: 'Jane' }), 'token')
+      expect(updateClientProfile).toHaveBeenCalledWith(
+        '1',
+        expect.objectContaining({ firstName: 'Jane' }),
+        'token'
+      )
       expect(mockRefreshUser).toHaveBeenCalled()
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
     })
-    
+
     setTimeoutSpy.mockRestore()
   })
 
@@ -86,7 +104,9 @@ describe('EditProfilePage', () => {
     fireEvent.click(screen.getByText('Guardar Cambios'))
 
     await waitFor(() => {
-      expect(screen.getByText('No se pudo actualizar el perfil. Inténtalo de nuevo.')).toBeInTheDocument()
+      expect(
+        screen.getByText('No se pudo actualizar el perfil. Inténtalo de nuevo.')
+      ).toBeInTheDocument()
     })
     consoleSpy.mockRestore()
   })
@@ -103,9 +123,9 @@ describe('EditProfilePage', () => {
         <EditProfilePage />
       </BrowserRouter>
     )
-    
+
     await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
+      expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
     })
   })
 
@@ -126,9 +146,12 @@ describe('EditProfilePage', () => {
         <EditProfilePage />
       </BrowserRouter>
     )
-    
+
     const changePasswordLink = screen.getByText('Cambiar Contraseña')
     expect(changePasswordLink).toBeInTheDocument()
-    expect(changePasswordLink.closest('a')).toHaveAttribute('href', '/clients/1/change-password')
+    expect(changePasswordLink.closest('a')).toHaveAttribute(
+      'href',
+      '/clients/1/change-password'
+    )
   })
 })

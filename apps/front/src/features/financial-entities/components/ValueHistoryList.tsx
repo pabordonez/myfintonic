@@ -11,7 +11,10 @@ interface ValueHistoryListProps {
   initialBalance?: number
 }
 
-export const ValueHistoryList = ({ history, initialBalance }: ValueHistoryListProps) => {
+export const ValueHistoryList = ({
+  history,
+  initialBalance,
+}: ValueHistoryListProps) => {
   // Ordenar por fecha descendente (más reciente primero) y tomar los últimos 10
   const sortedHistory = [...(history || [])]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -72,7 +75,9 @@ export const ValueHistoryList = ({ history, initialBalance }: ValueHistoryListPr
                       {formatDate(item.date)}
                     </p>
                     <div className="flex text-sm text-gray-500 gap-2">
-                      <span>Prev: {formatCurrency(item.previousValue ?? 0)}</span>
+                      <span>
+                        Prev: {formatCurrency(item.previousValue ?? 0)}
+                      </span>
                       <span>→</span>
                       <span className="font-medium text-gray-900">
                         {formatCurrency(item.value)}

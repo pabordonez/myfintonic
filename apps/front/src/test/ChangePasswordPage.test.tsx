@@ -17,7 +17,8 @@ const { mockNavigate, mockUseParams, mockUseAuth } = vi.hoisted(() => {
 vi.mock('axios')
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -36,7 +37,10 @@ describe('ChangePasswordPage', () => {
   })
 
   it('renders form correctly for USER', () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'user-123', role: 'USER' }, token: 'token' })
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-123', role: 'USER' },
+      token: 'token',
+    })
     render(
       <MemoryRouter>
         <ChangePasswordPage />
@@ -49,7 +53,10 @@ describe('ChangePasswordPage', () => {
   })
 
   it('renders form correctly for ADMIN (no current password)', () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'admin-1', role: 'ADMIN' }, token: 'token' })
+    mockUseAuth.mockReturnValue({
+      user: { id: 'admin-1', role: 'ADMIN' },
+      token: 'token',
+    })
     render(
       <MemoryRouter>
         <ChangePasswordPage />
@@ -57,12 +64,17 @@ describe('ChangePasswordPage', () => {
     )
 
     expect(screen.getByText('Cambiar Contraseña')).toBeInTheDocument()
-    expect(screen.queryByLabelText(/Contraseña Actual/i)).not.toBeInTheDocument()
+    expect(
+      screen.queryByLabelText(/Contraseña Actual/i)
+    ).not.toBeInTheDocument()
     expect(screen.getByLabelText(/Nueva Contraseña/i)).toBeInTheDocument()
   })
 
   it('submits form successfully for USER', async () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'user-123', role: 'USER' }, token: 'token' })
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-123', role: 'USER' },
+      token: 'token',
+    })
     vi.mocked(axios.put).mockResolvedValue({})
 
     render(
@@ -71,8 +83,12 @@ describe('ChangePasswordPage', () => {
       </MemoryRouter>
     )
 
-    fireEvent.change(screen.getByLabelText(/Contraseña Actual/i), { target: { value: 'oldPass' } })
-    fireEvent.change(screen.getByLabelText(/Nueva Contraseña/i), { target: { value: 'newPass' } })
+    fireEvent.change(screen.getByLabelText(/Contraseña Actual/i), {
+      target: { value: 'oldPass' },
+    })
+    fireEvent.change(screen.getByLabelText(/Nueva Contraseña/i), {
+      target: { value: 'newPass' },
+    })
     fireEvent.click(screen.getByText('Guardar Cambios'))
 
     await waitFor(() => {
@@ -81,12 +97,17 @@ describe('ChangePasswordPage', () => {
         { currentPassword: 'oldPass', newPassword: 'newPass' },
         expect.any(Object)
       )
-      expect(screen.getByText('Contraseña actualizada correctamente')).toBeInTheDocument()
+      expect(
+        screen.getByText('Contraseña actualizada correctamente')
+      ).toBeInTheDocument()
     })
   })
 
   it('submits form successfully for ADMIN', async () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'admin-1', role: 'ADMIN' }, token: 'token' })
+    mockUseAuth.mockReturnValue({
+      user: { id: 'admin-1', role: 'ADMIN' },
+      token: 'token',
+    })
     vi.mocked(axios.put).mockResolvedValue({})
 
     render(
@@ -95,7 +116,9 @@ describe('ChangePasswordPage', () => {
       </MemoryRouter>
     )
 
-    fireEvent.change(screen.getByLabelText(/Nueva Contraseña/i), { target: { value: 'newPassAdmin' } })
+    fireEvent.change(screen.getByLabelText(/Nueva Contraseña/i), {
+      target: { value: 'newPassAdmin' },
+    })
     fireEvent.click(screen.getByText('Guardar Cambios'))
 
     await waitFor(() => {
@@ -104,14 +127,19 @@ describe('ChangePasswordPage', () => {
         { newPassword: 'newPassAdmin' },
         expect.any(Object)
       )
-      expect(screen.getByText('Contraseña actualizada correctamente')).toBeInTheDocument()
+      expect(
+        screen.getByText('Contraseña actualizada correctamente')
+      ).toBeInTheDocument()
     })
   })
 
   it('displays error message on failure', async () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'user-123', role: 'USER' }, token: 'token' })
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-123', role: 'USER' },
+      token: 'token',
+    })
     vi.mocked(axios.put).mockRejectedValue({
-      response: { data: { error: 'Invalid password' } }
+      response: { data: { error: 'Invalid password' } },
     })
 
     render(
@@ -120,8 +148,12 @@ describe('ChangePasswordPage', () => {
       </MemoryRouter>
     )
 
-    fireEvent.change(screen.getByLabelText(/Contraseña Actual/i), { target: { value: 'wrong' } })
-    fireEvent.change(screen.getByLabelText(/Nueva Contraseña/i), { target: { value: 'new' } })
+    fireEvent.change(screen.getByLabelText(/Contraseña Actual/i), {
+      target: { value: 'wrong' },
+    })
+    fireEvent.change(screen.getByLabelText(/Nueva Contraseña/i), {
+      target: { value: 'new' },
+    })
     fireEvent.click(screen.getByText('Guardar Cambios'))
 
     await waitFor(() => {

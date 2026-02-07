@@ -1,7 +1,17 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown, Wallet, Users, Key } from 'lucide-react'
+import {
+  Plus,
+  Trash2,
+  Search,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Wallet,
+  Users,
+  Key,
+} from 'lucide-react'
 import axios from 'axios'
 import { API_URL } from '@/config/api'
 import { ProfitabilityBadge } from '../../financial-entities/components/ProfitabilityBadge'
@@ -12,7 +22,10 @@ export const DashboardPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
+  const [sortConfig, setSortConfig] = useState<{
+    key: string
+    direction: 'asc' | 'desc'
+  } | null>(null)
   const [activeTab, setActiveTab] = useState<'clients' | 'entities'>('clients')
 
   useEffect(() => {
@@ -53,19 +66,30 @@ export const DashboardPage = () => {
   }, [user, token, activeTab])
 
   // Calcular el balance total
-  const totalBalance = items.reduce((acc, item) => acc + (Number(item.balance) || 0), 0)
+  const totalBalance = items.reduce(
+    (acc, item) => acc + (Number(item.balance) || 0),
+    0
+  )
   const totalInitialBalance = items.reduce(
     (acc, item) => acc + (Number(item.initialBalance) || 0),
     0
   )
 
   const handleDelete = async (id: string, name: string) => {
-    if (!window.confirm(`¿Estás seguro de que quieres eliminar la entidad ${name}?`)) return
+    if (
+      !window.confirm(
+        `¿Estás seguro de que quieres eliminar la entidad ${name}?`
+      )
+    )
+      return
 
     try {
-      await axios.delete(`${API_URL}/clients/${user?.id}/financial-entities/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      await axios.delete(
+        `${API_URL}/clients/${user?.id}/financial-entities/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
       setItems((prev) => prev.filter((item) => item.id !== id))
     } catch (err) {
       console.error(err)
@@ -77,7 +101,9 @@ export const DashboardPage = () => {
   const processedItems = useMemo(() => {
     return [...(items || [])]
       .filter((item) =>
-        (item.financialEntity?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+        (item.financialEntity?.name || '')
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
       )
       .sort((a, b) => {
         if (!sortConfig) return 0
@@ -109,16 +135,23 @@ export const DashboardPage = () => {
   const handleSort = (key: string) => {
     setSortConfig((current) => ({
       key,
-      direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc',
+      direction:
+        current?.key === key && current.direction === 'asc' ? 'desc' : 'asc',
     }))
   }
 
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
-    if (sortConfig?.key !== columnKey) return <ArrowUpDown className="ml-1 h-4 w-4 text-gray-400" />
-    return sortConfig.direction === 'asc' ? <ArrowUp className="ml-1 h-4 w-4 text-indigo-600" /> : <ArrowDown className="ml-1 h-4 w-4 text-indigo-600" />
+    if (sortConfig?.key !== columnKey)
+      return <ArrowUpDown className="ml-1 h-4 w-4 text-gray-400" />
+    return sortConfig.direction === 'asc' ? (
+      <ArrowUp className="ml-1 h-4 w-4 text-indigo-600" />
+    ) : (
+      <ArrowDown className="ml-1 h-4 w-4 text-indigo-600" />
+    )
   }
 
-  const headerClass = "px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+  const headerClass =
+    'px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider'
 
   if (!user) return null
 
@@ -131,7 +164,9 @@ export const DashboardPage = () => {
               <button
                 onClick={() => setActiveTab('clients')}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
-                  activeTab === 'clients' ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'
+                  activeTab === 'clients'
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <Users className="h-6 w-6" />
@@ -188,114 +223,151 @@ export const DashboardPage = () => {
         <div className="bg-red-50 p-4 rounded-md text-red-700">{error}</div>
       ) : (
         <>
-          {user.role === 'USER' || (user.role === 'ADMIN' && activeTab === 'entities') ? (
+          {user.role === 'USER' ||
+          (user.role === 'ADMIN' && activeTab === 'entities') ? (
             <>
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="w-full px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onClick={() => handleSort('name')}>
-                      <div className="flex items-center">
-                        Nombre
-                        <SortIcon columnKey="name" />
-                      </div>
-                    </th>
-                    {user.role === 'ADMIN' && (
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                        Cliente
-                      </th>
-                    )}
-                    <th scope="col" className="whitespace-nowrap px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onClick={() => handleSort('differential')}>
-                      <div className="flex items-center">
-                        Diferencial
-                        <SortIcon columnKey="differential" />
-                      </div>
-                    </th>
-                    <th scope="col" className="whitespace-nowrap px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onClick={() => handleSort('balance')}>
-                      <div className="flex items-center">
-                        Balance Actual
-                        <SortIcon columnKey="balance" />
-                      </div>
-                    </th>
-                    <th scope="col" className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Actualizado
-                    </th>
-                    {user.role !== 'ADMIN' && (
-                      <th scope="col" className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                        Acciones
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {processedItems.length === 0 && (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                        {items.length === 0 ? 'No hay elementos para mostrar.' : 'No se encontraron resultados.'}
-                      </td>
-                    </tr>
-                  )}
-                  {processedItems.map((item: any) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {user.role === 'ADMIN' ? (
-                          <span className="text-sm font-medium text-gray-900">
-                            {item.financialEntity?.name || 'Entidad Desconocida'}
-                          </span>
-                        ) : (
-                          <Link
-                            to={`/client-entities/${item.id}`}
-                            className="text-sm font-medium text-gray-900 hover:text-indigo-600"
-                          >
-                            {item.financialEntity?.name || 'Entidad Desconocida'}
-                          </Link>
-                        )}
-                      </td>
+                      <th
+                        scope="col"
+                        className="w-full px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('name')}
+                      >
+                        <div className="flex items-center">
+                          Nombre
+                          <SortIcon columnKey="name" />
+                        </div>
+                      </th>
                       {user.role === 'ADMIN' && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {item.client ? `${item.client.firstName} ${item.client.lastName}` : '-'}
-                        </td>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider"
+                        >
+                          Cliente
+                        </th>
                       )}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {item.initialBalance != null && Number(item.initialBalance) !== 0 ? (
-                          <ProfitabilityBadge
-                            currentValue={item.balance}
-                            initialValue={item.initialBalance}
-                          />
-                        ) : (
-                          <span className="text-sm text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          {new Intl.NumberFormat('es-ES', {
-                            style: 'currency',
-                            currency: 'EUR',
-                          }).format(item.balance)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                        {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
-                      </td>
+                      <th
+                        scope="col"
+                        className="whitespace-nowrap px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('differential')}
+                      >
+                        <div className="flex items-center">
+                          Diferencial
+                          <SortIcon columnKey="differential" />
+                        </div>
+                      </th>
+                      <th
+                        scope="col"
+                        className="whitespace-nowrap px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleSort('balance')}
+                      >
+                        <div className="flex items-center">
+                          Balance Actual
+                          <SortIcon columnKey="balance" />
+                        </div>
+                      </th>
+                      <th
+                        scope="col"
+                        className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider"
+                      >
+                        Actualizado
+                      </th>
                       {user.role !== 'ADMIN' && (
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault()
-                              handleDelete(item.id, item.financialEntity?.name)
-                            }}
-                            className="text-gray-400 hover:text-red-600 transition-colors"
-                            title="Eliminar entidad"
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </button>
-                        </td>
+                        <th
+                          scope="col"
+                          className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider"
+                        >
+                          Acciones
+                        </th>
                       )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {processedItems.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="px-6 py-4 text-center text-sm text-gray-500"
+                        >
+                          {items.length === 0
+                            ? 'No hay elementos para mostrar.'
+                            : 'No se encontraron resultados.'}
+                        </td>
+                      </tr>
+                    )}
+                    {processedItems.map((item: any) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {user.role === 'ADMIN' ? (
+                            <span className="text-sm font-medium text-gray-900">
+                              {item.financialEntity?.name ||
+                                'Entidad Desconocida'}
+                            </span>
+                          ) : (
+                            <Link
+                              to={`/client-entities/${item.id}`}
+                              className="text-sm font-medium text-gray-900 hover:text-indigo-600"
+                            >
+                              {item.financialEntity?.name ||
+                                'Entidad Desconocida'}
+                            </Link>
+                          )}
+                        </td>
+                        {user.role === 'ADMIN' && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {item.client
+                              ? `${item.client.firstName} ${item.client.lastName}`
+                              : '-'}
+                          </td>
+                        )}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {item.initialBalance != null &&
+                          Number(item.initialBalance) !== 0 ? (
+                            <ProfitabilityBadge
+                              currentValue={item.balance}
+                              initialValue={item.initialBalance}
+                            />
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            {new Intl.NumberFormat('es-ES', {
+                              style: 'currency',
+                              currency: 'EUR',
+                            }).format(item.balance)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                          {item.updatedAt
+                            ? new Date(item.updatedAt).toLocaleDateString()
+                            : '-'}
+                        </td>
+                        {user.role !== 'ADMIN' && (
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault()
+                                handleDelete(
+                                  item.id,
+                                  item.financialEntity?.name
+                                )
+                              }}
+                              className="text-gray-400 hover:text-red-600 transition-colors"
+                              title="Eliminar entidad"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </>
           ) : (
             <div className="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -319,7 +391,10 @@ export const DashboardPage = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {items.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td
+                        colSpan={3}
+                        className="px-6 py-4 text-center text-sm text-gray-500"
+                      >
                         No hay clientes para mostrar.
                       </td>
                     </tr>
@@ -330,7 +405,9 @@ export const DashboardPage = () => {
                         <div className="text-sm font-medium text-gray-900">
                           {item.firstName} {item.lastName}
                         </div>
-                        <div className="text-sm text-gray-500">{item.email}</div>
+                        <div className="text-sm text-gray-500">
+                          {item.email}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -338,7 +415,9 @@ export const DashboardPage = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                        {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
+                        {item.updatedAt
+                          ? new Date(item.updatedAt).toLocaleDateString()
+                          : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <Link

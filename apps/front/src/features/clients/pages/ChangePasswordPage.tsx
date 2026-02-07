@@ -12,7 +12,7 @@ export const ChangePasswordPage = () => {
   const { user, token } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  
+
   const { register, handleSubmit, reset } = useForm()
 
   const onSubmit = async (data: any) => {
@@ -21,7 +21,7 @@ export const ChangePasswordPage = () => {
 
     try {
       const payload: any = {
-        newPassword: data.newPassword
+        newPassword: data.newPassword,
       }
 
       // Solo enviamos currentPassword si el usuario NO es admin
@@ -31,9 +31,9 @@ export const ChangePasswordPage = () => {
       }
 
       await axios.put(`${API_URL}/clients/${id}/change-password`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
-      
+
       setSuccess('Contraseña actualizada correctamente')
       reset()
     } catch (err: any) {
@@ -47,9 +47,7 @@ export const ChangePasswordPage = () => {
   return (
     <div className="max-w-md mx-auto bg-white p-8 rounded shadow mt-10">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Cambiar Contraseña
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900">Cambiar Contraseña</h1>
         <button
           onClick={() => navigate(-1)}
           className="flex items-center text-gray-600 hover:text-gray-900"
@@ -59,13 +57,24 @@ export const ChangePasswordPage = () => {
         </button>
       </div>
 
-      {error && <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4 border border-red-200">{error}</div>}
-      {success && <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4 border border-green-200">{success}</div>}
+      {error && (
+        <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4 border border-red-200">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4 border border-green-200">
+          {success}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {user.role !== 'ADMIN' && (
           <div>
-            <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="currentPassword"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Contraseña Actual
             </label>
             <input
@@ -78,7 +87,10 @@ export const ChangePasswordPage = () => {
         )}
 
         <div>
-          <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="newPassword"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Nueva Contraseña
           </label>
           <input

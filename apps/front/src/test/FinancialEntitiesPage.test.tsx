@@ -10,7 +10,8 @@ vi.mock('axios')
 const mockNavigate = vi.fn()
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -31,7 +32,7 @@ describe('FinancialEntitiesPage', () => {
     mockUseAuth.mockReturnValue({ user: { role: 'USER' }, token: 'token' })
     const mockEntities = [
       { id: '1', name: 'Bank A', createdAt: new Date().toISOString() },
-      { id: '2', name: 'Bank B', createdAt: new Date().toISOString() }
+      { id: '2', name: 'Bank B', createdAt: new Date().toISOString() },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockEntities })
 
@@ -50,7 +51,9 @@ describe('FinancialEntitiesPage', () => {
 
   it('shows delete button only for ADMIN', async () => {
     mockUseAuth.mockReturnValue({ user: { role: 'ADMIN' }, token: 'token' })
-    const mockEntities = [{ id: '1', name: 'Bank A', createdAt: new Date().toISOString() }]
+    const mockEntities = [
+      { id: '1', name: 'Bank A', createdAt: new Date().toISOString() },
+    ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockEntities })
 
     render(
@@ -60,14 +63,16 @@ describe('FinancialEntitiesPage', () => {
     )
 
     await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
-    
+
     expect(screen.getByTitle('Eliminar entidad')).toBeInTheDocument()
     expect(screen.getByText('Nueva Entidad')).toBeInTheDocument()
   })
 
   it('hides delete button for USER', async () => {
     mockUseAuth.mockReturnValue({ user: { role: 'USER' }, token: 'token' })
-    const mockEntities = [{ id: '1', name: 'Bank A', createdAt: new Date().toISOString() }]
+    const mockEntities = [
+      { id: '1', name: 'Bank A', createdAt: new Date().toISOString() },
+    ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockEntities })
 
     render(
@@ -77,17 +82,19 @@ describe('FinancialEntitiesPage', () => {
     )
 
     await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
-    
+
     expect(screen.queryByTitle('Eliminar entidad')).not.toBeInTheDocument()
     expect(screen.queryByText('Nueva Entidad')).not.toBeInTheDocument()
   })
 
   it('deletes entity when confirmed', async () => {
     mockUseAuth.mockReturnValue({ user: { role: 'ADMIN' }, token: 'token' })
-    const mockEntities = [{ id: '1', name: 'Bank A', createdAt: new Date().toISOString() }]
+    const mockEntities = [
+      { id: '1', name: 'Bank A', createdAt: new Date().toISOString() },
+    ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockEntities })
     vi.mocked(axios.delete).mockResolvedValue({})
-    
+
     vi.spyOn(window, 'confirm').mockReturnValue(true)
 
     render(
@@ -102,13 +109,18 @@ describe('FinancialEntitiesPage', () => {
     fireEvent.click(deleteBtn)
 
     await waitFor(() => {
-      expect(axios.delete).toHaveBeenCalledWith(`${API_URL}/financial-entities/1`, expect.any(Object))
+      expect(axios.delete).toHaveBeenCalledWith(
+        `${API_URL}/financial-entities/1`,
+        expect.any(Object)
+      )
       expect(screen.queryByText('Bank A')).not.toBeInTheDocument()
     })
   })
 
   it('renders entity name as link for ADMIN and text for USER', async () => {
-    const mockEntities = [{ id: '1', name: 'Bank Link', createdAt: new Date().toISOString() }]
+    const mockEntities = [
+      { id: '1', name: 'Bank Link', createdAt: new Date().toISOString() },
+    ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockEntities })
 
     // 1. Check ADMIN
@@ -118,8 +130,13 @@ describe('FinancialEntitiesPage', () => {
         <FinancialEntitiesPage />
       </MemoryRouter>
     )
-    await waitFor(() => expect(screen.getByText('Bank Link')).toBeInTheDocument())
-    expect(screen.getByText('Bank Link').closest('a')).toHaveAttribute('href', '/financial-entities/1')
+    await waitFor(() =>
+      expect(screen.getByText('Bank Link')).toBeInTheDocument()
+    )
+    expect(screen.getByText('Bank Link').closest('a')).toHaveAttribute(
+      'href',
+      '/financial-entities/1'
+    )
     unmount()
 
     // 2. Check USER
@@ -129,7 +146,9 @@ describe('FinancialEntitiesPage', () => {
         <FinancialEntitiesPage />
       </MemoryRouter>
     )
-    await waitFor(() => expect(screen.getByText('Bank Link')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Bank Link')).toBeInTheDocument()
+    )
     expect(screen.getByText('Bank Link').closest('a')).toBeNull()
   })
 
@@ -143,16 +162,22 @@ describe('FinancialEntitiesPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByText('Error al cargar las entidades')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(
+        screen.getByText('Error al cargar las entidades')
+      ).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 
   it('displays error message on delete failure', async () => {
     mockUseAuth.mockReturnValue({ user: { role: 'ADMIN' }, token: 'token' })
-    const mockEntities = [{ id: '1', name: 'Bank A', createdAt: new Date().toISOString() }]
+    const mockEntities = [
+      { id: '1', name: 'Bank A', createdAt: new Date().toISOString() },
+    ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockEntities })
     vi.mocked(axios.delete).mockRejectedValue(new Error('Delete failed'))
-    
+
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -165,7 +190,11 @@ describe('FinancialEntitiesPage', () => {
     await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
     fireEvent.click(screen.getByTitle('Eliminar entidad'))
 
-    await waitFor(() => expect(screen.getByText('Error al eliminar la entidad')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(
+        screen.getByText('Error al eliminar la entidad')
+      ).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 })

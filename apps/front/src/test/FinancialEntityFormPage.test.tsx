@@ -16,7 +16,8 @@ const { mockNavigate, mockUseParams } = vi.hoisted(() => {
 vi.mock('axios')
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -33,7 +34,10 @@ describe('FinancialEntityFormPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseParams.mockReturnValue({})
-    mockUseAuth.mockReturnValue({ token: 'test-token', user: { role: 'ADMIN' } })
+    mockUseAuth.mockReturnValue({
+      token: 'test-token',
+      user: { role: 'ADMIN' },
+    })
   })
 
   it('renders create form', () => {
@@ -58,7 +62,9 @@ describe('FinancialEntityFormPage', () => {
   })
 
   it('submits new entity successfully and resets form', async () => {
-    vi.mocked(axios.post).mockResolvedValue({ data: { id: 'new-ent', name: 'New Bank' } })
+    vi.mocked(axios.post).mockResolvedValue({
+      data: { id: 'new-ent', name: 'New Bank' },
+    })
 
     render(
       <MemoryRouter>
@@ -76,7 +82,9 @@ describe('FinancialEntityFormPage', () => {
         { name: 'New Bank' },
         expect.any(Object)
       )
-      expect(screen.getByText('Entidad creada correctamente')).toBeInTheDocument()
+      expect(
+        screen.getByText('Entidad creada correctamente')
+      ).toBeInTheDocument()
       // Verifica que el formulario se ha reseteado (input vacío)
       expect(input).toHaveValue('')
     })
@@ -92,7 +100,9 @@ describe('FinancialEntityFormPage', () => {
       </MemoryRouter>
     )
 
-    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: 'New Bank' } })
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: 'New Bank' },
+    })
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
@@ -103,8 +113,12 @@ describe('FinancialEntityFormPage', () => {
 
   it('loads data and updates entity in edit mode', async () => {
     mockUseParams.mockReturnValue({ id: '123' })
-    vi.mocked(axios.get).mockResolvedValue({ data: { id: '123', name: 'Existing Bank' } })
-    vi.mocked(axios.put).mockResolvedValue({ data: { id: '123', name: 'Updated Bank' } })
+    vi.mocked(axios.get).mockResolvedValue({
+      data: { id: '123', name: 'Existing Bank' },
+    })
+    vi.mocked(axios.put).mockResolvedValue({
+      data: { id: '123', name: 'Updated Bank' },
+    })
 
     render(
       <MemoryRouter>
@@ -117,7 +131,9 @@ describe('FinancialEntityFormPage', () => {
       expect(screen.getByDisplayValue('Existing Bank')).toBeInTheDocument()
     })
 
-    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: 'Updated Bank' } })
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: 'Updated Bank' },
+    })
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
@@ -126,7 +142,9 @@ describe('FinancialEntityFormPage', () => {
         { name: 'Updated Bank' },
         expect.any(Object)
       )
-      expect(screen.getByText('Entidad actualizada correctamente')).toBeInTheDocument()
+      expect(
+        screen.getByText('Entidad actualizada correctamente')
+      ).toBeInTheDocument()
     })
   })
 
@@ -141,7 +159,9 @@ describe('FinancialEntityFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByText('Error al cargar la entidad')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Error al cargar la entidad')).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 

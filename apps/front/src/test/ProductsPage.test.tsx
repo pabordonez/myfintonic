@@ -1,4 +1,10 @@
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  within,
+} from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductsPage } from '../features/products/pages/ProductsPage'
@@ -175,9 +181,15 @@ describe('ProductsPage', () => {
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
 
-    await waitFor(() => expect(screen.getByText('Cuenta Segura')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Cuenta Segura')).toBeInTheDocument()
+    )
 
     const deleteBtn = screen.getByTitle('Eliminar producto')
     fireEvent.click(deleteBtn)
@@ -191,13 +203,31 @@ describe('ProductsPage', () => {
 
   it('filters products by name (case insensitive)', async () => {
     const mockProducts = [
-      { id: '1', name: 'Mi Cuenta Ahorro', type: 'SAVINGS_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
-      { id: '2', name: 'Mi Fondo Inversión', type: 'INVESTMENT_FUND', status: 'ACTIVE', currentBalance: 200 },
+      {
+        id: '1',
+        name: 'Mi Cuenta Ahorro',
+        type: 'SAVINGS_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
+      {
+        id: '2',
+        name: 'Mi Fondo Inversión',
+        type: 'INVESTMENT_FUND',
+        status: 'ACTIVE',
+        currentBalance: 200,
+      },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByText('Mi Cuenta Ahorro')).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByText('Mi Cuenta Ahorro')).toBeInTheDocument()
+    )
 
     const searchInput = screen.getByPlaceholderText('Nombre...')
     fireEvent.change(searchInput, { target: { value: 'fondo' } })
@@ -208,12 +238,28 @@ describe('ProductsPage', () => {
 
   it('filters products by type', async () => {
     const mockProducts = [
-      { id: '1', name: 'P1', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
-      { id: '2', name: 'P2', type: 'STOCKS', status: 'ACTIVE', currentBalance: 200 },
+      {
+        id: '1',
+        name: 'P1',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
+      {
+        id: '2',
+        name: 'P2',
+        type: 'STOCKS',
+        status: 'ACTIVE',
+        currentBalance: 200,
+      },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
 
     const typeSelect = screen.getByLabelText(/Tipo/i)
@@ -225,13 +271,38 @@ describe('ProductsPage', () => {
 
   it('filters products by multiple entities', async () => {
     const mockProducts = [
-      { id: '1', name: 'P1', financialEntityName: 'Bank A', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
-      { id: '2', name: 'P2', financialEntityName: 'Bank B', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
-      { id: '3', name: 'P3', financialEntityName: 'Bank C', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
+      {
+        id: '1',
+        name: 'P1',
+        financialEntityName: 'Bank A',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
+      {
+        id: '2',
+        name: 'P2',
+        financialEntityName: 'Bank B',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
+      {
+        id: '3',
+        name: 'P3',
+        financialEntityName: 'Bank C',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
 
     const entitySelect = screen.getByLabelText(/Entidad/i) as HTMLSelectElement
@@ -248,12 +319,28 @@ describe('ProductsPage', () => {
 
   it('sorts products by balance', async () => {
     const mockProducts = [
-      { id: '1', name: 'Low', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
-      { id: '2', name: 'High', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1000 },
+      {
+        id: '1',
+        name: 'Low',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
+      {
+        id: '2',
+        name: 'High',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 1000,
+      },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('Low')).toBeInTheDocument())
 
     const balanceHeader = screen.getByText(/Balance/i)
@@ -278,12 +365,28 @@ describe('ProductsPage', () => {
 
   it('filters products by status', async () => {
     const mockProducts = [
-      { id: '1', name: 'Active', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
-      { id: '2', name: 'Paused', type: 'CURRENT_ACCOUNT', status: 'PAUSED', currentBalance: 100 },
+      {
+        id: '1',
+        name: 'Active',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
+      {
+        id: '2',
+        name: 'Paused',
+        type: 'CURRENT_ACCOUNT',
+        status: 'PAUSED',
+        currentBalance: 100,
+      },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('Active')).toBeInTheDocument())
 
     const statusSelect = screen.getByLabelText(/Estado/i)
@@ -295,21 +398,37 @@ describe('ProductsPage', () => {
 
   it('displays error message on delete failure', async () => {
     const mockProducts = [
-      { id: '1', name: 'Product to Delete', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
+      {
+        id: '1',
+        name: 'Product to Delete',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
     vi.mocked(axios.delete).mockRejectedValue(new Error('Delete failed'))
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByText('Product to Delete')).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByText('Product to Delete')).toBeInTheDocument()
+    )
 
     const deleteBtn = screen.getByTitle('Eliminar producto')
     fireEvent.click(deleteBtn)
 
-    await waitFor(() => expect(screen.getByText('Error al eliminar el producto.')).toBeInTheDocument())
-    
+    await waitFor(() =>
+      expect(
+        screen.getByText('Error al eliminar el producto.')
+      ).toBeInTheDocument()
+    )
+
     confirmSpy.mockRestore()
     consoleSpy.mockRestore()
   })
@@ -321,7 +440,11 @@ describe('ProductsPage', () => {
     vi.mocked(axios.get).mockRejectedValue(error)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
 
     await waitFor(() => {
       expect(localStorage.getItem('token')).toBeNull()
@@ -337,7 +460,11 @@ describe('ProductsPage', () => {
     vi.mocked(axios.get).mockRejectedValue(error)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
 
     await waitFor(() => {
       expect(localStorage.getItem('token')).toBeNull()
@@ -353,7 +480,11 @@ describe('ProductsPage', () => {
     vi.mocked(axios.get).mockRejectedValue(error)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
 
     await waitFor(() => {
       expect(localStorage.getItem('token')).toBeNull()
@@ -369,7 +500,11 @@ describe('ProductsPage', () => {
     vi.mocked(axios.get).mockRejectedValue(error)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
 
     await waitFor(() => {
       expect(localStorage.getItem('token')).toBeNull()
@@ -386,7 +521,11 @@ describe('ProductsPage', () => {
     vi.mocked(axios.get).mockRejectedValue(error)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
 
     await waitFor(() => {
       expect(localStorage.getItem('token')).toBeNull()
@@ -404,7 +543,11 @@ describe('ProductsPage', () => {
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
 
     const activeBadge = screen.getByText('ACTIVE')
@@ -427,7 +570,11 @@ describe('ProductsPage', () => {
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('Alpha')).toBeInTheDocument())
 
     const nameHeader = screen.getByText(/Nombre/i)
@@ -455,7 +602,11 @@ describe('ProductsPage', () => {
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('Alpha')).toBeInTheDocument())
 
     // Aplicar filtro
@@ -471,26 +622,44 @@ describe('ProductsPage', () => {
   it('displays empty state message when no products found', async () => {
     vi.mocked(axios.get).mockResolvedValue({ data: [] })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
 
     await waitFor(() => {
       // Adjust the text to match what your component actually renders for empty state
       // Based on DashboardPage logic, it might be "No hay elementos para mostrar." or similar.
-      expect(screen.getByText(/No se encontraron productos|No hay productos|No hay elementos/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          /No se encontraron productos|No hay productos|No hay elementos/i
+        )
+      ).toBeInTheDocument()
     })
   })
 
   it('renders sort icons correctly', async () => {
     // Provide data to ensure the table is rendered
     vi.mocked(axios.get).mockResolvedValue({
-      data: [{ id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' }]
+      data: [
+        { id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
+      ],
     })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByRole('columnheader', { name: /Nombre/i })).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(
+        screen.getByRole('columnheader', { name: /Nombre/i })
+      ).toBeInTheDocument()
+    )
 
     const nameHeader = screen.getByRole('columnheader', { name: /Nombre/i })
-    
+
     // Default: no sort (double arrow)
     expect(within(nameHeader).getByText('↕')).toBeInTheDocument()
 
@@ -504,10 +673,16 @@ describe('ProductsPage', () => {
   })
 
   it('displays "No results found" when filter matches nothing', async () => {
-    const mockProducts = [{ id: '1', name: 'Alpha', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' }]
+    const mockProducts = [
+      { id: '1', name: 'Alpha', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
+    ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('Alpha')).toBeInTheDocument())
 
     const searchInput = screen.getByPlaceholderText('Nombre...')
@@ -518,47 +693,101 @@ describe('ProductsPage', () => {
 
   it('renders product with fallback balance', async () => {
     const mockProducts = [
-      { id: '1', name: 'P1', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: null, initialBalance: 50 }
+      {
+        id: '1',
+        name: 'P1',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: null,
+        initialBalance: 50,
+      },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
-    
+
     // Should show 50,00 € (fallback to initialBalance)
     expect(screen.getByText(/50,00\s*€/)).toBeInTheDocument()
   })
 
   it('sorts products with equal values stably', async () => {
     const mockProducts = [
-      { id: '1', name: 'A', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
-      { id: '2', name: 'A', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 100 },
+      {
+        id: '1',
+        name: 'A',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
+      {
+        id: '2',
+        name: 'A',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 100,
+      },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getAllByText('A')).toHaveLength(2))
 
     const nameHeader = screen.getByText(/Nombre/i)
     fireEvent.click(nameHeader) // Sort
-    
+
     const rows = screen.getAllByRole('row')
     expect(rows).toHaveLength(3) // Header + 2 items
   })
 
   it('sorts products by differential', async () => {
     const mockProducts = [
-      { id: '1', name: 'A', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1000, initialBalance: 800 }, // Diff 200
-      { id: '2', name: 'B', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 500, initialBalance: 600 },  // Diff -100
-      { id: '3', name: 'C', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1000, initialBalance: 1000 }, // Diff 0
+      {
+        id: '1',
+        name: 'A',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 1000,
+        initialBalance: 800,
+      }, // Diff 200
+      {
+        id: '2',
+        name: 'B',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 500,
+        initialBalance: 600,
+      }, // Diff -100
+      {
+        id: '3',
+        name: 'C',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 1000,
+        initialBalance: 1000,
+      }, // Diff 0
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('A')).toBeInTheDocument())
 
     // Click on the TH element to ensure onClick is triggered
-    const diffHeader = screen.getByRole('columnheader', { name: /Diferencial/i })
+    const diffHeader = screen.getByRole('columnheader', {
+      name: /Diferencial/i,
+    })
 
     // Sort ASC: -100 (B), 0 (C), 200 (A)
     fireEvent.click(diffHeader)
@@ -570,14 +799,26 @@ describe('ProductsPage', () => {
 
   it('renders sort icons for differential column', async () => {
     vi.mocked(axios.get).mockResolvedValue({
-      data: [{ id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' }]
+      data: [
+        { id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
+      ],
     })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByRole('columnheader', { name: /Diferencial/i })).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(
+        screen.getByRole('columnheader', { name: /Diferencial/i })
+      ).toBeInTheDocument()
+    )
 
-    const diffHeader = screen.getByRole('columnheader', { name: /Diferencial/i })
-    
+    const diffHeader = screen.getByRole('columnheader', {
+      name: /Diferencial/i,
+    })
+
     // Click 1: Asc
     fireEvent.click(diffHeader)
     expect(await within(diffHeader).findByText('▲')).toBeInTheDocument()
@@ -585,25 +826,59 @@ describe('ProductsPage', () => {
 
   it('renders differential column correctly (Badge vs Dash)', async () => {
     const mockProducts = [
-      { id: '1', name: 'With Diff', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1100, initialBalance: 1000 },
-      { id: '2', name: 'No Diff', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1000, initialBalance: null },
-      { id: '3', name: 'Zero Initial', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1000, initialBalance: 0 },
-      { id: '4', name: 'String Initial', type: 'CURRENT_ACCOUNT', status: 'ACTIVE', currentBalance: 1000, initialBalance: "1000" }, // Test type coercion
+      {
+        id: '1',
+        name: 'With Diff',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 1100,
+        initialBalance: 1000,
+      },
+      {
+        id: '2',
+        name: 'No Diff',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 1000,
+        initialBalance: null,
+      },
+      {
+        id: '3',
+        name: 'Zero Initial',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 1000,
+        initialBalance: 0,
+      },
+      {
+        id: '4',
+        name: 'String Initial',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 1000,
+        initialBalance: '1000',
+      }, // Test type coercion
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByText('With Diff')).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByText('With Diff')).toBeInTheDocument()
+    )
 
     const rows = screen.getAllByRole('row')
-    
+
     // Row 1 (With Diff): Badge (10.00%)
     expect(within(rows[1]).getByText(/10\.00%/)).toBeInTheDocument()
-    
+
     // Row 2 (No Diff): Dash
     const cells2 = within(rows[2]).getAllByRole('cell')
     expect(cells2[3]).toHaveTextContent('-')
-    
+
     // Row 3 (Zero Initial): Dash
     const cells3 = within(rows[3]).getAllByRole('cell')
     expect(cells3[3]).toHaveTextContent('-')
@@ -614,29 +889,60 @@ describe('ProductsPage', () => {
 
   it('triggers sort for all sortable columns', async () => {
     vi.mocked(axios.get).mockResolvedValue({
-      data: [{ id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' }]
+      data: [
+        { id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
+      ],
     })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByRole('columnheader', { name: /Nombre/i })).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(
+        screen.getByRole('columnheader', { name: /Nombre/i })
+      ).toBeInTheDocument()
+    )
 
     // Click all headers to ensure all onClick arrow functions are executed
-    const headers = ['Nombre', 'Entidad', 'Tipo', 'Diferencial', 'Balance', 'Estado', 'Actualizado']
-    
+    const headers = [
+      'Nombre',
+      'Entidad',
+      'Tipo',
+      'Diferencial',
+      'Balance',
+      'Estado',
+      'Actualizado',
+    ]
+
     for (const headerText of headers) {
-      const header = screen.getByRole('columnheader', { name: new RegExp(headerText, 'i') })
+      const header = screen.getByRole('columnheader', {
+        name: new RegExp(headerText, 'i'),
+      })
       fireEvent.click(header)
     }
   })
 
   it('renders unknown status with default color', async () => {
     const mockProducts = [
-      { id: '1', name: 'P1', status: 'UNKNOWN_STATUS', type: 'CURRENT_ACCOUNT' },
+      {
+        id: '1',
+        name: 'P1',
+        status: 'UNKNOWN_STATUS',
+        type: 'CURRENT_ACCOUNT',
+      },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByText('UNKNOWN_STATUS')).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByText('UNKNOWN_STATUS')).toBeInTheDocument()
+    )
 
     const badge = screen.getByText('UNKNOWN_STATUS')
     expect(badge).toHaveClass('bg-gray-100')
@@ -644,42 +950,69 @@ describe('ProductsPage', () => {
 
   it('handles products with missing financial entity name in filter', async () => {
     const mockProducts = [
-      { id: '1', name: 'P1', financialEntityName: null, type: 'CURRENT_ACCOUNT' },
-      { id: '2', name: 'P2', financialEntityName: 'Bank A', type: 'CURRENT_ACCOUNT' },
+      {
+        id: '1',
+        name: 'P1',
+        financialEntityName: null,
+        type: 'CURRENT_ACCOUNT',
+      },
+      {
+        id: '2',
+        name: 'P2',
+        financialEntityName: 'Bank A',
+        type: 'CURRENT_ACCOUNT',
+      },
     ]
     vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-    render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
     await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
-    
+
     // Check filter options to ensure nulls were filtered out
     const entitySelect = screen.getByLabelText(/Entidad/i)
     expect(within(entitySelect).queryByText('Bank A')).toBeInTheDocument()
     // Should not have empty option from null value
     const options = within(entitySelect).getAllByRole('option')
-    expect(options.map(o => o.textContent)).not.toContain('')
+    expect(options.map((o) => o.textContent)).not.toContain('')
   })
 
   describe('ADMIN Role', () => {
     beforeEach(() => {
-      mockUseAuth.mockReturnValue({ token: 'test-token', user: { role: 'ADMIN' } })
+      mockUseAuth.mockReturnValue({
+        token: 'test-token',
+        user: { role: 'ADMIN' },
+      })
     })
 
     it('should NOT render "Nuevo Producto" button', async () => {
       vi.mocked(axios.get).mockResolvedValue({ data: [] })
-      render(<MemoryRouter><ProductsPage /></MemoryRouter>)
-      await waitFor(() => expect(screen.getByText('Productos Financieros')).toBeInTheDocument())
-      
+      render(
+        <MemoryRouter>
+          <ProductsPage />
+        </MemoryRouter>
+      )
+      await waitFor(() =>
+        expect(screen.getByText('Productos Financieros')).toBeInTheDocument()
+      )
+
       expect(screen.queryByText('Nuevo Producto')).not.toBeInTheDocument()
     })
 
     it('should NOT render delete button and NOT navigate on row click', async () => {
       const mockProducts = [
-        { id: '1', name: 'P1', type: 'CURRENT_ACCOUNT', status: 'ACTIVE' }
+        { id: '1', name: 'P1', type: 'CURRENT_ACCOUNT', status: 'ACTIVE' },
       ]
       vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-      render(<MemoryRouter><ProductsPage /></MemoryRouter>)
+      render(
+        <MemoryRouter>
+          <ProductsPage />
+        </MemoryRouter>
+      )
       await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
 
       // Check delete button is missing
@@ -695,7 +1028,10 @@ describe('ProductsPage', () => {
 
   describe('ADMIN Role - Client Column', () => {
     beforeEach(() => {
-      mockUseAuth.mockReturnValue({ token: 'test-token', user: { role: 'ADMIN' } })
+      mockUseAuth.mockReturnValue({
+        token: 'test-token',
+        user: { role: 'ADMIN' },
+      })
     })
 
     it('renders "Cliente" column and client info', async () => {
@@ -706,18 +1042,22 @@ describe('ProductsPage', () => {
           type: 'CURRENT_ACCOUNT',
           status: 'ACTIVE',
           currentBalance: 100,
-          client: { firstName: 'John', lastName: 'Doe' }
-        }
+          client: { firstName: 'John', lastName: 'Doe' },
+        },
       ]
       vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-      render(<MemoryRouter><ProductsPage /></MemoryRouter>)
-      
+      render(
+        <MemoryRouter>
+          <ProductsPage />
+        </MemoryRouter>
+      )
+
       await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
-      
+
       // Verificar encabezado
       expect(screen.getByText('Cliente')).toBeInTheDocument()
-      
+
       // Verificar contenido de la celda
       expect(screen.getByText('John Doe')).toBeInTheDocument()
     })
@@ -725,7 +1065,10 @@ describe('ProductsPage', () => {
 
   describe('USER Role - No Client Column', () => {
     beforeEach(() => {
-      mockUseAuth.mockReturnValue({ token: 'test-token', user: { role: 'USER' } })
+      mockUseAuth.mockReturnValue({
+        token: 'test-token',
+        user: { role: 'USER' },
+      })
     })
 
     it('does NOT render "Cliente" column', async () => {
@@ -737,15 +1080,19 @@ describe('ProductsPage', () => {
           type: 'CURRENT_ACCOUNT',
           status: 'ACTIVE',
           currentBalance: 100,
-          client: { firstName: 'John', lastName: 'Doe' }
-        }
+          client: { firstName: 'John', lastName: 'Doe' },
+        },
       ]
       vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
 
-      render(<MemoryRouter><ProductsPage /></MemoryRouter>)
-      
+      render(
+        <MemoryRouter>
+          <ProductsPage />
+        </MemoryRouter>
+      )
+
       await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
-      
+
       expect(screen.queryByText('Cliente')).not.toBeInTheDocument()
       expect(screen.queryByText('John Doe')).not.toBeInTheDocument()
     })

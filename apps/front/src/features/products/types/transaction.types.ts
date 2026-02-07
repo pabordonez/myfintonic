@@ -7,20 +7,20 @@ export enum ProductType {
 }
 
 export interface Transaction {
-  date: string; // ISO String
-  description: string;
-  amount: number;
+  date: string // ISO String
+  description: string
+  amount: number
 }
 
 export interface CreateTransactionPayload {
-  date: string;
-  description: string;
-  amount: number;
+  date: string
+  description: string
+  amount: number
 }
 
 export interface ProductWithTransactions {
-  id: string;
-  name: string;
-  type: ProductType | string;
-  transactions?: Transaction[];
+  id: string
+  name: string
+  type: ProductType | string
+  transactions?: Transaction[]
 }

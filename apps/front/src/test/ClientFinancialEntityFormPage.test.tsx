@@ -89,7 +89,9 @@ describe('ClientFinancialEntityFormPage', () => {
         expect.objectContaining({ financialEntityId: 'bank-1', balance: 1000 }),
         expect.any(Object)
       )
-      expect(screen.getByText('Entidad creada correctamente')).toBeInTheDocument()
+      expect(
+        screen.getByText('Entidad creada correctamente')
+      ).toBeInTheDocument()
       expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard')
     })
   })
@@ -156,7 +158,9 @@ describe('ClientFinancialEntityFormPage', () => {
         expect.objectContaining({ balance: 600 }),
         expect.any(Object)
       )
-      expect(screen.getByText('Entidad actualizada correctamente')).toBeInTheDocument()
+      expect(
+        screen.getByText('Entidad actualizada correctamente')
+      ).toBeInTheDocument()
       expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard')
     })
   })
@@ -204,12 +208,16 @@ describe('ClientFinancialEntityFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByText('Error al cargar datos')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Error al cargar datos')).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 
   it('displays generic error message on submit failure', async () => {
-    vi.mocked(axios.get).mockResolvedValue({ data: [{ id: 'bank-1', name: 'Santander' }] })
+    vi.mocked(axios.get).mockResolvedValue({
+      data: [{ id: 'bank-1', name: 'Santander' }],
+    })
     vi.mocked(axios.post).mockRejectedValue(new Error('Network error'))
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -219,7 +227,9 @@ describe('ClientFinancialEntityFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByLabelText(/Entidad Financiera/i)).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Entidad Financiera/i)).toBeInTheDocument()
+    )
 
     fireEvent.change(screen.getByLabelText(/Entidad Financiera/i), {
       target: { value: 'bank-1' },
@@ -230,7 +240,9 @@ describe('ClientFinancialEntityFormPage', () => {
 
     fireEvent.click(screen.getByText(/Guardar/i))
 
-    await waitFor(() => expect(screen.getByText('Error al guardar')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Error al guardar')).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 
@@ -243,12 +255,19 @@ describe('ClientFinancialEntityFormPage', () => {
         <ClientFinancialEntityFormPage />
       </MemoryRouter>
     )
-    await waitFor(() => expect(screen.queryByText('Error al cargar datos')).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Error al cargar datos')
+      ).not.toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 
   it('handles missing token gracefully', async () => {
-    mockUseAuth.mockReturnValue({ user: { id: 'user-123', role: 'USER' }, token: null })
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-123', role: 'USER' },
+      token: null,
+    })
     vi.mocked(axios.get).mockRejectedValue(new Error('Unauthorized'))
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -257,32 +276,43 @@ describe('ClientFinancialEntityFormPage', () => {
         <ClientFinancialEntityFormPage />
       </MemoryRouter>
     )
-    await waitFor(() => expect(screen.getByText('Error al cargar datos')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Error al cargar datos')).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 
   it('renders value history in edit mode', async () => {
     mockUseParams.mockReturnValue({ id: 'assoc-1' })
     vi.mocked(axios.get).mockImplementation((url) => {
-
       if (url.includes('/financial-entities') && !url.includes('/clients/')) {
         return Promise.resolve({ data: [{ id: 'bank-1', name: 'Santander' }] })
       }
       return Promise.resolve({
-        data: { 
-            id: 'assoc-1', 
-            financialEntityId: 'bank-1', 
-            balance: 500,
-            initialBalance: 400,
-            valueHistory: [{ date: '2023-01-01', value: 500, previousValue: 400 }]
+        data: {
+          id: 'assoc-1',
+          financialEntityId: 'bank-1',
+          balance: 500,
+          initialBalance: 400,
+          valueHistory: [
+            { date: '2023-01-01', value: 500, previousValue: 400 },
+          ],
         },
       })
     })
 
-    render(<MemoryRouter><ClientFinancialEntityFormPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ClientFinancialEntityFormPage />
+      </MemoryRouter>
+    )
 
-    await waitFor(() => expect(screen.getByDisplayValue('500')).toBeInTheDocument())
-    await waitFor(() => expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('500')).toBeInTheDocument()
+    )
+    await waitFor(() =>
+      expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
+    )
     expect(screen.getByText('01/01/2023')).toBeInTheDocument()
   })
 

@@ -12,8 +12,10 @@ export const FinancialEntityFormPage = () => {
   const { user, token } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  
-  const { register, handleSubmit, reset, setValue } = useForm<{ name: string }>()
+
+  const { register, handleSubmit, reset, setValue } = useForm<{
+    name: string
+  }>()
 
   useEffect(() => {
     if (user && user.role !== 'ADMIN') {
@@ -25,9 +27,12 @@ export const FinancialEntityFormPage = () => {
     if (id && token) {
       const fetchEntity = async () => {
         try {
-          const response = await axios.get(`${API_URL}/financial-entities/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
+          const response = await axios.get(
+            `${API_URL}/financial-entities/${id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          )
           setValue('name', response.data.name)
         } catch (err) {
           console.error(err)
@@ -45,19 +50,21 @@ export const FinancialEntityFormPage = () => {
     try {
       if (id) {
         await axios.put(`${API_URL}/financial-entities/${id}`, data, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         })
         setSuccess('Entidad actualizada correctamente')
       } else {
         await axios.post(`${API_URL}/financial-entities`, data, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         })
         setSuccess('Entidad creada correctamente')
         reset()
       }
     } catch (err) {
       console.error(err)
-      setError(id ? 'Error al actualizar la entidad' : 'Error al crear la entidad')
+      setError(
+        id ? 'Error al actualizar la entidad' : 'Error al crear la entidad'
+      )
     }
   }
 
@@ -90,9 +97,15 @@ export const FinancialEntityFormPage = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-white shadow-md rounded-lg p-6 space-y-4">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="bg-white shadow-md rounded-lg p-6 space-y-4"
+      >
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Nombre
           </label>
           <input

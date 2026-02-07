@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { productService } from '../services/product.service'
-import { ValueHistoryList, ValueHistory } from '../../financial-entities/components/ValueHistoryList'
+import {
+  ValueHistoryList,
+  ValueHistory,
+} from '../../financial-entities/components/ValueHistoryList'
 import { ProductTransactionButton } from '../components/ProductTransactionButton'
 
 export const ProductFormPage = () => {
@@ -13,7 +16,9 @@ export const ProductFormPage = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [valueHistory, setValueHistory] = useState<ValueHistory[]>([])
-  const [initialBalance, setInitialBalance] = useState<number | undefined>(undefined)
+  const [initialBalance, setInitialBalance] = useState<number | undefined>(
+    undefined
+  )
   const [statusLoading, setStatusLoading] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -160,7 +165,9 @@ export const ProductFormPage = () => {
     }
   }
 
-  const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleStatusChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const newStatus = e.target.value
     if (!isEditMode || !id) return
 
@@ -241,7 +248,9 @@ export const ProductFormPage = () => {
                 <option value="PAUSED">Pausado</option>
                 <option value="EXPIRED">Expirado</option>
               </select>
-              {statusLoading && <span className="text-xs text-gray-500">Actualizando...</span>}
+              {statusLoading && (
+                <span className="text-xs text-gray-500">Actualizando...</span>
+              )}
             </div>
           </div>
         )}
@@ -290,7 +299,10 @@ export const ProductFormPage = () => {
           <div>
             {isEditMode && (
               <>
-                <label htmlFor="initialBalance" className="block text-sm font-medium">
+                <label
+                  htmlFor="initialBalance"
+                  className="block text-sm font-medium"
+                >
                   Balance Inicial
                 </label>
                 <input

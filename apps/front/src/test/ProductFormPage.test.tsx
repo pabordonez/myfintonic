@@ -1,4 +1,10 @@
-import { render, screen, waitFor, fireEvent, createEvent } from '@testing-library/react'
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  createEvent,
+} from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductFormPage } from '../features/products/pages/ProductFormPage'
@@ -178,7 +184,9 @@ describe('ProductFormPage', () => {
         }),
         expect.any(Object)
       )
-      expect(screen.getByText('Producto creado correctamente')).toBeInTheDocument()
+      expect(
+        screen.getByText('Producto creado correctamente')
+      ).toBeInTheDocument()
       expect(mockNavigate).not.toHaveBeenCalledWith('/products')
     })
   })
@@ -222,7 +230,9 @@ describe('ProductFormPage', () => {
       const payload = putCall[1] as any
       expect(payload.name).toBe('Cuenta Actualizada')
       expect(payload.type).toBeUndefined()
-      expect(screen.getByText('Producto actualizado correctamente')).toBeInTheDocument()
+      expect(
+        screen.getByText('Producto actualizado correctamente')
+      ).toBeInTheDocument()
     })
   })
 
@@ -465,9 +475,7 @@ describe('ProductFormPage', () => {
       financialEntityId: 'ent-1',
       currentBalance: 500,
       initialBalance: 400,
-      valueHistory: [
-        { date: '2023-10-01', value: 500, previousValue: 400 }
-      ]
+      valueHistory: [{ date: '2023-10-01', value: 500, previousValue: 400 }],
     }
 
     vi.mocked(axios.get)
@@ -496,9 +504,7 @@ describe('ProductFormPage', () => {
       financialEntityId: 'ent-1',
       currentBalance: 500,
       initialBalance: 400,
-      valueHistory: [
-        { date: '2023-10-01', value: 500, previousValue: 400 }
-      ]
+      valueHistory: [{ date: '2023-10-01', value: 500, previousValue: 400 }],
     }
 
     vi.mocked(axios.get)
@@ -514,9 +520,9 @@ describe('ProductFormPage', () => {
     )
 
     await waitFor(() => {
-       expect(screen.getByDisplayValue('Fondo')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('Fondo')).toBeInTheDocument()
     })
-    
+
     expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
   })
 
@@ -529,9 +535,7 @@ describe('ProductFormPage', () => {
       financialEntityId: 'ent-1',
       currentBalance: 1050,
       initialBalance: 1000,
-      valueHistory: [
-        { date: '2023-10-01', value: 1050, previousValue: 1000 }
-      ]
+      valueHistory: [{ date: '2023-10-01', value: 1050, previousValue: 1000 }],
     }
 
     vi.mocked(axios.get)
@@ -547,9 +551,9 @@ describe('ProductFormPage', () => {
     )
 
     await waitFor(() => {
-       expect(screen.getByDisplayValue('Depósito Rentable')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('Depósito Rentable')).toBeInTheDocument()
     })
-    
+
     expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
   })
 
@@ -571,7 +575,9 @@ describe('ProductFormPage', () => {
       .mockResolvedValueOnce({ data: mockProduct })
 
     vi.mocked(axios.patch).mockResolvedValue({})
-    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true)
+    const confirmSpy = vi
+      .spyOn(window, 'confirm')
+      .mockImplementation(() => true)
 
     render(
       <MemoryRouter>
@@ -579,7 +585,9 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByLabelText(/Estado/i)).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Estado/i)).toBeInTheDocument()
+    )
 
     fireEvent.change(screen.getByLabelText(/Estado/i), {
       target: { value: 'PAUSED' },
@@ -593,8 +601,10 @@ describe('ProductFormPage', () => {
         expect.any(Object)
       )
     })
-    await waitFor(() => expect(screen.queryByText('Actualizando...')).not.toBeInTheDocument())
-    
+    await waitFor(() =>
+      expect(screen.queryByText('Actualizando...')).not.toBeInTheDocument()
+    )
+
     confirmSpy.mockRestore()
   })
 
@@ -610,7 +620,9 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByLabelText(/Tipo/i)).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Tipo/i)).toBeInTheDocument()
+    )
 
     fireEvent.change(screen.getByLabelText(/Tipo/i), {
       target: { value: 'STOCKS' },
@@ -622,10 +634,18 @@ describe('ProductFormPage', () => {
     expect(screen.queryByLabelText(/Balance Actual/i)).not.toBeInTheDocument()
 
     // Rellenar formulario
-    fireEvent.change(screen.getByLabelText(/Nombre/i), { target: { value: 'My Stock' } })
-    fireEvent.change(screen.getByLabelText(/Entidad/i), { target: { value: 'ent-1' } })
-    fireEvent.change(screen.getByLabelText(/Balance Inicial/i), { target: { value: '5000' } })
-    fireEvent.change(screen.getByLabelText(/Acciones/i), { target: { value: '10' } })
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: 'My Stock' },
+    })
+    fireEvent.change(screen.getByLabelText(/Entidad/i), {
+      target: { value: 'ent-1' },
+    })
+    fireEvent.change(screen.getByLabelText(/Balance Inicial/i), {
+      target: { value: '5000' },
+    })
+    fireEvent.change(screen.getByLabelText(/Acciones/i), {
+      target: { value: '10' },
+    })
 
     fireEvent.click(screen.getByText(/Guardar/i))
 
@@ -650,11 +670,13 @@ describe('ProductFormPage', () => {
       financialEntityId: 'ent-1',
       currentBalance: 6000,
       initialBalance: 5000,
-      numberOfShares: 10
+      numberOfShares: 10,
     }
 
     vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Banco Santander' }] })
+      .mockResolvedValueOnce({
+        data: [{ id: 'ent-1', name: 'Banco Santander' }],
+      })
       .mockResolvedValueOnce({ data: mockStock })
 
     vi.mocked(axios.put).mockResolvedValue({})
@@ -665,14 +687,18 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByDisplayValue('My Stock')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('My Stock')).toBeInTheDocument()
+    )
 
     // Verificar campos específicos de edición
     expect(screen.getByLabelText(/Balance Actual/i)).toBeInTheDocument()
     expect(screen.queryByLabelText(/Balance Inicial/i)).not.toBeInTheDocument()
 
     // Actualizar balance
-    fireEvent.change(screen.getByLabelText(/Balance Actual/i), { target: { value: '6500' } })
+    fireEvent.change(screen.getByLabelText(/Balance Actual/i), {
+      target: { value: '6500' },
+    })
 
     fireEvent.click(screen.getByText(/Guardar/i))
 
@@ -680,7 +706,7 @@ describe('ProductFormPage', () => {
       expect(axios.put).toHaveBeenCalledWith(
         expect.stringContaining('/products/stock-1'),
         expect.objectContaining({
-            currentBalance: 6500
+          currentBalance: 6500,
         }),
         expect.any(Object)
       )
@@ -697,11 +723,13 @@ describe('ProductFormPage', () => {
       currentBalance: 20000,
       initialBalance: 15000,
       numberOfUnits: 100,
-      netAssetValue: 200
+      netAssetValue: 200,
     }
 
     vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Banco Santander' }] })
+      .mockResolvedValueOnce({
+        data: [{ id: 'ent-1', name: 'Banco Santander' }],
+      })
       .mockResolvedValueOnce({ data: mockFund })
 
     vi.mocked(axios.put).mockResolvedValue({})
@@ -712,7 +740,9 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByDisplayValue('My Fund')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('My Fund')).toBeInTheDocument()
+    )
 
     fireEvent.click(screen.getByText(/Guardar/i))
 
@@ -733,12 +763,16 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 
   it('displays error message on submit failure', async () => {
-    vi.mocked(axios.get).mockResolvedValue({ data: [{ id: 'ent-1', name: 'Banco Santander' }] })
+    vi.mocked(axios.get).mockResolvedValue({
+      data: [{ id: 'ent-1', name: 'Banco Santander' }],
+    })
     vi.mocked(axios.post).mockRejectedValue(new Error('Submit failed'))
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -748,73 +782,126 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument()
+    )
     fireEvent.click(screen.getByText(/Guardar/i))
 
-    await waitFor(() => expect(screen.getByText('Error al guardar el producto')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(
+        screen.getByText('Error al guardar el producto')
+      ).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 
   it('displays error on delete failure', async () => {
     mockUseParams.mockReturnValue({ id: 'prod-1' })
-    const mockProduct = { id: 'prod-1', name: 'P1', type: 'CURRENT_ACCOUNT', financialEntityId: 'ent-1' }
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] }).mockResolvedValueOnce({ data: mockProduct })
+    const mockProduct = {
+      id: 'prod-1',
+      name: 'P1',
+      type: 'CURRENT_ACCOUNT',
+      financialEntityId: 'ent-1',
+    }
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
+      .mockResolvedValueOnce({ data: mockProduct })
     vi.mocked(axios.delete).mockRejectedValue(new Error('Delete failed'))
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByText(/Eliminar/i)).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByText(/Eliminar/i)).toBeInTheDocument()
+    )
 
     fireEvent.click(screen.getByText(/Eliminar/i))
 
-    await waitFor(() => expect(screen.getByText('Error al eliminar el producto')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(
+        screen.getByText('Error al eliminar el producto')
+      ).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 
   it('handles missing user gracefully', async () => {
-    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
-      if (key === 'token') return 'test-token'
-      if (key === 'user') return null // Force user missing
-      return null
-    })
+    const getItemSpy = vi
+      .spyOn(Storage.prototype, 'getItem')
+      .mockImplementation((key) => {
+        if (key === 'token') return 'test-token'
+        if (key === 'user') return null // Force user missing
+        return null
+      })
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
     getItemSpy.mockRestore()
   })
 
   it('handles missing user gracefully', async () => {
-    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
-      if (key === 'token') return 'test-token'
-      if (key === 'user') return null
-      return null
-    })
+    const getItemSpy = vi
+      .spyOn(Storage.prototype, 'getItem')
+      .mockImplementation((key) => {
+        if (key === 'token') return 'test-token'
+        if (key === 'user') return null
+        return null
+      })
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
     getItemSpy.mockRestore()
   })
 
   it('cancels status change', async () => {
     mockUseParams.mockReturnValue({ id: 'prod-1' })
-    const mockProduct = { id: 'prod-1', name: 'P1', type: 'CURRENT_ACCOUNT', financialEntityId: 'ent-1', status: 'ACTIVE' }
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] }).mockResolvedValueOnce({ data: mockProduct })
-    
+    const mockProduct = {
+      id: 'prod-1',
+      name: 'P1',
+      type: 'CURRENT_ACCOUNT',
+      financialEntityId: 'ent-1',
+      status: 'ACTIVE',
+    }
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
+      .mockResolvedValueOnce({ data: mockProduct })
+
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
 
-    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByLabelText(/Estado/i)).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Estado/i)).toBeInTheDocument()
+    )
 
     // Usamos createEvent para poder espiar preventDefault
     const select = screen.getByLabelText(/Estado/i)
     const event = createEvent.change(select, { target: { value: 'PAUSED' } })
     const preventDefaultSpy = vi.spyOn(event, 'preventDefault')
-    
+
     fireEvent(select, event)
 
     expect(confirmSpy).toHaveBeenCalled()
@@ -825,26 +912,18 @@ describe('ProductFormPage', () => {
 
   it('displays error on status change failure', async () => {
     mockUseParams.mockReturnValue({ id: 'prod-1' })
-    const mockProduct = { id: 'prod-1', name: 'P1', type: 'CURRENT_ACCOUNT', financialEntityId: 'ent-1', status: 'ACTIVE' }
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] }).mockResolvedValueOnce({ data: mockProduct })
+    const mockProduct = {
+      id: 'prod-1',
+      name: 'P1',
+      type: 'CURRENT_ACCOUNT',
+      financialEntityId: 'ent-1',
+      status: 'ACTIVE',
+    }
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
+      .mockResolvedValueOnce({ data: mockProduct })
     vi.mocked(axios.patch).mockRejectedValue(new Error('Patch failed'))
     vi.spyOn(window, 'confirm').mockReturnValue(true)
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByLabelText(/Estado/i)).toBeInTheDocument())
-
-    fireEvent.change(screen.getByLabelText(/Estado/i), { target: { value: 'PAUSED' } })
-
-    await waitFor(() => expect(screen.getByText('Error al actualizar el estado')).toBeInTheDocument())
-    consoleSpy.mockRestore()
-  })
-
-  it('handles missing token gracefully', async () => {
-    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
-      if (key === 'token') return null
-      return JSON.stringify({ id: 'user-123' }) // Return user for other calls
-    })
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
@@ -852,7 +931,39 @@ describe('ProductFormPage', () => {
         <ProductFormPage />
       </MemoryRouter>
     )
-    await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Estado/i)).toBeInTheDocument()
+    )
+
+    fireEvent.change(screen.getByLabelText(/Estado/i), {
+      target: { value: 'PAUSED' },
+    })
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Error al actualizar el estado')
+      ).toBeInTheDocument()
+    )
+    consoleSpy.mockRestore()
+  })
+
+  it('handles missing token gracefully', async () => {
+    const getItemSpy = vi
+      .spyOn(Storage.prototype, 'getItem')
+      .mockImplementation((key) => {
+        if (key === 'token') return null
+        return JSON.stringify({ id: 'user-123' }) // Return user for other calls
+      })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
     getItemSpy.mockRestore()
   })
@@ -869,7 +980,7 @@ describe('ProductFormPage', () => {
     vi.mocked(axios.get)
       .mockResolvedValueOnce({ data: [] })
       .mockResolvedValueOnce({ data: mockProduct })
-    
+
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
 
     render(
@@ -878,7 +989,9 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByText(/Eliminar/i)).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText(/Eliminar/i)).toBeInTheDocument()
+    )
 
     fireEvent.click(screen.getByText(/Eliminar/i))
 
@@ -888,21 +1001,32 @@ describe('ProductFormPage', () => {
   })
 
   it('removes empty string fields before submission', async () => {
-    vi.mocked(axios.get).mockResolvedValue({ data: [{ id: 'ent-1', name: 'Bank' }] })
+    vi.mocked(axios.get).mockResolvedValue({
+      data: [{ id: 'ent-1', name: 'Bank' }],
+    })
     vi.mocked(axios.post).mockResolvedValue({ data: {} })
 
-    render(<MemoryRouter><ProductFormPage /></MemoryRouter>)
-    await waitFor(() => expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument())
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument()
+    )
 
     // Rellenar campos mínimos y luego vaciar uno explícitamente
     const nameInput = screen.getByLabelText(/Nombre/i)
     fireEvent.change(nameInput, { target: { value: 'Temp' } })
     fireEvent.change(nameInput, { target: { value: '' } })
 
-    fireEvent.change(screen.getByLabelText(/Tipo/i), { target: { value: 'CURRENT_ACCOUNT' } })
-    fireEvent.change(screen.getByLabelText(/Entidad/i), { target: { value: 'ent-1' } })
-    
-    
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'CURRENT_ACCOUNT' },
+    })
+    fireEvent.change(screen.getByLabelText(/Entidad/i), {
+      target: { value: 'ent-1' },
+    })
+
     // Enviar formulario
     fireEvent.click(screen.getByText(/Guardar/i))
 
@@ -911,7 +1035,7 @@ describe('ProductFormPage', () => {
       const postCall = vi.mocked(axios.post).mock.calls[0]
       const payload = postCall[1] as any
       // Verificar que no hay claves con string vacío
-      Object.values(payload).forEach(val => {
+      Object.values(payload).forEach((val) => {
         expect(val).not.toBe('')
       })
       // Asegurar que 'name' fue eliminado porque era string vacío
@@ -930,7 +1054,7 @@ describe('ProductFormPage', () => {
       initialDate: '2023-01-01T00:00:00Z',
       maturityDate: '2024-01-01T00:00:00Z',
       annualInterestRate: 0.05,
-      interestPaymentFrequency: 'Annual'
+      interestPaymentFrequency: 'Annual',
     }
 
     vi.mocked(axios.get)
@@ -943,7 +1067,9 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByDisplayValue('2023-01-01')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('2023-01-01')).toBeInTheDocument()
+    )
     expect(screen.getByDisplayValue('2024-01-01')).toBeInTheDocument()
   })
 
@@ -961,7 +1087,7 @@ describe('ProductFormPage', () => {
     vi.mocked(axios.get)
       .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
       .mockResolvedValueOnce({ data: mockDeposit })
-    
+
     vi.mocked(axios.put).mockResolvedValue({})
 
     render(
@@ -970,8 +1096,10 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() => expect(screen.getByDisplayValue('My Deposit')).toBeInTheDocument())
-    
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('My Deposit')).toBeInTheDocument()
+    )
+
     // Check for Initial Balance input
     const initialBalanceInput = screen.getByLabelText(/Balance Inicial/i)
     expect(initialBalanceInput).toBeInTheDocument()
@@ -979,7 +1107,7 @@ describe('ProductFormPage', () => {
 
     // Update Initial Balance
     fireEvent.change(initialBalanceInput, { target: { value: '12000' } })
-    
+
     // Submit
     fireEvent.click(screen.getByText(/Guardar/i))
 
@@ -988,7 +1116,7 @@ describe('ProductFormPage', () => {
         expect.stringContaining('/products/dep-1'),
         expect.objectContaining({
           initialBalance: 12000,
-          currentBalance: 10500
+          currentBalance: 10500,
         }),
         expect.any(Object)
       )

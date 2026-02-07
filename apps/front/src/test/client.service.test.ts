@@ -16,7 +16,11 @@ describe('client.service', () => {
       })
       global.fetch = mockFetch
 
-      const result = await updateClientProfile('1', { firstName: 'Updated', lastName: 'User' }, 'token')
+      const result = await updateClientProfile(
+        '1',
+        { firstName: 'Updated', lastName: 'User' },
+        'token'
+      )
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/clients/1'),
@@ -35,8 +39,9 @@ describe('client.service', () => {
     it('should throw error on failure', async () => {
       global.fetch = vi.fn().mockResolvedValue({ ok: false })
 
-      await expect(updateClientProfile('1', { firstName: 'A', lastName: 'B' }, 'token'))
-        .rejects.toThrow('Error al actualizar el perfil')
+      await expect(
+        updateClientProfile('1', { firstName: 'A', lastName: 'B' }, 'token')
+      ).rejects.toThrow('Error al actualizar el perfil')
     })
   })
 })

@@ -47,7 +47,10 @@ export const ProductsPage = () => {
   const [filterType, setFilterType] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterEntities, setFilterEntities] = useState<string[]>([])
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: null })
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: null,
+    direction: null,
+  })
 
   useEffect(() => {
     if (!token) {
@@ -91,7 +94,9 @@ export const ProductsPage = () => {
 
   // 1. Obtener lista única de entidades para el filtro
   const uniqueEntities = useMemo(() => {
-    const names = new Set(data.map((d) => d.financialEntityName).filter(Boolean))
+    const names = new Set(
+      data.map((d) => d.financialEntityName).filter(Boolean)
+    )
     return Array.from(names).sort()
   }, [data])
 
@@ -123,8 +128,12 @@ export const ProductsPage = () => {
         let valA, valB
 
         if (sortConfig.key === 'differential') {
-          valA = (Number(a.currentBalance ?? a.initialBalance) || 0) - (Number(a.initialBalance) || 0)
-          valB = (Number(b.currentBalance ?? b.initialBalance) || 0) - (Number(b.initialBalance) || 0)
+          valA =
+            (Number(a.currentBalance ?? a.initialBalance) || 0) -
+            (Number(a.initialBalance) || 0)
+          valB =
+            (Number(b.currentBalance ?? b.initialBalance) || 0) -
+            (Number(b.initialBalance) || 0)
         } else if (sortConfig.key === 'balance') {
           valA = a.currentBalance ?? a.initialBalance ?? 0
           valB = b.currentBalance ?? b.initialBalance ?? 0
@@ -162,7 +171,8 @@ export const ProductsPage = () => {
   }
 
   const renderSortIcon = (key: string) => {
-    if (sortConfig.key !== key) return <span className="text-gray-300 ml-1 text-xs">↕</span>
+    if (sortConfig.key !== key)
+      return <span className="text-gray-300 ml-1 text-xs">↕</span>
     return (
       <span className="text-blue-600 ml-1 text-xs">
         {sortConfig.direction === 'asc' ? '▲' : '▼'}
@@ -208,7 +218,12 @@ export const ProductsPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
           {/* Búsqueda por Nombre */}
           <div>
-            <label htmlFor="filter-name" className="block text-xs font-semibold text-gray-500 uppercase mb-1">Buscar</label>
+            <label
+              htmlFor="filter-name"
+              className="block text-xs font-semibold text-gray-500 uppercase mb-1"
+            >
+              Buscar
+            </label>
             <input
               id="filter-name"
               type="text"
@@ -221,7 +236,10 @@ export const ProductsPage = () => {
 
           {/* Filtro Entidad (Múltiple) */}
           <div>
-            <label htmlFor="filter-entities" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+            <label
+              htmlFor="filter-entities"
+              className="block text-xs font-semibold text-gray-500 uppercase mb-1"
+            >
               Entidad (Ctrl+Click)
             </label>
             <select
@@ -245,7 +263,12 @@ export const ProductsPage = () => {
 
           {/* Filtro Tipo */}
           <div>
-            <label htmlFor="filter-type" className="block text-xs font-semibold text-gray-500 uppercase mb-1">Tipo</label>
+            <label
+              htmlFor="filter-type"
+              className="block text-xs font-semibold text-gray-500 uppercase mb-1"
+            >
+              Tipo
+            </label>
             <select
               id="filter-type"
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white h-[42px]"
@@ -263,7 +286,12 @@ export const ProductsPage = () => {
 
           {/* Filtro Estado */}
           <div>
-            <label htmlFor="filter-status" className="block text-xs font-semibold text-gray-500 uppercase mb-1">Estado</label>
+            <label
+              htmlFor="filter-status"
+              className="block text-xs font-semibold text-gray-500 uppercase mb-1"
+            >
+              Estado
+            </label>
             <select
               id="filter-status"
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white h-[42px]"
@@ -298,52 +326,66 @@ export const ProductsPage = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                     onClick={() => handleSort('name')}
                   >
-                    <div className="flex items-center">Nombre {renderSortIcon('name')}</div>
+                    <div className="flex items-center">
+                      Nombre {renderSortIcon('name')}
+                    </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                     onClick={() => handleSort('financialEntityName')}
                   >
-                    <div className="flex items-center">Entidad {renderSortIcon('financialEntityName')}</div>
+                    <div className="flex items-center">
+                      Entidad {renderSortIcon('financialEntityName')}
+                    </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                     onClick={() => handleSort('type')}
                   >
-                    <div className="flex items-center">Tipo {renderSortIcon('type')}</div>
+                    <div className="flex items-center">
+                      Tipo {renderSortIcon('type')}
+                    </div>
                   </th>
                   {user?.role === 'ADMIN' && (
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Cliente
                     </th>
                   )}
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                     onClick={() => handleSort('differential')}
                   >
-                    <div className="flex items-center">Diferencial {renderSortIcon('differential')}</div>
+                    <div className="flex items-center">
+                      Diferencial {renderSortIcon('differential')}
+                    </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                     onClick={() => handleSort('balance')}
                   >
-                    <div className="flex items-center">Balance {renderSortIcon('balance')}</div>
+                    <div className="flex items-center">
+                      Balance {renderSortIcon('balance')}
+                    </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                     onClick={() => handleSort('status')}
                   >
-                    <div className="flex items-center">Estado {renderSortIcon('status')}</div>
+                    <div className="flex items-center">
+                      Estado {renderSortIcon('status')}
+                    </div>
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
                     onClick={() => handleSort('updatedAt')}
                   >
-                    <div className="flex items-center">Actualizado {renderSortIcon('updatedAt')}</div>
+                    <div className="flex items-center">
+                      Actualizado {renderSortIcon('updatedAt')}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
@@ -355,7 +397,10 @@ export const ProductsPage = () => {
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td
                       className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 ${user?.role !== 'ADMIN' ? 'cursor-pointer hover:text-indigo-600' : ''}`}
-                      onClick={() => user?.role !== 'ADMIN' && navigate(`/products/${item.id}`)}
+                      onClick={() =>
+                        user?.role !== 'ADMIN' &&
+                        navigate(`/products/${item.id}`)
+                      }
                     >
                       {item.name}
                     </td>
@@ -367,13 +412,18 @@ export const ProductsPage = () => {
                     </td>
                     {user?.role === 'ADMIN' && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {item.client ? `${item.client.firstName} ${item.client.lastName}` : '-'}
+                        {item.client
+                          ? `${item.client.firstName} ${item.client.lastName}`
+                          : '-'}
                       </td>
                     )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.initialBalance != null && Number(item.initialBalance) !== 0 ? (
+                      {item.initialBalance != null &&
+                      Number(item.initialBalance) !== 0 ? (
                         <ProfitabilityBadge
-                          currentValue={item.currentBalance ?? item.initialBalance ?? 0}
+                          currentValue={
+                            item.currentBalance ?? item.initialBalance ?? 0
+                          }
                           initialValue={item.initialBalance}
                         />
                       ) : (
@@ -396,7 +446,9 @@ export const ProductsPage = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : '-'}
+                      {item.updatedAt
+                        ? new Date(item.updatedAt).toLocaleDateString()
+                        : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       {user?.role !== 'ADMIN' && (

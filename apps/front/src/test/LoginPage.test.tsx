@@ -17,7 +17,8 @@ vi.mock('@/hooks/useAuth', () => ({
 }))
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return { ...actual, useNavigate: () => mockNavigate }
 })
 
@@ -42,13 +43,19 @@ describe('LoginPage', () => {
 
   it('calls login on form submit', async () => {
     // Mock successful fetch response
-    const mockFetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ token: 'header.eyJpZCI6InVzZXItMTIzIn0.signature' }),
-    }).mockResolvedValueOnce({ // Second fetch for user profile
-      ok: true,
-      json: async () => ({ id: 'user-123', role: 'USER' }),
-    })
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          token: 'header.eyJpZCI6InVzZXItMTIzIn0.signature',
+        }),
+      })
+      .mockResolvedValueOnce({
+        // Second fetch for user profile
+        ok: true,
+        json: async () => ({ id: 'user-123', role: 'USER' }),
+      })
     global.fetch = mockFetch
 
     render(
@@ -57,8 +64,12 @@ describe('LoginPage', () => {
       </BrowserRouter>
     )
 
-    fireEvent.change(screen.getByPlaceholderText(/Email/i), { target: { value: 'test@test.com' } })
-    fireEvent.change(screen.getByPlaceholderText(/Contraseña/i), { target: { value: 'Password123!' } })
+    fireEvent.change(screen.getByPlaceholderText(/Email/i), {
+      target: { value: 'test@test.com' },
+    })
+    fireEvent.change(screen.getByPlaceholderText(/Contraseña/i), {
+      target: { value: 'Password123!' },
+    })
     fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
 
     await waitFor(() => {
@@ -84,8 +95,12 @@ describe('LoginPage', () => {
       </BrowserRouter>
     )
 
-    fireEvent.change(screen.getByPlaceholderText(/Email/i), { target: { value: 'test@test.com' } })
-    fireEvent.change(screen.getByPlaceholderText(/Contraseña/i), { target: { value: 'Password123!' } })
+    fireEvent.change(screen.getByPlaceholderText(/Email/i), {
+      target: { value: 'test@test.com' },
+    })
+    fireEvent.change(screen.getByPlaceholderText(/Contraseña/i), {
+      target: { value: 'Password123!' },
+    })
     fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
 
     await waitFor(() => {

@@ -25,7 +25,10 @@ describe('DashboardPage', () => {
   })
 
   it('renders loading state initially', () => {
-    mockUseAuth.mockReturnValue({ user: { role: 'USER', id: '1' }, token: 'token' })
+    mockUseAuth.mockReturnValue({
+      user: { role: 'USER', id: '1' },
+      token: 'token',
+    })
     vi.mocked(axios.get).mockImplementation(() => new Promise(() => {})) // Never resolves
     render(
       <MemoryRouter>
@@ -36,7 +39,10 @@ describe('DashboardPage', () => {
   })
 
   it('renders error state', async () => {
-    mockUseAuth.mockReturnValue({ user: { role: 'USER', id: '1' }, token: 'token' })
+    mockUseAuth.mockReturnValue({
+      user: { role: 'USER', id: '1' },
+      token: 'token',
+    })
     vi.mocked(axios.get).mockRejectedValue(new Error('Network error'))
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(
@@ -44,7 +50,9 @@ describe('DashboardPage', () => {
         <DashboardPage />
       </MemoryRouter>
     )
-    await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument()
+    )
     consoleSpy.mockRestore()
   })
 
@@ -67,7 +75,10 @@ describe('DashboardPage', () => {
     ]
 
     beforeEach(() => {
-      mockUseAuth.mockReturnValue({ user: { role: 'USER', id: 'u1' }, token: 'token' })
+      mockUseAuth.mockReturnValue({
+        user: { role: 'USER', id: 'u1' },
+        token: 'token',
+      })
       vi.mocked(axios.get).mockResolvedValue({ data: mockItems })
     })
 
@@ -78,7 +89,12 @@ describe('DashboardPage', () => {
         </MemoryRouter>
       )
 
-      await waitFor(() => expect(axios.get).toHaveBeenCalledWith(`${API_URL}/clients/u1/financial-entities`, expect.any(Object)))
+      await waitFor(() =>
+        expect(axios.get).toHaveBeenCalledWith(
+          `${API_URL}/clients/u1/financial-entities`,
+          expect.any(Object)
+        )
+      )
       expect(screen.getByText('Mis Entidades Financieras')).toBeInTheDocument()
       expect(screen.getByText('Bank A')).toBeInTheDocument()
       expect(screen.getByText('Bank B')).toBeInTheDocument()
@@ -90,9 +106,11 @@ describe('DashboardPage', () => {
           <DashboardPage />
         </MemoryRouter>
       )
-      await waitFor(() => expect(screen.getByText('Balance Total')).toBeInTheDocument())
+      await waitFor(() =>
+        expect(screen.getByText('Balance Total')).toBeInTheDocument()
+      )
       // 1000 + 500 = 1500. Buscamos formato parcial
-      expect(screen.getByText(/1.?500,00/)).toBeInTheDocument() 
+      expect(screen.getByText(/1.?500,00/)).toBeInTheDocument()
     })
 
     it('sorts items by name', async () => {
@@ -101,10 +119,12 @@ describe('DashboardPage', () => {
           <DashboardPage />
         </MemoryRouter>
       )
-      await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+      await waitFor(() =>
+        expect(screen.getByText('Bank A')).toBeInTheDocument()
+      )
 
       const nameHeader = screen.getByText('Nombre')
-      
+
       // Click to sort ASC
       fireEvent.click(nameHeader)
       const rowsAsc = screen.getAllByRole('row')
@@ -125,10 +145,12 @@ describe('DashboardPage', () => {
           <DashboardPage />
         </MemoryRouter>
       )
-      await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+      await waitFor(() =>
+        expect(screen.getByText('Bank A')).toBeInTheDocument()
+      )
 
       const balanceHeader = screen.getByText('Balance Actual')
-      
+
       // Click to sort ASC (500 then 1000)
       fireEvent.click(balanceHeader)
       const rowsAsc = screen.getAllByRole('row')
@@ -144,9 +166,24 @@ describe('DashboardPage', () => {
 
     it('sorts items by differential', async () => {
       const items = [
-        { id: '1', balance: 1000, initialBalance: 800, financialEntity: { name: 'A' } }, // Diff 200
-        { id: '2', balance: 500, initialBalance: 600, financialEntity: { name: 'B' } },  // Diff -100
-        { id: '3', balance: 1000, initialBalance: 1000, financialEntity: { name: 'C' } }, // Diff 0
+        {
+          id: '1',
+          balance: 1000,
+          initialBalance: 800,
+          financialEntity: { name: 'A' },
+        }, // Diff 200
+        {
+          id: '2',
+          balance: 500,
+          initialBalance: 600,
+          financialEntity: { name: 'B' },
+        }, // Diff -100
+        {
+          id: '3',
+          balance: 1000,
+          initialBalance: 1000,
+          financialEntity: { name: 'C' },
+        }, // Diff 0
       ]
       vi.mocked(axios.get).mockResolvedValue({ data: items })
 
@@ -170,8 +207,18 @@ describe('DashboardPage', () => {
 
     it('sorts items with equal values', async () => {
       const items = [
-        { id: '1', balance: 1000, initialBalance: 0, financialEntity: { name: 'A' } },
-        { id: '2', balance: 1000, initialBalance: 0, financialEntity: { name: 'B' } },
+        {
+          id: '1',
+          balance: 1000,
+          initialBalance: 0,
+          financialEntity: { name: 'A' },
+        },
+        {
+          id: '2',
+          balance: 1000,
+          initialBalance: 0,
+          financialEntity: { name: 'B' },
+        },
       ]
       vi.mocked(axios.get).mockResolvedValue({ data: items })
 
@@ -184,7 +231,7 @@ describe('DashboardPage', () => {
 
       const balanceHeader = screen.getByText('Balance Actual')
       fireEvent.click(balanceHeader)
-      
+
       expect(screen.getByText('A')).toBeInTheDocument()
       expect(screen.getByText('B')).toBeInTheDocument()
     })
@@ -195,7 +242,9 @@ describe('DashboardPage', () => {
           <DashboardPage />
         </MemoryRouter>
       )
-      await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+      await waitFor(() =>
+        expect(screen.getByText('Bank A')).toBeInTheDocument()
+      )
 
       const searchInput = screen.getByPlaceholderText('Buscar entidad...')
       fireEvent.change(searchInput, { target: { value: 'Bank B' } })
@@ -213,13 +262,18 @@ describe('DashboardPage', () => {
           <DashboardPage />
         </MemoryRouter>
       )
-      await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+      await waitFor(() =>
+        expect(screen.getByText('Bank A')).toBeInTheDocument()
+      )
 
       const deleteButtons = screen.getAllByTitle('Eliminar entidad')
       fireEvent.click(deleteButtons[0]) // Delete Bank A
 
       await waitFor(() => {
-        expect(axios.delete).toHaveBeenCalledWith(`${API_URL}/clients/u1/financial-entities/1`, expect.any(Object))
+        expect(axios.delete).toHaveBeenCalledWith(
+          `${API_URL}/clients/u1/financial-entities/1`,
+          expect.any(Object)
+        )
         expect(screen.queryByText('Bank A')).not.toBeInTheDocument()
       })
     })
@@ -234,12 +288,18 @@ describe('DashboardPage', () => {
           <DashboardPage />
         </MemoryRouter>
       )
-      await waitFor(() => expect(screen.getByText('Bank A')).toBeInTheDocument())
+      await waitFor(() =>
+        expect(screen.getByText('Bank A')).toBeInTheDocument()
+      )
 
       const deleteButtons = screen.getAllByTitle('Eliminar entidad')
       fireEvent.click(deleteButtons[0])
 
-      await waitFor(() => expect(screen.getByText('Error al eliminar la entidad')).toBeInTheDocument())
+      await waitFor(() =>
+        expect(
+          screen.getByText('Error al eliminar la entidad')
+        ).toBeInTheDocument()
+      )
       consoleSpy.mockRestore()
     })
 
@@ -252,16 +312,29 @@ describe('DashboardPage', () => {
           <DashboardPage />
         </MemoryRouter>
       )
-      await waitFor(() => expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument())
+      await waitFor(() =>
+        expect(
+          screen.getByText('Error al cargar los datos')
+        ).toBeInTheDocument()
+      )
       consoleSpy.mockRestore()
     })
   })
 
   describe('ADMIN Role', () => {
     it('fetches and renders clients list by default', async () => {
-      mockUseAuth.mockReturnValue({ user: { role: 'ADMIN', id: 'admin' }, token: 'token' })
+      mockUseAuth.mockReturnValue({
+        user: { role: 'ADMIN', id: 'admin' },
+        token: 'token',
+      })
       const mockClients = [
-        { id: 'c1', firstName: 'John', lastName: 'Doe', email: 'john@test.com', role: 'USER' }
+        {
+          id: 'c1',
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@test.com',
+          role: 'USER',
+        },
       ]
       vi.mocked(axios.get).mockResolvedValue({ data: mockClients })
 
@@ -271,7 +344,12 @@ describe('DashboardPage', () => {
         </MemoryRouter>
       )
 
-      await waitFor(() => expect(axios.get).toHaveBeenCalledWith(`${API_URL}/clients`, expect.any(Object)))
+      await waitFor(() =>
+        expect(axios.get).toHaveBeenCalledWith(
+          `${API_URL}/clients`,
+          expect.any(Object)
+        )
+      )
       expect(screen.getByText('Clientes')).toBeInTheDocument()
       expect(screen.getByText(/John Doe/)).toBeInTheDocument()
     })
@@ -283,13 +361,20 @@ describe('DashboardPage', () => {
           balance: 1000,
           initialBalance: 800,
           financialEntity: { name: 'Bank A' },
-          client: { firstName: 'John', lastName: 'Doe', email: 'john@test.com' },
+          client: {
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john@test.com',
+          },
           updatedAt: new Date().toISOString(),
-        }
+        },
       ]
 
       beforeEach(() => {
-        mockUseAuth.mockReturnValue({ user: { role: 'ADMIN', id: 'admin' }, token: 'token' })
+        mockUseAuth.mockReturnValue({
+          user: { role: 'ADMIN', id: 'admin' },
+          token: 'token',
+        })
       })
 
       it('renders tabs to switch views', async () => {
@@ -299,8 +384,10 @@ describe('DashboardPage', () => {
             <DashboardPage />
           </MemoryRouter>
         )
-        await waitFor(() => expect(screen.getByText('Clientes')).toBeInTheDocument())
-        
+        await waitFor(() =>
+          expect(screen.getByText('Clientes')).toBeInTheDocument()
+        )
+
         expect(screen.getByText('Clientes')).toBeInTheDocument()
         expect(screen.getByText('Clientes-Entidades')).toBeInTheDocument()
       })
@@ -316,14 +403,19 @@ describe('DashboardPage', () => {
             <DashboardPage />
           </MemoryRouter>
         )
-        
-        await waitFor(() => expect(screen.getByText('Clientes')).toBeInTheDocument())
+
+        await waitFor(() =>
+          expect(screen.getByText('Clientes')).toBeInTheDocument()
+        )
 
         const entitiesTab = screen.getByText('Clientes-Entidades')
         fireEvent.click(entitiesTab)
 
         await waitFor(() => {
-          expect(axios.get).toHaveBeenCalledWith(`${API_URL}/clients-financial-entities`, expect.any(Object))
+          expect(axios.get).toHaveBeenCalledWith(
+            `${API_URL}/clients-financial-entities`,
+            expect.any(Object)
+          )
           expect(screen.getByText('Bank A')).toBeInTheDocument()
         })
 

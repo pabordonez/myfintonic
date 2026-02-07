@@ -10,7 +10,7 @@ export const EditProfilePage = () => {
   const { user, token, refreshUser } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  
+
   const { register, handleSubmit, setValue } = useForm()
 
   useEffect(() => {
@@ -47,9 +47,7 @@ export const EditProfilePage = () => {
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded shadow">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Editar Perfil
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900">Editar Perfil</h1>
         <button
           onClick={() => navigate(-1)}
           className="flex items-center text-gray-600 hover:text-gray-900"
@@ -59,13 +57,24 @@ export const EditProfilePage = () => {
         </button>
       </div>
 
-      {error && <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4 border border-red-200">{error}</div>}
-      {success && <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4 border border-green-200">{success}</div>}
+      {error && (
+        <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4 border border-red-200">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-50 text-green-700 p-4 rounded-md mb-4 border border-green-200">
+          {success}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="firstName"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Nombre
             </label>
             <input
@@ -75,7 +84,10 @@ export const EditProfilePage = () => {
             />
           </div>
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="lastName"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Apellido
             </label>
             <input
@@ -87,7 +99,10 @@ export const EditProfilePage = () => {
         </div>
 
         <div>
-          <label htmlFor="nickname" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="nickname"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Apodo (Opcional)
           </label>
           <input
@@ -98,7 +113,10 @@ export const EditProfilePage = () => {
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Email
           </label>
           <input
@@ -111,13 +129,13 @@ export const EditProfilePage = () => {
         </div>
 
         <div className="pt-2">
-            <Link 
-                to={`/clients/${user.id}/change-password`}
-                className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center"
-            >
-                <Key className="h-4 w-4 mr-1" />
-                Cambiar Contraseña
-            </Link>
+          <Link
+            to={`/clients/${user.id}/change-password`}
+            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center"
+          >
+            <Key className="h-4 w-4 mr-1" />
+            Cambiar Contraseña
+          </Link>
         </div>
 
         <div className="pt-4">

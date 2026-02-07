@@ -19,7 +19,7 @@ export const FinancialEntitiesPage = () => {
     try {
       setLoading(true)
       const response = await axios.get(`${API_URL}/financial-entities`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
       setEntities(response.data)
     } catch (err) {
@@ -35,16 +35,17 @@ export const FinancialEntitiesPage = () => {
 
     try {
       await axios.delete(`${API_URL}/financial-entities/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
-      setEntities(prev => prev.filter(e => e.id !== id))
+      setEntities((prev) => prev.filter((e) => e.id !== id))
     } catch (err) {
       console.error(err)
       setError('Error al eliminar la entidad')
     }
   }
 
-  const headerClass = "px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+  const headerClass =
+    'px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider'
 
   if (loading) return <div className="p-6 text-center">Cargando...</div>
 
@@ -83,7 +84,10 @@ export const FinancialEntitiesPage = () => {
                 Creada
               </th>
               {user?.role === 'ADMIN' && (
-                <th scope="col" className={`text-right whitespace-nowrap ${headerClass}`}>
+                <th
+                  scope="col"
+                  className={`text-right whitespace-nowrap ${headerClass}`}
+                >
                   Acciones
                 </th>
               )}
@@ -122,7 +126,10 @@ export const FinancialEntitiesPage = () => {
             ))}
             {entities.length === 0 && (
               <tr>
-                <td colSpan={user?.role === 'ADMIN' ? 3 : 2} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td
+                  colSpan={user?.role === 'ADMIN' ? 3 : 2}
+                  className="px-6 py-4 text-center text-sm text-gray-500"
+                >
                   No hay entidades registradas.
                 </td>
               </tr>

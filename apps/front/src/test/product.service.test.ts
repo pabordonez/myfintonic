@@ -28,7 +28,10 @@ describe('product.service', () => {
     const mockData = [{ id: 1 }]
     vi.mocked(axios.get).mockResolvedValue({ data: mockData })
     const result = await productService.getAll()
-    expect(axios.get).toHaveBeenCalledWith(`${API_URL}/products`, expect.any(Object))
+    expect(axios.get).toHaveBeenCalledWith(
+      `${API_URL}/products`,
+      expect.any(Object)
+    )
     expect(result).toEqual(mockData)
   })
 
@@ -36,7 +39,10 @@ describe('product.service', () => {
     const mockData = { id: 1 }
     vi.mocked(axios.get).mockResolvedValue({ data: mockData })
     const result = await productService.getById('1')
-    expect(axios.get).toHaveBeenCalledWith(`${API_URL}/products/1`, expect.any(Object))
+    expect(axios.get).toHaveBeenCalledWith(
+      `${API_URL}/products/1`,
+      expect.any(Object)
+    )
     expect(result).toEqual(mockData)
   })
 
@@ -44,7 +50,11 @@ describe('product.service', () => {
     const mockData = { name: 'New' }
     vi.mocked(axios.post).mockResolvedValue({ data: { id: 1, ...mockData } })
     const result = await productService.create(mockData)
-    expect(axios.post).toHaveBeenCalledWith(`${API_URL}/products`, mockData, expect.any(Object))
+    expect(axios.post).toHaveBeenCalledWith(
+      `${API_URL}/products`,
+      mockData,
+      expect.any(Object)
+    )
     expect(result).toEqual({ id: 1, ...mockData })
   })
 
@@ -52,21 +62,32 @@ describe('product.service', () => {
     const mockData = { name: 'Updated' }
     vi.mocked(axios.put).mockResolvedValue({ data: mockData })
     const result = await productService.update('1', mockData)
-    expect(axios.put).toHaveBeenCalledWith(`${API_URL}/products/1`, mockData, expect.any(Object))
+    expect(axios.put).toHaveBeenCalledWith(
+      `${API_URL}/products/1`,
+      mockData,
+      expect.any(Object)
+    )
     expect(result).toEqual(mockData)
   })
 
   it('delete calls axios.delete', async () => {
     vi.mocked(axios.delete).mockResolvedValue({ data: {} })
     await productService.delete('1')
-    expect(axios.delete).toHaveBeenCalledWith(`${API_URL}/products/1`, expect.any(Object))
+    expect(axios.delete).toHaveBeenCalledWith(
+      `${API_URL}/products/1`,
+      expect.any(Object)
+    )
   })
 
   it('patch calls axios.patch', async () => {
     const mockData = { status: 'ACTIVE' }
     vi.mocked(axios.patch).mockResolvedValue({ data: mockData })
     const result = await productService.patch('1', mockData)
-    expect(axios.patch).toHaveBeenCalledWith(`${API_URL}/products/1`, mockData, expect.any(Object))
+    expect(axios.patch).toHaveBeenCalledWith(
+      `${API_URL}/products/1`,
+      mockData,
+      expect.any(Object)
+    )
     expect(result).toEqual(mockData)
   })
 
@@ -74,7 +95,10 @@ describe('product.service', () => {
     const mockData = [{ id: 1, name: 'Bank' }]
     vi.mocked(axios.get).mockResolvedValue({ data: mockData })
     const result = await productService.getFinancialEntities()
-    expect(axios.get).toHaveBeenCalledWith(`${API_URL}/financial-entities`, expect.any(Object))
+    expect(axios.get).toHaveBeenCalledWith(
+      `${API_URL}/financial-entities`,
+      expect.any(Object)
+    )
     expect(result).toEqual(mockData)
   })
 })
