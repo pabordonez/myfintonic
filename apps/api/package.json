@@ -64,5 +64,14 @@
   },
   "prisma": {
     "schema": "src/infrastructure/persistence/prisma/schema.prisma"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,css,md,yml}": [
+      "prettier --write"
+    ]
   }
 }

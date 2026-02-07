@@ -1,6 +1,4 @@
 import express from 'express'
-import helmet from 'helmet'
-import { env } from '@config/env'
 import { createProductRouter } from '@infrastructure/http/routes/productRoutes'
 import { createAuthRoutes } from '@infrastructure/http/routes/authRoutes'
 import { createClientFinancialEntityRoutes } from '@infrastructure/http/routes/clientFinancialEntityRoutes'
@@ -19,6 +17,7 @@ import {
 import { requestLogger } from '@infrastructure/http/middlewares/requestLogger'
 import { corsMiddleware } from '@infrastructure/http/middlewares/corsMiddleware'
 import { rateLimitMiddleware } from '@infrastructure/http/middlewares/rateLimitMiddleware'
+import { securityHeaders } from '@infrastructure/http/middlewares/securityHeaders'
 
 export const app = express()
 
@@ -26,11 +25,7 @@ export const app = express()
 // para que el Rate Limit funcione correctamente con la IP real del usuario.
 // app.set('trust proxy', 1)
 
-app.use(
-  helmet({
-    strictTransportSecurity: env.NODE_ENV === 'production' ? undefined : false,
-  })
-)
+app.use(securityHeaders)
 
 app.use(corsMiddleware)
 app.use(rateLimitMiddleware)
