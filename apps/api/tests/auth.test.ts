@@ -88,6 +88,8 @@ describe('Auth API', () => {
 
       expect(response.status).toBe(200)
       expect(response.body).toHaveProperty('token')
+      expect(response.body.user).toBeDefined()
+      expect(response.body.user).not.toHaveProperty('password')
     })
   })
 

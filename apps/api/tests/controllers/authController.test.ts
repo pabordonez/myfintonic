@@ -24,10 +24,16 @@ describe('AuthController', () => {
   })
 
   describe('login', () => {
-    it('should return 200 and token on success', async () => {
+    it('should return 200 and token on success (without password)', async () => {
+      const userWithPassword = {
+        id: '1',
+        email: 'a@b.c',
+        role: 'USER',
+      }
+      const userWithoutPassword = { id: '1', email: 'a@b.c', role: 'USER' }
       const result = {
         token: 'abc',
-        user: { id: '1', email: 'a@b.c', role: 'USER' },
+        user: userWithPassword,
       }
       vi.mocked(useCases.login).mockResolvedValue(result)
       req = { body: { email: 'a@b.c', password: '123' } }
@@ -35,7 +41,10 @@ describe('AuthController', () => {
       await controller.login(req as Request, res as Response)
 
       expect(status).toHaveBeenCalledWith(200)
-      expect(json).toHaveBeenCalledWith(result)
+      expect(json).toHaveBeenCalledWith({
+        token: 'abc',
+        user: userWithoutPassword,
+      })
     })
 
     it('should return 401 on failure', async () => {
