@@ -19,6 +19,9 @@ vi.mock(
       default: {
         financialEntity: {
           create: vi.fn().mockImplementation(async ({ data }) => {
+            if (data.name === 'Error Bank') {
+              throw new Error('Simulated DB Error')
+            }
             const newEntry = {
               id: `catalog-${Math.random()}`,
               name: data.name,
@@ -30,11 +33,19 @@ vi.mock(
           }),
           findMany: vi.fn().mockImplementation(async ({ where }) => {
             return mockCatalog.filter(
-              (e) => !where?.name || e.name === where.name
+              (e) => (!where?.name || e.name === where.name) && !e.deletedAt
             )
           }),
           findUnique: vi.fn().mockImplementation(async ({ where }) => {
-            return mockCatalog.find((e) => e.id === where.id) || null
+            const found = mockCatalog.find((e) => e.id === where.id)
+            return found && !found.deletedAt ? found : null
+          }),
+          update: vi.fn().mockImplementation(async ({ where, data }) => {
+            const index = mockCatalog.findIndex((e) => e.id === where.id)
+            if (index === -1) throw new Error('Record not found')
+            const updated = { ...mockCatalog[index], ...data }
+            mockCatalog[index] = updated
+            return updated
           }),
           delete: vi.fn().mockImplementation(async ({ where }) => {
             const index = mockCatalog.findIndex((e) => e.id === where.id)
@@ -85,6 +96,14 @@ describe('Financial Entities Catalog API', () => {
         .set('Cookie', [`token=${userToken}`])
         .send(newEntity)
       expect(response.status).toBe(403)
+    })
+
+    it('should return 500 and log error if creation fails', async () => {
+      const response = await request(app)
+        .post('/financial-entities')
+        .set('Cookie', [`token=${adminToken}`])
+        .send({ name: 'Error Bank' })
+      expect(response.status).toBe(500)
     })
   })
 
