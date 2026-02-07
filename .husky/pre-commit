@@ -4,8 +4,7 @@ echo "🔍 Running Quality Gates (pre-commit)..."
 
  # Gate 1: Lint-staged (Format & Lint staged files)
   echo "📝 Running lint-staged..."
-  # Aumentamos memoria y desactivamos concurrencia para evitar SIGKILL
-    npm run lint || {
+  npx lint-staged || {
     echo "❌ lint-staged failed!"
     exit 1
   }
