@@ -30,8 +30,8 @@ describe('ProductTransactionController', () => {
         body: {
           description: 'Test Transaction',
           date: '2023-10-27T10:00:00Z',
-          amount: 100
-        }
+          amount: 100,
+        },
       } as unknown as Request
 
       vi.mocked(mockUseCase.add).mockResolvedValue(undefined)
@@ -43,17 +43,19 @@ describe('ProductTransactionController', () => {
         productId: 'prod-1',
         description: 'Test Transaction',
         date: expect.any(Date),
-        amount: 100
+        amount: 100,
       })
       expect(mockRes.status).toHaveBeenCalledWith(201)
-      expect(mockRes.json).toHaveBeenCalledWith({ message: 'Transaction added successfully' })
+      expect(mockRes.json).toHaveBeenCalledWith({
+        message: 'Transaction added successfully',
+      })
     })
 
     it('should return 401 if user is not authenticated', async () => {
       const req = {
         params: { id: 'prod-1' },
         user: undefined, // No user
-        body: {}
+        body: {},
       } as unknown as Request
 
       await controller.addTransaction(req, mockRes)
@@ -68,16 +70,18 @@ describe('ProductTransactionController', () => {
         user: { id: 'user-1' },
         body: {
           // Missing description and amount
-          date: 'invalid-date'
-        }
+          date: 'invalid-date',
+        },
       } as unknown as Request
 
       await controller.addTransaction(req, mockRes)
 
       expect(mockRes.status).toHaveBeenCalledWith(400)
-      expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
-        error: 'Validation Error'
-      }))
+      expect(mockRes.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: 'Validation Error',
+        })
+      )
     })
 
     it('should return 404 if product not found', async () => {
@@ -87,8 +91,8 @@ describe('ProductTransactionController', () => {
         body: {
           description: 'Test',
           date: new Date().toISOString(),
-          amount: 100
-        }
+          amount: 100,
+        },
       } as unknown as Request
 
       const error = new Error('Product not found')
@@ -107,8 +111,8 @@ describe('ProductTransactionController', () => {
         body: {
           description: 'Test',
           date: new Date().toISOString(),
-          amount: 100
-        }
+          amount: 100,
+        },
       } as unknown as Request
 
       const error = new Error('Unauthorized access to product')
@@ -117,7 +121,9 @@ describe('ProductTransactionController', () => {
       await controller.addTransaction(req, mockRes)
 
       expect(mockRes.status).toHaveBeenCalledWith(403)
-      expect(mockRes.json).toHaveBeenCalledWith({ error: 'Unauthorized access to product' })
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: 'Unauthorized access to product',
+      })
     })
 
     it('should return 500 on unexpected error', async () => {
@@ -127,8 +133,8 @@ describe('ProductTransactionController', () => {
         body: {
           description: 'Test',
           date: new Date().toISOString(),
-          amount: 100
-        }
+          amount: 100,
+        },
       } as unknown as Request
 
       vi.mocked(mockUseCase.add).mockRejectedValue(new Error('Boom'))
@@ -136,16 +142,28 @@ describe('ProductTransactionController', () => {
       await controller.addTransaction(req, mockRes)
 
       expect(mockRes.status).toHaveBeenCalledWith(500)
-      expect(mockRes.json).toHaveBeenCalledWith({ error: 'Internal Server Error' })
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: 'Internal Server Error',
+      })
     })
   })
 
   describe('getTransaction', () => {
     it('should return 200 and transactions list', async () => {
       const req = { params: { id: 'prod-1' } } as unknown as Request
-      const mockTransactions = [{ id: 'tx-1', description: 'Test', amount: 100, date: new Date(), productId: 'prod-1' }]
-      
-      vi.mocked(mockUseCase.getProductTransactions).mockResolvedValue(mockTransactions)
+      const mockTransactions = [
+        {
+          id: 'tx-1',
+          description: 'Test',
+          amount: 100,
+          date: new Date(),
+          productId: 'prod-1',
+        },
+      ]
+
+      vi.mocked(mockUseCase.getProductTransactions).mockResolvedValue(
+        mockTransactions
+      )
 
       await controller.getTransaction(req, mockRes)
 
@@ -156,7 +174,9 @@ describe('ProductTransactionController', () => {
 
     it('should return 404 if product not found', async () => {
       const req = { params: { id: 'prod-1' } } as unknown as Request
-      vi.mocked(mockUseCase.getProductTransactions).mockRejectedValue(new Error('Product not found'))
+      vi.mocked(mockUseCase.getProductTransactions).mockRejectedValue(
+        new Error('Product not found')
+      )
 
       await controller.getTransaction(req, mockRes)
 
@@ -166,12 +186,16 @@ describe('ProductTransactionController', () => {
 
     it('should return 500 on unexpected error', async () => {
       const req = { params: { id: 'prod-1' } } as unknown as Request
-      vi.mocked(mockUseCase.getProductTransactions).mockRejectedValue(new Error('Database fail'))
+      vi.mocked(mockUseCase.getProductTransactions).mockRejectedValue(
+        new Error('Database fail')
+      )
 
       await controller.getTransaction(req, mockRes)
 
       expect(mockRes.status).toHaveBeenCalledWith(500)
-      expect(mockRes.json).toHaveBeenCalledWith({ error: 'Internal Server Error' })
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: 'Internal Server Error',
+      })
     })
   })
 })

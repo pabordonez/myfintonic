@@ -16,7 +16,14 @@ get:
       name: type
       schema:
         type: string
-        enum: [CURRENT_ACCOUNT, SAVINGS_ACCOUNT, FIXED_TERM_DEPOSIT, INVESTMENT_FUND, STOCKS]
+        enum:
+          [
+            CURRENT_ACCOUNT,
+            SAVINGS_ACCOUNT,
+            FIXED_TERM_DEPOSIT,
+            INVESTMENT_FUND,
+            STOCKS,
+          ]
   responses:
     '200':
       description: Lista de productos obtenida correctamente

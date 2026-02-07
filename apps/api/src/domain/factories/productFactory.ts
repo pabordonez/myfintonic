@@ -9,52 +9,85 @@ export interface IProductFactory {
 }
 
 const currentAccountSchema = z.object({
-  currentBalance: z.number({ required_error: 'Missing required field: currentBalance' }),
+  currentBalance: z.number({
+    required_error: 'Missing required field: currentBalance',
+  }),
 })
 
 const savingsAccountSchema = z.object({
-  currentBalance: z.number({ required_error: 'Missing required field: currentBalance' }),
-  monthlyInterestRate: z.number({ required_error: 'Missing required field: monthlyInterestRate' }),
+  currentBalance: z.number({
+    required_error: 'Missing required field: currentBalance',
+  }),
+  monthlyInterestRate: z.number({
+    required_error: 'Missing required field: monthlyInterestRate',
+  }),
 })
 
 const fixedTermDepositSchema = z.object({
-  initialBalance: z.number({ required_error: 'Missing required field: initialBalance' }),
-  currentBalance: z.number().optional(),
-  initialDate: z.coerce.date({ required_error: 'Missing required field: initialDate' }),
-  maturityDate: z.coerce.date({ required_error: 'Missing required field: maturityDate' }),
-  annualInterestRate: z.number({ required_error: 'Missing required field: annualInterestRate' }),
-  interestPaymentFrequency: z.enum(['Monthly', 'Quarterly', 'Annual', 'AtMaturity'], {
-    required_error: 'Missing required field: interestPaymentFrequency',
+  initialBalance: z.number({
+    required_error: 'Missing required field: initialBalance',
   }),
+  currentBalance: z.number().optional(),
+  initialDate: z.coerce.date({
+    required_error: 'Missing required field: initialDate',
+  }),
+  maturityDate: z.coerce.date({
+    required_error: 'Missing required field: maturityDate',
+  }),
+  annualInterestRate: z.number({
+    required_error: 'Missing required field: annualInterestRate',
+  }),
+  interestPaymentFrequency: z.enum(
+    ['Monthly', 'Quarterly', 'Annual', 'AtMaturity'],
+    {
+      required_error: 'Missing required field: interestPaymentFrequency',
+    }
+  ),
 })
 
 const investmentFundSchema = z.object({
   numberOfUnits: z.number().optional(),
   netAssetValue: z.number().optional(),
-  currentBalance: z.number({ required_error: 'Missing required field: currentBalance' }),
-  fees: z.object(
-    {
-      opening: z.number(),
-      closing: z.number(),
-      maintenance: z.number(),
-    },
-    { required_error: 'Missing required field: fees' }
-  ).optional(),
+  currentBalance: z.number({
+    required_error: 'Missing required field: currentBalance',
+  }),
+  fees: z
+    .object(
+      {
+        opening: z.number(),
+        closing: z.number(),
+        maintenance: z.number(),
+      },
+      { required_error: 'Missing required field: fees' }
+    )
+    .optional(),
 })
 
 const stocksSchema = z.object({
-  numberOfShares: z.number({ required_error: 'Missing required field: numberOfShares' }),
-  unitPurchasePrice: z.number({ required_error: 'Missing required field: unitPurchasePrice' }),
-  currentMarketPrice: z.number({ required_error: 'Missing required field: currentMarketPrice' }),
-  currentBalance: z.number({ required_error: 'Missing required field: currentBalance' }).optional(),
-  initialBalance: z.number({ required_error: 'Missing required field: initialBalance' }),
-  fees: z.object(
-    {
-      buying: z.number(),
-      selling: z.number(),
-    },
-    { required_error: 'Missing required field: fees' }
-  ).optional(),
+  numberOfShares: z.number({
+    required_error: 'Missing required field: numberOfShares',
+  }),
+  unitPurchasePrice: z.number({
+    required_error: 'Missing required field: unitPurchasePrice',
+  }),
+  currentMarketPrice: z.number({
+    required_error: 'Missing required field: currentMarketPrice',
+  }),
+  currentBalance: z
+    .number({ required_error: 'Missing required field: currentBalance' })
+    .optional(),
+  initialBalance: z.number({
+    required_error: 'Missing required field: initialBalance',
+  }),
+  fees: z
+    .object(
+      {
+        buying: z.number(),
+        selling: z.number(),
+      },
+      { required_error: 'Missing required field: fees' }
+    )
+    .optional(),
 })
 
 const productSchemas: Record<ProductType, z.ZodObject<any, any>> = {
@@ -94,7 +127,7 @@ export class ProductFactory implements IProductFactory {
 
   validateUpdate(type: ProductType, data: any): void {
     const specificSchema = productSchemas[type]
-    
+
     // Create a schema that allows common fields + specific fields (all optional for update)
     // .strict() ensures no other fields are allowed
     const updateSchema = commonUpdateSchema
@@ -104,12 +137,14 @@ export class ProductFactory implements IProductFactory {
     const result = updateSchema.safeParse(data)
 
     if (!result.success) {
-      const errorMessages = result.error.errors.map(e => {
-        if (e.code === 'unrecognized_keys') {
-          return `Field(s) '${e.keys.join(', ')}' cannot be updated for product type ${type}`
-        }
-        return e.message
-      }).join(', ')
+      const errorMessages = result.error.errors
+        .map((e) => {
+          if (e.code === 'unrecognized_keys') {
+            return `Field(s) '${e.keys.join(', ')}' cannot be updated for product type ${type}`
+          }
+          return e.message
+        })
+        .join(', ')
       throw new Error(`Validation failed: ${errorMessages}`)
     }
   }
@@ -122,8 +157,12 @@ export class ProductFactory implements IProductFactory {
     if (schema) {
       const result = schema.safeParse(data)
       if (!result.success) {
-        const errorMessages = result.error.errors.map(e => e.message).join(', ')
-        throw new Error(`Validation failed: ${errorMessages} ${JSON.stringify(data)}`)
+        const errorMessages = result.error.errors
+          .map((e) => e.message)
+          .join(', ')
+        throw new Error(
+          `Validation failed: ${errorMessages} ${JSON.stringify(data)}`
+        )
       }
     }
   }

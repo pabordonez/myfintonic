@@ -14,7 +14,12 @@ const prisma = prismaBase.$extends({
   query: {
     $allModels: {
       async delete({ model, args, query }) {
-        const softDeleteModels = ['Client', 'FinancialProduct', 'FinancialEntity', 'ClientFinancialEntity']
+        const softDeleteModels = [
+          'Client',
+          'FinancialProduct',
+          'FinancialEntity',
+          'ClientFinancialEntity',
+        ]
         if (softDeleteModels.includes(model)) {
           return (prismaBase as any)[model].update({
             ...args,
@@ -24,7 +29,12 @@ const prisma = prismaBase.$extends({
         return query(args)
       },
       async deleteMany({ model, args, query }) {
-        const softDeleteModels = ['Client', 'FinancialProduct', 'FinancialEntity', 'ClientFinancialEntity']
+        const softDeleteModels = [
+          'Client',
+          'FinancialProduct',
+          'FinancialEntity',
+          'ClientFinancialEntity',
+        ]
         if (softDeleteModels.includes(model)) {
           return (prismaBase as any)[model].updateMany({
             ...args,
@@ -34,21 +44,36 @@ const prisma = prismaBase.$extends({
         return query(args)
       },
       async findMany({ model, args, query }) {
-        const softDeleteModels = ['Client', 'FinancialProduct', 'FinancialEntity', 'ClientFinancialEntity']
+        const softDeleteModels = [
+          'Client',
+          'FinancialProduct',
+          'FinancialEntity',
+          'ClientFinancialEntity',
+        ]
         if (softDeleteModels.includes(model)) {
           args.where = { ...args.where, deletedAt: null } as any
         }
         return query(args)
       },
       async findFirst({ model, args, query }) {
-        const softDeleteModels = ['Client', 'FinancialProduct', 'FinancialEntity', 'ClientFinancialEntity']
+        const softDeleteModels = [
+          'Client',
+          'FinancialProduct',
+          'FinancialEntity',
+          'ClientFinancialEntity',
+        ]
         if (softDeleteModels.includes(model)) {
           args.where = { ...args.where, deletedAt: null } as any
         }
         return query(args)
       },
       async findUnique({ model, args, query }) {
-        const softDeleteModels = ['Client', 'FinancialProduct', 'FinancialEntity', 'ClientFinancialEntity']
+        const softDeleteModels = [
+          'Client',
+          'FinancialProduct',
+          'FinancialEntity',
+          'ClientFinancialEntity',
+        ]
         if (softDeleteModels.includes(model)) {
           // Convertimos findUnique a findFirst para poder inyectar el filtro deletedAt: null
           return (prismaBase as any)[model].findFirst({

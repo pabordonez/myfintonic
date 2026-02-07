@@ -3,7 +3,11 @@ import jwt from 'jsonwebtoken'
 import { env } from '@config/env'
 import { Role } from '@domain/types'
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const authHeader = req.headers.authorization
 
   if (!authHeader) {
@@ -23,7 +27,10 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   }
 
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET) as { id: string; role: Role }
+    const decoded = jwt.verify(token, env.JWT_SECRET) as {
+      id: string
+      role: Role
+    }
     ;(req as any).user = decoded
     return next()
   } catch {

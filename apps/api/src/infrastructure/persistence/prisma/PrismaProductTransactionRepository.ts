@@ -1,24 +1,30 @@
 import { IProductTransactionRepository } from '@domain/repository/IProductTransactionRepository'
-import { IProductTransaction,IProductTransactionDetail } from '@domain/entities/IProductTransaction'
+import {
+  IProductTransaction,
+  IProductTransactionDetail,
+} from '@domain/entities/IProductTransaction'
 import prisma from '@infrastructure/persistence/prisma/client'
 
 export class PrismaProductTransactionRepository implements IProductTransactionRepository {
-  
   async findById(id: string): Promise<IProductTransactionDetail | null> {
     const tx = await prisma.productTransaction.findUnique({ where: { id } })
     if (!tx) return null
     return this.mapToDomain(tx)
   }
 
-  async findAllByProductId(productId: string): Promise<IProductTransactionDetail[]> {
+  async findAllByProductId(
+    productId: string
+  ): Promise<IProductTransactionDetail[]> {
     const txs = await prisma.productTransaction.findMany({
       where: { productId },
-      orderBy: { date: 'desc' }
+      orderBy: { date: 'desc' },
     })
-    return txs.map(tx => this.mapToDomain(tx))
+    return txs.map((tx) => this.mapToDomain(tx))
   }
 
-  async addTransaction(params: IProductTransaction): Promise<IProductTransactionDetail> {
+  async addTransaction(
+    params: IProductTransaction
+  ): Promise<IProductTransactionDetail> {
     const { productId, amount, date, description } = params
 
     // Ejecutamos todo dentro de una transacción interactiva de Prisma
@@ -27,7 +33,7 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
       // 1. Obtener el producto actual para calcular el nuevo saldo
       // Usamos findUniqueOrThrow para asegurar que existe y bloquear si fuera necesario (dependiendo del nivel de aislamiento)
       const product = await tx.financialProduct.findUniqueOrThrow({
-        where: { id: productId }
+        where: { id: productId },
       })
 
       // 2. Crear el registro de la transacción
@@ -36,8 +42,8 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
           productId,
           description,
           amount,
-          date
-        }
+          date,
+        },
       })
 
       // 3. Actualizar el saldo del producto
@@ -46,7 +52,7 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
 
       await tx.financialProduct.update({
         where: { id: productId },
-        data: { currentBalance: newBalance }
+        data: { currentBalance: newBalance },
       })
 
       // 4. Registrar el cambio en el historial de valor
@@ -55,8 +61,8 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
           productId,
           date: new Date(),
           value: newBalance,
-          previousValue: currentBalance
-        }
+          previousValue: currentBalance,
+        },
       })
 
       return this.mapToDomain(transaction)
@@ -68,7 +74,7 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
       id: prismaTx.id,
       description: prismaTx.description,
       date: prismaTx.date,
-      amount: Number(prismaTx.amount)
+      amount: Number(prismaTx.amount),
     }
   }
 }

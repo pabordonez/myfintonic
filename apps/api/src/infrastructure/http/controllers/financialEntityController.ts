@@ -44,7 +44,10 @@ export class FinancialEntityController {
       await this.useCases.updateEntity(req.params.id as string, req.body)
       res.status(204).send()
     } catch (error) {
-      if (error instanceof Error && error.message === 'Financial Entity not found') {
+      if (
+        error instanceof Error &&
+        error.message === 'Financial Entity not found'
+      ) {
         res.status(404).json({ error: error.message })
       } else {
         res.status(400).json({ error: 'Bad Request' })
@@ -57,7 +60,10 @@ export class FinancialEntityController {
       await this.useCases.deleteEntity(req.params.id as string)
       res.status(204).send()
     } catch (error) {
-      if (error instanceof Error && error.message === 'Financial Entity not found') {
+      if (
+        error instanceof Error &&
+        error.message === 'Financial Entity not found'
+      ) {
         res.status(404).json({ error: error.message })
       } else {
         res.status(500).json({ error: 'Internal Server Error' })

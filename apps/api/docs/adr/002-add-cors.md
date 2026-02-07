@@ -7,6 +7,7 @@
 ## Context
 
 Actualmente, la API de MyFintonic no cuenta con mecanismos de protección básicos para peticiones HTTP.
+
 - No hay control sobre qué orígenes (dominios) pueden consumir la API (CORS), lo que es crítico si se va a desarrollar un frontend.
 - No se establecen cabeceras de seguridad HTTP estándar (HSTS, X-Frame-Options, X-XSS-Protection, etc.), exponiendo la aplicación a vulnerabilidades conocidas.
 
@@ -36,11 +37,13 @@ Elegimos la **Opción 3**: Utilizar las librerías `cors` y `helmet`.
 ## Consequences
 
 ### Positive
-+ Mejora inmediata de la postura de seguridad de la aplicación (Security Headers).
-+ Control granular sobre quién puede consumir la API desde un navegador.
-+ Cumplimiento de requisitos no funcionales de seguridad básicos.
+
+- Mejora inmediata de la postura de seguridad de la aplicación (Security Headers).
+- Control granular sobre quién puede consumir la API desde un navegador.
+- Cumplimiento de requisitos no funcionales de seguridad básicos.
 
 ### Negative
+
 - Es necesario configurar correctamente los orígenes permitidos en CORS para no bloquear el desarrollo local o el frontend en producción.
 
 ## References

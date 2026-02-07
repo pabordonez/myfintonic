@@ -22,7 +22,10 @@ describe('PrismaFinancialEntityRepository', () => {
   })
 
   it('update should call prisma update', async () => {
-    vi.mocked(prisma.financialEntity.update).mockResolvedValue({ id: '1', name: 'New' } as any)
+    vi.mocked(prisma.financialEntity.update).mockResolvedValue({
+      id: '1',
+      name: 'New',
+    } as any)
     await repo.update('1', { name: 'New' })
     expect(prisma.financialEntity.update).toHaveBeenCalledWith({
       where: { id: '1' },

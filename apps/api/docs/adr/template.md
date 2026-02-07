@@ -31,6 +31,7 @@ We chose **[Option X]**
 ## Rationale
 
 Why this option over others:
+
 - Reason 1
 - Reason 2
 - Reason 3
@@ -38,10 +39,12 @@ Why this option over others:
 ## Consequences
 
 ### Positive
-+ Benefit 1
-+ Benefit 2
+
+- Benefit 1
+- Benefit 2
 
 ### Negative
+
 - Tradeoff 1
 - Tradeoff 2
 

@@ -7,6 +7,7 @@
 ## Context
 
 Necesitamos gestionar las entidades financieras (bancos, gestoras) de dos formas distintas:
+
 1.  Como un **catálogo maestro** reutilizable (ej. "Banco Santander" existe una sola vez en el sistema).
 2.  Como una **vinculación personal** de cada cliente, donde se almacena el saldo total que ese cliente tiene en dicha entidad y su histórico de valoraciones.
 
@@ -43,10 +44,12 @@ Elegimos la **Opción 3**. Separamos `FinancialEntity` (Catálogo) de `ClientFin
 ## Consequences
 
 ### Positive
-+ El catálogo de bancos es único y limpio, gestionable solo por administradores.
-+ Cada cliente tiene su propio historial de valoraciones agregado por banco.
-+ Facilita consultas como "¿Cuánto dinero total tienen nuestros usuarios en BBVA?".
+
+- El catálogo de bancos es único y limpio, gestionable solo por administradores.
+- Cada cliente tiene su propio historial de valoraciones agregado por banco.
+- Facilita consultas como "¿Cuánto dinero total tienen nuestros usuarios en BBVA?".
 
 ### Negative
+
 - Mayor complejidad en la creación: para vincular un cliente, primero debe existir el banco en el catálogo.
 - Necesidad de mantener dos conjuntos de endpoints y repositorios.

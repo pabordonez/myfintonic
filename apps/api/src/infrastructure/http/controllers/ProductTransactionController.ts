@@ -31,7 +31,9 @@ export class ProductTransactionController {
     } catch (error: any) {
       // Manejo de errores de validación (400)
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Validation Error', details: error.errors })
+        return res
+          .status(400)
+          .json({ error: 'Validation Error', details: error.errors })
       }
 
       // Manejo de errores de Dominio

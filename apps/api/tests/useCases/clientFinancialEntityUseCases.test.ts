@@ -9,8 +9,7 @@ const mockRepo = {
   findAllWithClients: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
-}  as IClientFinancialEntityRepository
-
+} as IClientFinancialEntityRepository
 
 const useCases = new ClientFinancialEntityUseCases(mockRepo)
 
@@ -52,7 +51,9 @@ describe('ClientFinancialEntityUseCases', () => {
   describe('updateBalance', () => {
     it('should throw if association not found', async () => {
       vi.mocked(mockRepo.findById).mockResolvedValue(null)
-      await expect(useCases.updateBalance('1', { balance: 200 })).rejects.toThrow('Client Financial Entity association not found')
+      await expect(
+        useCases.updateBalance('1', { balance: 200 })
+      ).rejects.toThrow('Client Financial Entity association not found')
     })
 
     it('should call repo.update if found', async () => {
@@ -65,7 +66,9 @@ describe('ClientFinancialEntityUseCases', () => {
   describe('deleteAssociation', () => {
     it('should throw if association not found', async () => {
       vi.mocked(mockRepo.findById).mockResolvedValue(null)
-      await expect(useCases.deleteAssociation('1')).rejects.toThrow('Client Financial Entity association not found')
+      await expect(useCases.deleteAssociation('1')).rejects.toThrow(
+        'Client Financial Entity association not found'
+      )
     })
 
     it('should call repo.delete if found', async () => {

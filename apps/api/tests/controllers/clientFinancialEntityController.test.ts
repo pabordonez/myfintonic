@@ -33,14 +33,22 @@ describe('ClientFinancialEntityController', () => {
   describe('create', () => {
     it('should return 201 and created association', async () => {
       const dto = { clientId: 'c1', financialEntityId: 'fe1', balance: 100 }
-      vi.mocked(mockUseCases.createAssociation).mockResolvedValue({ id: '1', ...dto } as any)
-      const req = mockRequest({ financialEntityId: 'fe1', balance: 100 }, { clientId: 'c1' })
+      vi.mocked(mockUseCases.createAssociation).mockResolvedValue({
+        id: '1',
+        ...dto,
+      } as any)
+      const req = mockRequest(
+        { financialEntityId: 'fe1', balance: 100 },
+        { clientId: 'c1' }
+      )
       const res = mockResponse()
 
       await controller.create(req, res)
 
       expect(res.status).toHaveBeenCalledWith(201)
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ id: '1' }))
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ id: '1' })
+      )
     })
 
     it('should return 409 if association exists (P2002)', async () => {
@@ -53,11 +61,15 @@ describe('ClientFinancialEntityController', () => {
       await controller.create(req, res)
 
       expect(res.status).toHaveBeenCalledWith(409)
-      expect(res.json).toHaveBeenCalledWith({ error: 'Association already exists' })
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'Association already exists',
+      })
     })
 
     it('should return 404 if entity not found', async () => {
-      vi.mocked(mockUseCases.createAssociation).mockRejectedValue(new Error('Entity not found'))
+      vi.mocked(mockUseCases.createAssociation).mockRejectedValue(
+        new Error('Entity not found')
+      )
       const req = mockRequest({}, { clientId: 'c1' })
       const res = mockResponse()
 
@@ -82,7 +94,9 @@ describe('ClientFinancialEntityController', () => {
     })
 
     it('should return 500 on error', async () => {
-      vi.mocked(mockUseCases.getAllAssociations).mockRejectedValue(new Error('Error'))
+      vi.mocked(mockUseCases.getAllAssociations).mockRejectedValue(
+        new Error('Error')
+      )
       const req = mockRequest()
       const res = mockResponse()
 
@@ -96,12 +110,19 @@ describe('ClientFinancialEntityController', () => {
     it('should return 200 and filtered list', async () => {
       const list = [{ id: '1' }]
       vi.mocked(mockUseCases.getAssociations).mockResolvedValue(list as any)
-      const req = mockRequest({}, { clientId: 'c1' }, { financialEntityId: 'fe1' })
+      const req = mockRequest(
+        {},
+        { clientId: 'c1' },
+        { financialEntityId: 'fe1' }
+      )
       const res = mockResponse()
 
       await controller.getAll(req, res)
 
-      expect(mockUseCases.getAssociations).toHaveBeenCalledWith({ clientId: 'c1', financialEntityId: 'fe1' })
+      expect(mockUseCases.getAssociations).toHaveBeenCalledWith({
+        clientId: 'c1',
+        financialEntityId: 'fe1',
+      })
       expect(res.status).toHaveBeenCalledWith(200)
       expect(res.json).toHaveBeenCalledWith(list)
     })
@@ -109,7 +130,9 @@ describe('ClientFinancialEntityController', () => {
 
   describe('getById', () => {
     it('should return 200 if found', async () => {
-      vi.mocked(mockUseCases.getAssociationById).mockResolvedValue({ id: '1' } as any)
+      vi.mocked(mockUseCases.getAssociationById).mockResolvedValue({
+        id: '1',
+      } as any)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
 
@@ -142,7 +165,9 @@ describe('ClientFinancialEntityController', () => {
     })
 
     it('should return 404 if not found', async () => {
-      vi.mocked(mockUseCases.updateBalance).mockRejectedValue(new Error('not found'))
+      vi.mocked(mockUseCases.updateBalance).mockRejectedValue(
+        new Error('not found')
+      )
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
 
@@ -164,7 +189,9 @@ describe('ClientFinancialEntityController', () => {
     })
 
     it('should return 404 if not found', async () => {
-      vi.mocked(mockUseCases.deleteAssociation).mockRejectedValue(new Error('not found'))
+      vi.mocked(mockUseCases.deleteAssociation).mockRejectedValue(
+        new Error('not found')
+      )
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
 

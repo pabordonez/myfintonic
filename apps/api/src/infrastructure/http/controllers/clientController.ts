@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { ClientUseCases } from '@application/useCases/clientUseCases';
+import { Request, Response } from 'express'
+import { ClientUseCases } from '@application/useCases/clientUseCases'
 
 export class ClientController {
   constructor(private clientUseCases: ClientUseCases) {}
@@ -17,46 +17,48 @@ export class ClientController {
     }
   }
 
-
   async getAll(req: Request, res: Response) {
-    const user = (req as any).user;
-    
+    const user = (req as any).user
+
     if (user.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: 'Access denied' })
     }
 
-    const clients = await this.clientUseCases.getClients();
-    return res.status(200).json(clients);
+    const clients = await this.clientUseCases.getClients()
+    return res.status(200).json(clients)
   }
 
   async getById(req: Request, res: Response) {
-    const user = (req as any).user;
-    const { id } = req.params;
+    const user = (req as any).user
+    const { id } = req.params
 
     if (user.role !== 'ADMIN' && user.id !== id) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: 'Access denied' })
     }
 
-    const client = await this.clientUseCases.getClientById(id as string);
-    if (!client) return res.status(404).json({ error: 'Client not found' });
-    
-    return res.status(200).json(client);
+    const client = await this.clientUseCases.getClientById(id as string)
+    if (!client) return res.status(404).json({ error: 'Client not found' })
+
+    return res.status(200).json(client)
   }
 
   async update(req: Request, res: Response) {
-    const user = (req as any).user;
-    const { id } = req.params;
+    const user = (req as any).user
+    const { id } = req.params
 
     // Seguridad: Solo el propio usuario puede actualizar sus datos
     if (user.id !== id) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: 'Access denied' })
     }
 
-    const updatedClient = await this.clientUseCases.updateClient(id as string, req.body);
-    return res.status(200).json(updatedClient);
+    const updatedClient = await this.clientUseCases.updateClient(
+      id as string,
+      req.body
+    )
+    return res.status(200).json(updatedClient)
   }
 
-    async changePassword(req: Request, res: Response) {
+  async changePassword(req: Request, res: Response) {
     try {
       const { id } = req.params
       const { newPassword, currentPassword } = req.body
@@ -67,13 +69,22 @@ export class ClientController {
         return res.status(400).json({ error: 'New password is required' })
       }
 
-      await this.clientUseCases.changePassword(id as string, newPassword, currentPassword, requestorRole, requestorId)
+      await this.clientUseCases.changePassword(
+        id as string,
+        newPassword,
+        currentPassword,
+        requestorRole,
+        requestorId
+      )
       res.status(204).send()
     } catch (error: any) {
       if (error.message.includes('Forbidden')) {
         return res.status(403).json({ error: error.message })
       }
-      if (error.message.includes('Invalid') || error.message.includes('required')) {
+      if (
+        error.message.includes('Invalid') ||
+        error.message.includes('required')
+      ) {
         return res.status(400).json({ error: error.message })
       }
       if (error.message.includes('not found')) {
@@ -83,5 +94,4 @@ export class ClientController {
       res.status(500).json({ error: 'Internal Server Error' })
     }
   }
-
 }

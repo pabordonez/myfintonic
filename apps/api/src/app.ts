@@ -14,7 +14,7 @@ import {
   productTransactionController,
   clientFinancialEntityController,
   healthController,
-  financialEntityController
+  financialEntityController,
 } from '@infrastructure/dependencies'
 import { requestLogger } from '@infrastructure/http/middlewares/requestLogger'
 import { corsMiddleware } from '@infrastructure/http/middlewares/corsMiddleware'
@@ -26,9 +26,11 @@ export const app = express()
 // para que el Rate Limit funcione correctamente con la IP real del usuario.
 // app.set('trust proxy', 1)
 
-app.use(helmet({
-  strictTransportSecurity: env.NODE_ENV === 'production' ? undefined : false
-}))
+app.use(
+  helmet({
+    strictTransportSecurity: env.NODE_ENV === 'production' ? undefined : false,
+  })
+)
 
 app.use(corsMiddleware)
 app.use(rateLimitMiddleware)
@@ -39,7 +41,13 @@ app.use(requestLogger)
 // Configuración de Rutas
 app.use('/auth', createAuthRoutes(authController, clientController))
 app.use('/health', createHealthRouter(healthController))
-app.use('/products', createProductRouter(productController,productTransactionController))
-app.use('/financial-entities', createFinancialEntityRoutes(financialEntityController))
+app.use(
+  '/products',
+  createProductRouter(productController, productTransactionController)
+)
+app.use(
+  '/financial-entities',
+  createFinancialEntityRoutes(financialEntityController)
+)
 app.use('/clients', createClientRoutes(clientController))
 app.use('/', createClientFinancialEntityRoutes(clientFinancialEntityController))

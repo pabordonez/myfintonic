@@ -125,10 +125,10 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 
 ### Tabla `FinancialEntity`
 
-| Campo      | Tipo           | Descripción                                                                 |
-| ---------- | -------------- | --------------------------------------------------------------------------- |
-| `id`       | VARCHAR(191)   | Identificador único (UUID).                                                 |
-| `name`     | VARCHAR(191)   | Nombre de la entidad financiera.                                            |
+| Campo  | Tipo         | Descripción                      |
+| ------ | ------------ | -------------------------------- |
+| `id`   | VARCHAR(191) | Identificador único (UUID).      |
+| `name` | VARCHAR(191) | Nombre de la entidad financiera. |
 
 ### Tabla `ClientFinancialEntity`
 

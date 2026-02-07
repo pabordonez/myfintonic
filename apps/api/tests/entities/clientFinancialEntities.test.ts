@@ -11,44 +11,60 @@ vi.mock('../../src/infrastructure/persistence/prisma/client', async () => {
     default: {
       clientFinancialEntity: {
         findMany: vi.fn().mockImplementation(async ({ include, where }) => {
-           if (include?.client) {
-             return mockDb.map(item => ({
-               ...item,
-               client: { id: item.clientId, email: 'test@test.com', firstName: 'Test' }
-             }))
-           }
-           if (where?.clientId) {
-             return mockDb.filter(item => item.clientId === where.clientId)
-           }
-           return mockDb
+          if (include?.client) {
+            return mockDb.map((item) => ({
+              ...item,
+              client: {
+                id: item.clientId,
+                email: 'test@test.com',
+                firstName: 'Test',
+              },
+            }))
+          }
+          if (where?.clientId) {
+            return mockDb.filter((item) => item.clientId === where.clientId)
+          }
+          return mockDb
         }),
         create: vi.fn().mockImplementation(({ data }) => {
-            const created = { id: 'new-id', ...data }
-            // Simular estructura de valueHistory devuelta por Prisma (array) en lugar de la de entrada (create)
-            if (data.valueHistory?.create) {
-                created.valueHistory = [{
-                    id: 'vh-1',
-                    date: data.valueHistory.create.date || new Date(),
-                    value: data.valueHistory.create.value
-                }]
-            } else {
-                created.valueHistory = []
-            }
-            // Simular relación financialEntity necesaria para mapToDomain
-            created.financialEntity = { id: data.financialEntityId || 'fe-1', name: 'Mock Bank' }
-            
-            return Promise.resolve(created)
+          const created = { id: 'new-id', ...data }
+          // Simular estructura de valueHistory devuelta por Prisma (array) en lugar de la de entrada (create)
+          if (data.valueHistory?.create) {
+            created.valueHistory = [
+              {
+                id: 'vh-1',
+                date: data.valueHistory.create.date || new Date(),
+                value: data.valueHistory.create.value,
+              },
+            ]
+          } else {
+            created.valueHistory = []
+          }
+          // Simular relación financialEntity necesaria para mapToDomain
+          created.financialEntity = {
+            id: data.financialEntityId || 'fe-1',
+            name: 'Mock Bank',
+          }
+
+          return Promise.resolve(created)
         }),
         findFirst: vi.fn().mockImplementation(({ where }) => {
-            return Promise.resolve(mockDb.find(i => i.id === where.id) || null)
+          return Promise.resolve(mockDb.find((i) => i.id === where.id) || null)
         }),
         findUnique: vi.fn().mockImplementation(({ where }) => {
-            return Promise.resolve(mockDb.find(i => i.id === where.id) || null)
+          return Promise.resolve(mockDb.find((i) => i.id === where.id) || null)
         }),
-        update: vi.fn().mockImplementation(({ where, data }) => Promise.resolve({ ...mockDb.find(i => i.id === where.id), ...data })),
+        update: vi
+          .fn()
+          .mockImplementation(({ where, data }) =>
+            Promise.resolve({
+              ...mockDb.find((i) => i.id === where.id),
+              ...data,
+            })
+          ),
         delete: vi.fn().mockResolvedValue({ id: '1' }),
-      }
-    }
+      },
+    },
   }
 })
 
@@ -62,7 +78,7 @@ describe('Client Financial Entities API (Admin)', () => {
       id: '1',
       clientId: 'user-1',
       financialEntityId: 'fe-1',
-      balance: 1000
+      balance: 1000,
     })
   })
 
@@ -71,7 +87,7 @@ describe('Client Financial Entities API (Admin)', () => {
       const res = await request(app)
         .get('/clients-financial-entities')
         .set('Authorization', `Bearer ${userToken}`)
-      
+
       expect(res.status).toBe(403)
     })
 
@@ -79,7 +95,7 @@ describe('Client Financial Entities API (Admin)', () => {
       const res = await request(app)
         .get('/clients-financial-entities')
         .set('Authorization', `Bearer ${adminToken}`)
-      
+
       expect(res.status).toBe(200)
     })
   })
@@ -92,7 +108,7 @@ describe('Client Financial Entities API (Admin)', () => {
         .post(baseUrl)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ financialEntityId: 'fe-2', balance: 500 })
-      
+
       expect(res.status).toBe(201)
     })
 
@@ -100,7 +116,7 @@ describe('Client Financial Entities API (Admin)', () => {
       const res = await request(app)
         .get(baseUrl)
         .set('Authorization', `Bearer ${userToken}`)
-      
+
       expect(res.status).toBe(200)
       expect(res.body).toHaveLength(1)
     })
@@ -109,7 +125,7 @@ describe('Client Financial Entities API (Admin)', () => {
       const res = await request(app)
         .get(`${baseUrl}/1`)
         .set('Authorization', `Bearer ${userToken}`)
-      
+
       expect(res.status).toBe(200)
       expect(res.body.id).toBe('1')
     })
@@ -119,7 +135,7 @@ describe('Client Financial Entities API (Admin)', () => {
         .put(`${baseUrl}/1`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ balance: 2000 })
-      
+
       expect(res.status).toBe(204)
     })
 
@@ -127,7 +143,7 @@ describe('Client Financial Entities API (Admin)', () => {
       const res = await request(app)
         .delete(`${baseUrl}/1`)
         .set('Authorization', `Bearer ${userToken}`)
-      
+
       expect(res.status).toBe(204)
     })
   })

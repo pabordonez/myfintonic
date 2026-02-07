@@ -18,7 +18,7 @@ vi.mock('../../src/infrastructure/persistence/prisma/client', () => ({
       create: vi.fn(),
     },
     $transaction: vi.fn(),
-  }
+  },
 }))
 
 describe('PrismaProductTransactionRepository', () => {
@@ -42,24 +42,34 @@ describe('PrismaProductTransactionRepository', () => {
         productId: 'p1',
         description: 'desc',
         date: new Date(),
-        amount: 100
+        amount: 100,
       }
-      vi.mocked(prisma.productTransaction.findUnique).mockResolvedValue(dbTx as any)
+      vi.mocked(prisma.productTransaction.findUnique).mockResolvedValue(
+        dbTx as any
+      )
       const result = await repo.findById('1')
       expect(result).toEqual({
         id: '1',
         description: 'desc',
         date: dbTx.date,
-        amount: 100
+        amount: 100,
       })
     })
   })
 
   describe('findAllByProductId', () => {
     it('should return list of transactions', async () => {
-      const dbTx = { id: '1', productId: 'p1', description: 'd', date: new Date(), amount: 50 }
-      vi.mocked(prisma.productTransaction.findMany).mockResolvedValue([dbTx] as any)
-      
+      const dbTx = {
+        id: '1',
+        productId: 'p1',
+        description: 'd',
+        date: new Date(),
+        amount: 50,
+      }
+      vi.mocked(prisma.productTransaction.findMany).mockResolvedValue([
+        dbTx,
+      ] as any)
+
       const result = await repo.findAllByProductId('p1')
       expect(result).toHaveLength(1)
       expect(result[0].amount).toBe(50)
@@ -80,12 +90,12 @@ describe('PrismaProductTransactionRepository', () => {
             productId: 'p1',
             description: 'test',
             amount: 50,
-            date: new Date()
+            date: new Date(),
           }),
         },
         valueHistory: {
           create: vi.fn(),
-        }
+        },
       }
 
       // Simulamos que $transaction ejecuta el callback pasándole nuestro mockTx
@@ -93,12 +103,22 @@ describe('PrismaProductTransactionRepository', () => {
         return cb(mockTx)
       })
 
-      const params = { productId: 'p1', description: 'test', amount: 50, date: new Date() }
+      const params = {
+        productId: 'p1',
+        description: 'test',
+        amount: 50,
+        date: new Date(),
+      }
       await repo.addTransaction(params)
 
-      expect(mockTx.financialProduct.findUniqueOrThrow).toHaveBeenCalledWith({ where: { id: 'p1' } })
+      expect(mockTx.financialProduct.findUniqueOrThrow).toHaveBeenCalledWith({
+        where: { id: 'p1' },
+      })
       expect(mockTx.productTransaction.create).toHaveBeenCalled()
-      expect(mockTx.financialProduct.update).toHaveBeenCalledWith({ where: { id: 'p1' }, data: { currentBalance: 150 } })
+      expect(mockTx.financialProduct.update).toHaveBeenCalledWith({
+        where: { id: 'p1' },
+        data: { currentBalance: 150 },
+      })
     })
   })
 })

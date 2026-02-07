@@ -8,142 +8,153 @@ import { env } from '../../src/config/env'
 const { mockDb } = vi.hoisted(() => ({ mockDb: [] as any[] }))
 
 // 2. Mock Prisma client (Infrastructure)
-vi.mock('../../src/infrastructure/persistence/prisma/client', async importOriginal => {
-  const actual = await importOriginal()
-  return {
-    ...(actual as any),
-    default: {
-      financialProduct: {
-        create: vi.fn().mockImplementation(async ({ data }) => {
-          const newEntry = {
-            id: 'mock-product-id', // Ensure ID exists
-            ...data,
-            // Simulate automatic DB fields
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            valueHistory: [],
-            transactions: [],
-          }
-          // Simulate Prisma 'connect' for relations
-          if (data.client?.connect?.id) {
-            newEntry.clientId = data.client.connect.id
-            delete newEntry.client
-          }
-          // Simulate Prisma 'connectOrCreate' for financialEntity relation
-          if (data.financialEntity?.connectOrCreate?.create) {
-            // We store the created entity object so mapToDomain can read .name from it
-            newEntry.financialEntity = {
-              id: 'mock-fe-id',
-              ...data.financialEntity.connectOrCreate.create,
+vi.mock(
+  '../../src/infrastructure/persistence/prisma/client',
+  async (importOriginal) => {
+    const actual = await importOriginal()
+    return {
+      ...(actual as any),
+      default: {
+        financialProduct: {
+          create: vi.fn().mockImplementation(async ({ data }) => {
+            const newEntry = {
+              id: 'mock-product-id', // Ensure ID exists
+              ...data,
+              // Simulate automatic DB fields
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              valueHistory: [],
+              transactions: [],
             }
-          }
-          // Simulate Prisma 'connect' for financialEntity relation
-          if (data.financialEntity?.connect) {
-            const connectedId = data.financialEntity.connect.id
-            if (connectedId === 'non-existent-id') {
-              const error: any = new Error('Record not found')
-              error.code = 'P2025'
-              throw error
+            // Simulate Prisma 'connect' for relations
+            if (data.client?.connect?.id) {
+              newEntry.clientId = data.client.connect.id
+              delete newEntry.client
             }
-            
-            // Resolver nombre basado en el ID simulado
-            let entityName = 'Banco de Pruebas'
-            if (connectedId === 'global-bank-id') entityName = 'Global Bank'
-
-            newEntry.financialEntityId = connectedId || 'mock-fe-id'
-            newEntry.financialEntity = {
-              id: newEntry.financialEntityId,
-              name: entityName,
+            // Simulate Prisma 'connectOrCreate' for financialEntity relation
+            if (data.financialEntity?.connectOrCreate?.create) {
+              // We store the created entity object so mapToDomain can read .name from it
+              newEntry.financialEntity = {
+                id: 'mock-fe-id',
+                ...data.financialEntity.connectOrCreate.create,
+              }
             }
-          }
-          mockDb.push(newEntry)
-          return newEntry
-        }),
-        findMany: vi.fn().mockImplementation(async ({ where }) => {
-          let results = [...mockDb]
-          // Basic implementation of Prisma filters
-          if (where) {
-            if (where.status) results = results.filter(p => p.status === where.status)
-            if (where.type) results = results.filter(p => p.type === where.type)
-            // Updated filter logic for relation object
-            if (where.financialEntity?.name) {
-              results = results.filter(p => p.financialEntity?.name === where.financialEntity.name)
+            // Simulate Prisma 'connect' for financialEntity relation
+            if (data.financialEntity?.connect) {
+              const connectedId = data.financialEntity.connect.id
+              if (connectedId === 'non-existent-id') {
+                const error: any = new Error('Record not found')
+                error.code = 'P2025'
+                throw error
+              }
+
+              // Resolver nombre basado en el ID simulado
+              let entityName = 'Banco de Pruebas'
+              if (connectedId === 'global-bank-id') entityName = 'Global Bank'
+
+              newEntry.financialEntityId = connectedId || 'mock-fe-id'
+              newEntry.financialEntity = {
+                id: newEntry.financialEntityId,
+                name: entityName,
+              }
             }
-          }
-          return results
-        }),
-        findFirst: vi.fn().mockImplementation(async ({ where }) => {
-          return mockDb.find(p => p.id === where.id) || null
-        }),
-        findUnique: vi.fn().mockImplementation(async ({ where }) => {
-          return mockDb.find(p => p.id === where.id) || null
-        }),
-        update: vi.fn().mockImplementation(async ({ where, data }) => {
-          const index = mockDb.findIndex(p => p.id === where.id)
-          if (index === -1) throw new Error('Record not found')
+            mockDb.push(newEntry)
+            return newEntry
+          }),
+          findMany: vi.fn().mockImplementation(async ({ where }) => {
+            let results = [...mockDb]
+            // Basic implementation of Prisma filters
+            if (where) {
+              if (where.status)
+                results = results.filter((p) => p.status === where.status)
+              if (where.type)
+                results = results.filter((p) => p.type === where.type)
+              // Updated filter logic for relation object
+              if (where.financialEntity?.name) {
+                results = results.filter(
+                  (p) => p.financialEntity?.name === where.financialEntity.name
+                )
+              }
+            }
+            return results
+          }),
+          findFirst: vi.fn().mockImplementation(async ({ where }) => {
+            return mockDb.find((p) => p.id === where.id) || null
+          }),
+          findUnique: vi.fn().mockImplementation(async ({ where }) => {
+            return mockDb.find((p) => p.id === where.id) || null
+          }),
+          update: vi.fn().mockImplementation(async ({ where, data }) => {
+            const index = mockDb.findIndex((p) => p.id === where.id)
+            if (index === -1) throw new Error('Record not found')
 
-          const current = mockDb[index]
-          
-          // Handle valueHistory nested write (simulation)
-          const { valueHistory, ...restData } = data
-          
-          if (valueHistory?.create) {
-            if (!current.valueHistory) current.valueHistory = []
-            current.valueHistory.push({
-              ...valueHistory.create,
-              date: valueHistory.create.date || new Date()
-            })
-          }
+            const current = mockDb[index]
 
-          const updated = { ...current, ...restData }
+            // Handle valueHistory nested write (simulation)
+            const { valueHistory, ...restData } = data
 
-          // Handle relation in update
-          if (data.client?.connect?.id) {
-            updated.clientId = data.client.connect.id
-            delete updated.client
-          }
-
-          // Handle financialEntity relation in update
-          if (data.financialEntity?.connect) {
-            const connectedId = data.financialEntity.connect.id
-            if (connectedId === 'non-existent-id') {
-              const error: any = new Error('Record not found')
-              error.code = 'P2025'
-              throw error
+            if (valueHistory?.create) {
+              if (!current.valueHistory) current.valueHistory = []
+              current.valueHistory.push({
+                ...valueHistory.create,
+                date: valueHistory.create.date || new Date(),
+              })
             }
 
-            let entityName = 'Banco de Pruebas'
-            if (connectedId === 'global-bank-id') entityName = 'Global Bank'
+            const updated = { ...current, ...restData }
 
-            updated.financialEntity = {
-              id: connectedId,
-              name: entityName,
+            // Handle relation in update
+            if (data.client?.connect?.id) {
+              updated.clientId = data.client.connect.id
+              delete updated.client
             }
-          }
 
-          mockDb[index] = updated
-          return updated
-        }),
-        delete: vi.fn().mockImplementation(async ({ where }) => {
-          const index = mockDb.findIndex(p => p.id === where.id)
-          if (index === -1) throw new Error('Record not found')
-          const deleted = mockDb.splice(index, 1)
-          return deleted[0]
-        }),
+            // Handle financialEntity relation in update
+            if (data.financialEntity?.connect) {
+              const connectedId = data.financialEntity.connect.id
+              if (connectedId === 'non-existent-id') {
+                const error: any = new Error('Record not found')
+                error.code = 'P2025'
+                throw error
+              }
+
+              let entityName = 'Banco de Pruebas'
+              if (connectedId === 'global-bank-id') entityName = 'Global Bank'
+
+              updated.financialEntity = {
+                id: connectedId,
+                name: entityName,
+              }
+            }
+
+            mockDb[index] = updated
+            return updated
+          }),
+          delete: vi.fn().mockImplementation(async ({ where }) => {
+            const index = mockDb.findIndex((p) => p.id === where.id)
+            if (index === -1) throw new Error('Record not found')
+            const deleted = mockDb.splice(index, 1)
+            return deleted[0]
+          }),
+        },
+        // Auxiliary mocks to avoid errors if cleanup methods are called
+        productTransaction: { deleteMany: vi.fn() },
+        valueHistory: { deleteMany: vi.fn() },
+        client: { deleteMany: vi.fn(), create: vi.fn() },
+        financialEntity: {
+          findUnique: vi.fn().mockResolvedValue(null),
+          findFirst: vi.fn().mockResolvedValue(null),
+          create: vi
+            .fn()
+            .mockImplementation(({ data }) =>
+              Promise.resolve({ id: 'mock-fe-id', ...data })
+            ),
+        },
+        $disconnect: vi.fn(),
       },
-      // Auxiliary mocks to avoid errors if cleanup methods are called
-      productTransaction: { deleteMany: vi.fn() },
-      valueHistory: { deleteMany: vi.fn() },
-      client: { deleteMany: vi.fn(), create: vi.fn() },
-      financialEntity: {
-        findUnique: vi.fn().mockResolvedValue(null),
-        findFirst: vi.fn().mockResolvedValue(null),
-        create: vi.fn().mockImplementation(({ data }) => Promise.resolve({ id: 'mock-fe-id', ...data })),
-      },
-      $disconnect: vi.fn(),
-    },
+    }
   }
-})
+)
 
 describe('Financial Products API', () => {
   // Base test data
@@ -158,12 +169,15 @@ describe('Financial Products API', () => {
   }
 
   let productId: string
-  
+
   // Tokens para pruebas
   const userId = '550e8400-e29b-41d4-a716-446655440000'
   const otherUserId = 'other-user-id'
   const userToken = jwt.sign({ id: userId, role: 'USER' }, env.JWT_SECRET)
-  const otherUserToken = jwt.sign({ id: otherUserId, role: 'USER' }, env.JWT_SECRET)
+  const otherUserToken = jwt.sign(
+    { id: otherUserId, role: 'USER' },
+    env.JWT_SECRET
+  )
   const adminToken = jwt.sign({ id: 'admin-id', role: 'ADMIN' }, env.JWT_SECRET)
 
   beforeEach(async () => {
@@ -171,26 +185,42 @@ describe('Financial Products API', () => {
     mockDb.length = 0
 
     // Create a base product for tests that need it
-    const response = await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(baseProduct)
+    const response = await request(app)
+      .post('/products')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(baseProduct)
     productId = response.body?.id || 'dummy-id'
   })
 
   describe('GET /products', () => {
     it('should return 200 and a list of products', async () => {
-      const response = await request(app).get('/products').set('Authorization', `Bearer ${userToken}`)
+      const response = await request(app)
+        .get('/products')
+        .set('Authorization', `Bearer ${userToken}`)
       expect(response.status).toBe(200)
       expect(Array.isArray(response.body)).toBe(true)
     })
 
     it('should allow filtering by status', async () => {
       // Create an inactive product to test filtering
-      const inactiveProduct = { ...baseProduct, status: 'INACTIVE', name: 'Inactive Product' }
-      await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(inactiveProduct)
+      const inactiveProduct = {
+        ...baseProduct,
+        status: 'INACTIVE',
+        name: 'Inactive Product',
+      }
+      await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(inactiveProduct)
 
-      const response = await request(app).get('/products?status=INACTIVE').set('Authorization', `Bearer ${userToken}`)
+      const response = await request(app)
+        .get('/products?status=INACTIVE')
+        .set('Authorization', `Bearer ${userToken}`)
       expect(response.status).toBe(200)
       expect(response.body.length).toBeGreaterThan(0)
-      expect(response.body.every((p: any) => p.status === 'INACTIVE')).toBe(true)
+      expect(response.body.every((p: any) => p.status === 'INACTIVE')).toBe(
+        true
+      )
     })
 
     it('should allow filtering by type', async () => {
@@ -203,12 +233,19 @@ describe('Financial Products API', () => {
         currentBalance: 10000,
         fees: { opening: 0, closing: 0, maintenance: 10 },
       }
-      await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(investmentFund)
+      await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(investmentFund)
 
-      const response = await request(app).get('/products?type=INVESTMENT_FUND').set('Authorization', `Bearer ${userToken}`)
+      const response = await request(app)
+        .get('/products?type=INVESTMENT_FUND')
+        .set('Authorization', `Bearer ${userToken}`)
       expect(response.status).toBe(200)
       expect(response.body.length).toBeGreaterThan(0)
-      expect(response.body.every((p: any) => p.type === 'INVESTMENT_FUND')).toBe(true)
+      expect(
+        response.body.every((p: any) => p.type === 'INVESTMENT_FUND')
+      ).toBe(true)
     })
 
     it('should allow filtering by financialEntity', async () => {
@@ -217,40 +254,61 @@ describe('Financial Products API', () => {
         financialEntity: 'global-bank-id', // ID específico
         name: 'Global Account',
       }
-      await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(otherBankProduct)
+      await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(otherBankProduct)
 
-      const response = await request(app).get('/products?financialEntity=Global Bank').set('Authorization', `Bearer ${userToken}`)
+      const response = await request(app)
+        .get('/products?financialEntity=Global Bank')
+        .set('Authorization', `Bearer ${userToken}`)
       expect(response.status).toBe(200)
       expect(response.body.length).toBeGreaterThan(0)
-      expect(response.body.every((p: any) => p.financialEntityName === 'Global Bank')).toBe(true)
+      expect(
+        response.body.every((p: any) => p.financialEntityName === 'Global Bank')
+      ).toBe(true)
     })
   })
 
   describe('POST /products', () => {
     it('should return 201 and the created product on valid input', async () => {
-      const response = await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(baseProduct)
+      const response = await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(baseProduct)
 
       expect(response.status).toBe(201)
       expect(response.body).toMatchObject({
         ...baseProduct,
-        financialEntityName: 'Banco de Pruebas'
+        financialEntityName: 'Banco de Pruebas',
       })
       expect(response.body).toHaveProperty('id')
     })
 
     it('should return 400 on invalid input (missing required fields)', async () => {
       const invalidProduct = { name: 'Incomplete Product' }
-      const response = await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(invalidProduct)
+      const response = await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(invalidProduct)
 
       expect(response.status).toBe(400)
     })
 
     it('should return 400 if financialEntity does not exist', async () => {
-      const invalidProduct = { ...baseProduct, financialEntity: 'non-existent-id' }
-      const response = await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(invalidProduct)
+      const invalidProduct = {
+        ...baseProduct,
+        financialEntity: 'non-existent-id',
+      }
+      const response = await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(invalidProduct)
 
       expect(response.status).toBe(400)
-      expect(response.body.error).toContain("Financial Entity with ID 'non-existent-id' not found")
+      expect(response.body.error).toContain(
+        "Financial Entity with ID 'non-existent-id' not found"
+      )
     })
   })
 
@@ -268,7 +326,10 @@ describe('Financial Products API', () => {
         annualInterestRate: 0.03,
         interestPaymentFrequency: 'Quarterly',
       }
-      const response = await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(deposit)
+      const response = await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(deposit)
       expect(response.status).toBe(201)
       expect(response.body).toHaveProperty('initialDate')
     })
@@ -285,7 +346,10 @@ describe('Financial Products API', () => {
         netAssetValue: 105,
         fees: { opening: 0, closing: 0, maintenance: 10 },
       }
-      const response = await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(fund)
+      const response = await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(fund)
       expect(response.status).toBe(201)
       expect(response.body).toHaveProperty('currentBalance', 10500)
       expect(response.body).not.toHaveProperty('totalPurchaseValue')
@@ -294,7 +358,9 @@ describe('Financial Products API', () => {
 
   describe('GET /products/:id', () => {
     it('should return 200 and the product if found', async () => {
-      const response = await request(app).get(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`)
+      const response = await request(app)
+        .get(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
 
       // In the initial TDD phase, this will fail with 404
       expect(response.status).toBe(200)
@@ -302,12 +368,16 @@ describe('Financial Products API', () => {
     })
 
     it('should return 404 if product not found', async () => {
-      const response = await request(app).get('/products/non-existent-id').set('Authorization', `Bearer ${userToken}`)
+      const response = await request(app)
+        .get('/products/non-existent-id')
+        .set('Authorization', `Bearer ${userToken}`)
       expect(response.status).toBe(404)
     })
 
     it('should filter out fields not belonging to the product type', async () => {
-      const response = await request(app).get(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`)
+      const response = await request(app)
+        .get(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(response.status).toBe(200)
       expect(response.body.type).toBe('CURRENT_ACCOUNT')
       // Should have specific fields
@@ -318,12 +388,16 @@ describe('Financial Products API', () => {
     })
 
     it('should return 404 (Security) if user tries to access another users product', async () => {
-      const response = await request(app).get(`/products/${productId}`).set('Authorization', `Bearer ${otherUserToken}`)
+      const response = await request(app)
+        .get(`/products/${productId}`)
+        .set('Authorization', `Bearer ${otherUserToken}`)
       expect(response.status).toBe(404)
     })
 
     it('should return 200 if ADMIN accesses any product', async () => {
-      const response = await request(app).get(`/products/${productId}`).set('Authorization', `Bearer ${adminToken}`)
+      const response = await request(app)
+        .get(`/products/${productId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
       expect(response.status).toBe(200)
     })
   })
@@ -331,29 +405,42 @@ describe('Financial Products API', () => {
   describe('PUT /products/:id', () => {
     it('should return 204 on successful update', async () => {
       const updatedProduct = { name: 'Updated Name' }
-      const response = await request(app).put(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send(updatedProduct)
+      const response = await request(app)
+        .put(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(updatedProduct)
 
       expect(response.status).toBe(204)
     })
 
     it('should update balance and create history entry with previousValue', async () => {
       const newBalance = 1500.0
-      const response = await request(app).put(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send({ currentBalance: newBalance })
+      const response = await request(app)
+        .put(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ currentBalance: newBalance })
 
       expect(response.status).toBe(204)
 
       // Verify history via GET
-      const getResponse = await request(app).get(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`)
+      const getResponse = await request(app)
+        .get(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(Number(getResponse.body.currentBalance)).toBe(newBalance)
       expect(getResponse.body.valueHistory).toHaveLength(1)
       expect(Number(getResponse.body.valueHistory[0].value)).toBe(newBalance)
-      expect(Number(getResponse.body.valueHistory[0].previousValue)).toBe(baseProduct.currentBalance)
+      expect(Number(getResponse.body.valueHistory[0].previousValue)).toBe(
+        baseProduct.currentBalance
+      )
     })
 
     it('should return 400 when trying to update a field not allowed for the product type', async () => {
       // Trying to update 'numberOfShares' on a CURRENT_ACCOUNT
       const invalidUpdate = { numberOfShares: 10 }
-      const response = await request(app).put(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send(invalidUpdate)
+      const response = await request(app)
+        .put(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(invalidUpdate)
 
       expect(response.status).toBe(400)
 
@@ -362,20 +449,30 @@ describe('Financial Products API', () => {
     })
 
     it('should return 400 if updating to a non-existent financialEntity', async () => {
-      const response = await request(app).put(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send({ financialEntity: 'non-existent-id' })
+      const response = await request(app)
+        .put(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ financialEntity: 'non-existent-id' })
 
       expect(response.status).toBe(400)
-      expect(response.body.error).toContain("Financial Entity with ID 'non-existent-id' not found")
+      expect(response.body.error).toContain(
+        "Financial Entity with ID 'non-existent-id' not found"
+      )
     })
   })
 
   describe('PATCH /products/:id', () => {
     it('should return 204 and update status', async () => {
-      const response = await request(app).patch(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send({ status: 'PAUSED' })
+      const response = await request(app)
+        .patch(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ status: 'PAUSED' })
 
       expect(response.status).toBe(204)
 
-      const getResponse = await request(app).get(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`)
+      const getResponse = await request(app)
+        .get(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(getResponse.body.status).toBe('PAUSED')
     })
 
@@ -388,25 +485,36 @@ describe('Financial Products API', () => {
     })
 
     it('should return 400 if patching with non-existent financialEntity', async () => {
-      const response = await request(app).patch(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`).send({ financialEntity: 'non-existent-id' })
+      const response = await request(app)
+        .patch(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ financialEntity: 'non-existent-id' })
 
       expect(response.status).toBe(400)
-      expect(response.body.error).toContain("Financial Entity with ID 'non-existent-id' not found")
+      expect(response.body.error).toContain(
+        "Financial Entity with ID 'non-existent-id' not found"
+      )
     })
   })
 
   describe('DELETE /products/:id', () => {
     it('should return 204 and disappear from queries', async () => {
       // 1. Borrar
-      const response = await request(app).delete(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`)
+      const response = await request(app)
+        .delete(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(response.status).toBe(204)
 
       // 2. Verificar que el detalle da 404
-      const getResponse = await request(app).get(`/products/${productId}`).set('Authorization', `Bearer ${userToken}`)
+      const getResponse = await request(app)
+        .get(`/products/${productId}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(getResponse.status).toBe(404)
 
       // 3. Verificar que no sale en el listado
-      const listResponse = await request(app).get('/products').set('Authorization', `Bearer ${userToken}`)
+      const listResponse = await request(app)
+        .get('/products')
+        .set('Authorization', `Bearer ${userToken}`)
       const found = listResponse.body.find((p: any) => p.id === productId)
       expect(found).toBeUndefined()
     })
@@ -415,7 +523,10 @@ describe('Financial Products API', () => {
   describe('Type-specific Validation and Filtering (All Types)', () => {
     // Helper para crear productos rápidamente
     const createProduct = async (data: any) => {
-      const res = await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(data)
+      const res = await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(data)
       return res.body
     }
 
@@ -427,17 +538,22 @@ describe('Financial Products API', () => {
         status: 'ACTIVE',
         clientId: '550e8400-e29b-41d4-a716-446655440000',
         currentBalance: 5000,
-        monthlyInterestRate: 0.02
+        monthlyInterestRate: 0.02,
       })
 
       // 1. Verificar filtrado en GET (solo campos de Savings)
-      const getRes = await request(app).get(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`)
+      const getRes = await request(app)
+        .get(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(getRes.body).toHaveProperty('monthlyInterestRate')
       expect(getRes.body).not.toHaveProperty('numberOfShares') // Campo de Stocks
       expect(getRes.body).not.toHaveProperty('transactions') // Campo de CurrentAccount (según mapToDomain actual)
 
       // 2. Verificar validación en PUT (no permitir campos de otros tipos)
-      const updateRes = await request(app).put(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`).send({ numberOfShares: 10 })
+      const updateRes = await request(app)
+        .put(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ numberOfShares: 10 })
       expect(updateRes.status).toBe(400)
       expect(updateRes.body.error).toContain('Validation failed')
     })
@@ -453,19 +569,27 @@ describe('Financial Products API', () => {
         initialDate: new Date().toISOString(),
         maturityDate: new Date().toISOString(),
         annualInterestRate: 0.05,
-        interestPaymentFrequency: 'Annual'
+        interestPaymentFrequency: 'Annual',
       })
 
-      const getRes = await request(app).get(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`)
+      const getRes = await request(app)
+        .get(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(getRes.body).toHaveProperty('annualInterestRate')
       expect(getRes.body).toHaveProperty('interestPaymentFrequency')
 
       // Actualizar currentBalance (Ahora permitido para seguimiento de valoración)
-      const updateRes = await request(app).put(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`).send({ currentBalance: 500 })
+      const updateRes = await request(app)
+        .put(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ currentBalance: 500 })
       expect(updateRes.status).toBe(204)
 
       // Intentar actualizar con un valor de enum inválido
-      const updateResEnum = await request(app).put(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`).send({ interestPaymentFrequency: 'END' })
+      const updateResEnum = await request(app)
+        .put(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ interestPaymentFrequency: 'END' })
       expect(updateResEnum.status).toBe(400)
       expect(updateResEnum.body.error).toContain('Validation failed')
     })
@@ -481,9 +605,12 @@ describe('Financial Products API', () => {
         initialDate: new Date().toISOString(),
         maturityDate: new Date().toISOString(),
         annualInterestRate: 0.05,
-        interestPaymentFrequency: 'END'
+        interestPaymentFrequency: 'END',
       }
-      const response = await request(app).post('/products').set('Authorization', `Bearer ${userToken}`).send(deposit)
+      const response = await request(app)
+        .post('/products')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(deposit)
       expect(response.status).toBe(400)
       expect(response.body.error).toContain('Validation failed')
     })
@@ -497,14 +624,19 @@ describe('Financial Products API', () => {
         clientId: '550e8400-e29b-41d4-a716-446655440000',
         currentBalance: 20000,
         numberOfUnits: 10,
-        netAssetValue: 2000
+        netAssetValue: 2000,
       })
 
-      const getRes = await request(app).get(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`)
+      const getRes = await request(app)
+        .get(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(getRes.body).toHaveProperty('netAssetValue')
       expect(getRes.body).not.toHaveProperty('annualInterestRate')
 
-      const updateRes = await request(app).put(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`).send({ annualInterestRate: 0.05 })
+      const updateRes = await request(app)
+        .put(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ annualInterestRate: 0.05 })
       expect(updateRes.status).toBe(400)
     })
 
@@ -519,18 +651,23 @@ describe('Financial Products API', () => {
         unitPurchasePrice: 150,
         currentMarketPrice: 160,
         currentBalance: 16000,
-        initialBalance: 16000
+        initialBalance: 16000,
       })
 
       expect(product).toHaveProperty('id')
 
-      const getRes = await request(app).get(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`)
+      const getRes = await request(app)
+        .get(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(getRes.body).toHaveProperty('numberOfShares')
       expect(getRes.body).toHaveProperty('currentBalance', 16000)
       expect(getRes.body).toHaveProperty('initialBalance', 16000)
       expect(getRes.body).not.toHaveProperty('monthlyInterestRate')
 
-      const updateRes = await request(app).put(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`).send({ monthlyInterestRate: 0.01 })
+      const updateRes = await request(app)
+        .put(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ monthlyInterestRate: 0.01 })
       expect(updateRes.status).toBe(400)
     })
 
@@ -545,21 +682,29 @@ describe('Financial Products API', () => {
         unitPurchasePrice: 200,
         currentMarketPrice: 220,
         currentBalance: 2200,
-        initialBalance: 2200
+        initialBalance: 2200,
       })
-      
+
       expect(product).toHaveProperty('id')
 
       const newBalance = 2500
-      const updateRes = await request(app).put(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`).send({ currentBalance: newBalance })
-      
+      const updateRes = await request(app)
+        .put(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ currentBalance: newBalance })
+
       if (updateRes.status === 400) {
-        console.error('STOCKS Update Validation Error:', JSON.stringify(updateRes.body, null, 2))
+        console.error(
+          'STOCKS Update Validation Error:',
+          JSON.stringify(updateRes.body, null, 2)
+        )
       }
-      
+
       expect(updateRes.status).toBe(204)
 
-      const getRes = await request(app).get(`/products/${product.id}`).set('Authorization', `Bearer ${userToken}`)
+      const getRes = await request(app)
+        .get(`/products/${product.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
       expect(getRes.body.currentBalance).toBe(newBalance)
       // Verificamos que se haya generado histórico (asumiendo que la lógica de negocio lo implementa)
       expect(getRes.body.valueHistory).toHaveLength(1)

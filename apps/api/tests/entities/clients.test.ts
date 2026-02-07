@@ -13,21 +13,23 @@ vi.mock('../../src/infrastructure/persistence/prisma/client', async () => {
     default: {
       client: {
         findUnique: vi.fn().mockImplementation(({ where }) => {
-          return Promise.resolve(mockClientDb.find(c => c.id === where.id) || null)
+          return Promise.resolve(
+            mockClientDb.find((c) => c.id === where.id) || null
+          )
         }),
         findMany: vi.fn().mockImplementation(() => {
           return Promise.resolve(mockClientDb)
         }),
         update: vi.fn().mockImplementation(({ where, data }) => {
-          const index = mockClientDb.findIndex(c => c.id === where.id)
+          const index = mockClientDb.findIndex((c) => c.id === where.id)
           if (index !== -1) {
             mockClientDb[index] = { ...mockClientDb[index], ...data }
             return Promise.resolve(mockClientDb[index])
           }
           return Promise.reject(new Error('Record to update not found.'))
         }),
-      }
-    }
+      },
+    },
   }
 })
 
@@ -45,7 +47,7 @@ describe('Client API', () => {
       password: hashedOldPassword,
       role: 'USER',
       firstName: 'User',
-      lastName: 'One'
+      lastName: 'One',
     })
     mockClientDb.push({
       id: 'user-2',
@@ -53,7 +55,7 @@ describe('Client API', () => {
       password: hashedOldPassword,
       role: 'USER',
       firstName: 'User',
-      lastName: 'Two'
+      lastName: 'Two',
     })
   })
 
@@ -65,9 +67,9 @@ describe('Client API', () => {
         .send({ newPassword: 'newAdminPassword' })
 
       expect(res.status).toBe(204)
-      
+
       // Verify in mock db
-      const user = mockClientDb.find(u => u.id === 'user-1')
+      const user = mockClientDb.find((u) => u.id === 'user-1')
       const isMatch = await bcrypt.compare('newAdminPassword', user.password)
       expect(isMatch).toBe(true)
     })
@@ -76,14 +78,14 @@ describe('Client API', () => {
       const res = await request(app)
         .put('/clients/user-1/change-password')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ 
+        .send({
           currentPassword: 'oldPassword123',
-          newPassword: 'newUserPassword' 
+          newPassword: 'newUserPassword',
         })
 
       expect(res.status).toBe(204)
 
-      const user = mockClientDb.find(u => u.id === 'user-1')
+      const user = mockClientDb.find((u) => u.id === 'user-1')
       const isMatch = await bcrypt.compare('newUserPassword', user.password)
       expect(isMatch).toBe(true)
     })
@@ -102,9 +104,9 @@ describe('Client API', () => {
       const res = await request(app)
         .put('/clients/user-1/change-password')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ 
+        .send({
           currentPassword: 'WRONGPassword',
-          newPassword: 'newUserPassword' 
+          newPassword: 'newUserPassword',
         })
 
       expect(res.status).toBe(400)
@@ -115,9 +117,9 @@ describe('Client API', () => {
       const res = await request(app)
         .put('/clients/user-2/change-password')
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ 
+        .send({
           currentPassword: 'oldPassword123',
-          newPassword: 'hackedPassword' 
+          newPassword: 'hackedPassword',
         })
 
       expect(res.status).toBe(403)
@@ -129,7 +131,7 @@ describe('Client API', () => {
       const res = await request(app)
         .get('/clients')
         .set('Authorization', `Bearer ${adminToken}`)
-      
+
       expect(res.status).toBe(200)
       expect(res.body).toHaveLength(2)
     })
@@ -140,7 +142,7 @@ describe('Client API', () => {
       const res = await request(app)
         .get('/clients/user-1')
         .set('Authorization', `Bearer ${userToken}`)
-      
+
       expect(res.status).toBe(200)
       expect(res.body.id).toBe('user-1')
     })
@@ -149,7 +151,7 @@ describe('Client API', () => {
       const res = await request(app)
         .get('/clients/user-2')
         .set('Authorization', `Bearer ${userToken}`)
-      
+
       expect(res.status).toBe(403)
     })
   })
@@ -160,9 +162,9 @@ describe('Client API', () => {
         .put('/clients/user-1')
         .set('Authorization', `Bearer ${userToken}`)
         .send({ firstName: 'UpdatedName' })
-      
+
       expect(res.status).toBe(200)
-      const user = mockClientDb.find(u => u.id === 'user-1')
+      const user = mockClientDb.find((u) => u.id === 'user-1')
       expect(user.firstName).toBe('UpdatedName')
     })
   })

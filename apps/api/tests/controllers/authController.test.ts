@@ -23,7 +23,10 @@ describe('AuthController', () => {
 
   describe('login', () => {
     it('should return 200 and token on success', async () => {
-      const result = { token: 'abc', user: { id: '1', email: 'a@b.c', role: 'USER' } }
+      const result = {
+        token: 'abc',
+        user: { id: '1', email: 'a@b.c', role: 'USER' },
+      }
       vi.mocked(useCases.login).mockResolvedValue(result)
       req = { body: { email: 'a@b.c', password: '123' } }
 

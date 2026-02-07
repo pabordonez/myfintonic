@@ -118,47 +118,47 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 
 ### Tabla `Client`
 
-| Campo       | Tipo         | Descripción                                 |
-| ----------- | ------------ | ------------------------------------------- |
-| `id`        | VARCHAR(191) | Identificador único (UUID). Clave primaria. |
-| `firstName` | VARCHAR(191) | Nombre del cliente.                         |
-| `lastName`  | VARCHAR(191) | Apellidos del cliente.                      |
-| `nickname`  | VARCHAR(191) | Apodo o nombre de usuario para mostrar.     |
-| `email`     | VARCHAR(191) | Correo electrónico único.                   |
-| `password`  | VARCHAR(191) | Contraseña hasheada.                        |
-| `role`      | ENUM         | Rol del usuario: `ADMIN`, `USER`.           |
+| Campo       | Tipo         | Descripción                                        |
+| ----------- | ------------ | -------------------------------------------------- |
+| `id`        | VARCHAR(191) | Identificador único (UUID). Clave primaria.        |
+| `firstName` | VARCHAR(191) | Nombre del cliente.                                |
+| `lastName`  | VARCHAR(191) | Apellidos del cliente.                             |
+| `nickname`  | VARCHAR(191) | Apodo o nombre de usuario para mostrar.            |
+| `email`     | VARCHAR(191) | Correo electrónico único.                          |
+| `password`  | VARCHAR(191) | Contraseña hasheada.                               |
+| `role`      | ENUM         | Rol del usuario: `ADMIN`, `USER`.                  |
 | `deletedAt` | DATETIME     | Fecha de borrado lógico (si es NULL, está activo). |
 
 ### Tabla `FinancialEntity`
 
-| Campo      | Tipo           | Descripción                                                                 |
-| ---------- | -------------- | --------------------------------------------------------------------------- |
-| `id`       | VARCHAR(191)   | Identificador único (UUID).                                                 |
-| `name`     | VARCHAR(191)   | Nombre de la entidad financiera.                                            |
-| `balance`  | DECIMAL(15, 2) | Valor total acumulado en esta entidad (campo manual para ahorro de tiempo). |
-| `clientId` | VARCHAR(191)   | ID del cliente.                                                             |
-| `deletedAt`| DATETIME       | Fecha de borrado lógico.                                                    |
+| Campo       | Tipo           | Descripción                                                                 |
+| ----------- | -------------- | --------------------------------------------------------------------------- |
+| `id`        | VARCHAR(191)   | Identificador único (UUID).                                                 |
+| `name`      | VARCHAR(191)   | Nombre de la entidad financiera.                                            |
+| `balance`   | DECIMAL(15, 2) | Valor total acumulado en esta entidad (campo manual para ahorro de tiempo). |
+| `clientId`  | VARCHAR(191)   | ID del cliente.                                                             |
+| `deletedAt` | DATETIME       | Fecha de borrado lógico.                                                    |
 
 ### Tabla `ClientFinancialEntity`
 
-| Campo               | Tipo           | Descripción                                                                 |
-| ------------------- | -------------- | --------------------------------------------------------------------------- |
-| `id`                | VARCHAR(191)   | Identificador único (UUID).                                                 |
-| `balance`           | DECIMAL(15, 2) | Valor total acumulado en esta entidad.                                      |
-| `deletedAt`         | DATETIME       | Fecha de borrado lógico.                                                    |
+| Campo       | Tipo           | Descripción                            |
+| ----------- | -------------- | -------------------------------------- |
+| `id`        | VARCHAR(191)   | Identificador único (UUID).            |
+| `balance`   | DECIMAL(15, 2) | Valor total acumulado en esta entidad. |
+| `deletedAt` | DATETIME       | Fecha de borrado lógico.               |
 
 ### Tabla `FinancialProduct`
 
-| Campo               | Tipo         | Descripción                                                                                                |
-| ------------------- | ------------ | ---------------------------------------------------------------------------------------------------------- |
-| `id`                | VARCHAR(191) | Identificador único (UUID). Clave primaria.                                                                |
-| `type`              | ENUM         | Tipo de producto: `CURRENT_ACCOUNT`, `SAVINGS_ACCOUNT`, `FIXED_TERM_DEPOSIT`, `INVESTMENT_FUND`, `STOCKS`. |
-| `status`            | ENUM         | Estado del producto: `ACTIVE`, `INACTIVE`, `PAUSED`, `EXPIRED`.                                            |
-| `financialEntityId` | VARCHAR(191) | ID de la entidad financiera a la que pertenece.                                                            |
-| `clientId`          | VARCHAR(191) | ID del usuario propietario del producto. Indexado para búsquedas rápidas.                                  |
-| `fees`              | JSON         | Objeto JSON con las comisiones. Ej: `{"maintenance": 10.0}`.                                               |
-| `initialBalance`    | DECIMAL(15, 2) | Saldo inicial del producto (opcional).                                                                   |
-| `deletedAt`         | DATETIME     | Fecha de borrado lógico.                                                                                   |
+| Campo               | Tipo           | Descripción                                                                                                |
+| ------------------- | -------------- | ---------------------------------------------------------------------------------------------------------- |
+| `id`                | VARCHAR(191)   | Identificador único (UUID). Clave primaria.                                                                |
+| `type`              | ENUM           | Tipo de producto: `CURRENT_ACCOUNT`, `SAVINGS_ACCOUNT`, `FIXED_TERM_DEPOSIT`, `INVESTMENT_FUND`, `STOCKS`. |
+| `status`            | ENUM           | Estado del producto: `ACTIVE`, `INACTIVE`, `PAUSED`, `EXPIRED`.                                            |
+| `financialEntityId` | VARCHAR(191)   | ID de la entidad financiera a la que pertenece.                                                            |
+| `clientId`          | VARCHAR(191)   | ID del usuario propietario del producto. Indexado para búsquedas rápidas.                                  |
+| `fees`              | JSON           | Objeto JSON con las comisiones. Ej: `{"maintenance": 10.0}`.                                               |
+| `initialBalance`    | DECIMAL(15, 2) | Saldo inicial del producto (opcional).                                                                     |
+| `deletedAt`         | DATETIME       | Fecha de borrado lógico.                                                                                   |
 
 ### Tabla `ValueHistory`
 
@@ -185,5 +185,6 @@ Almacena movimientos específicos (ingresos, gastos) asociados principalmente a 
 ### 6. Estrategia de Borrado (Soft Delete)
 
 Se implementa un patrón de **Soft Delete** mediante la columna `deletedAt`.
+
 - Las operaciones `DELETE` en la API no eliminarán filas, sino que actualizarán `deletedAt = NOW()`.
 - Las consultas `GET` filtrarán automáticamente `WHERE deletedAt IS NULL`.

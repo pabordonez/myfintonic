@@ -5,7 +5,11 @@ import prisma from '@infrastructure/persistence/prisma/client'
  * Verifica si el usuario es dueño del recurso.
  * El ADMIN siempre tiene acceso (bypass).
  */
-export const productOwnershipMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const productOwnershipMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     // 1. Admin Bypass
     if (req.user?.role === 'ADMIN') {
@@ -23,7 +27,7 @@ export const productOwnershipMiddleware = async (req: Request, res: Response, ne
 
     const product = await prisma.financialProduct.findUnique({
       where: { id: productId },
-      select: { clientId: true }
+      select: { clientId: true },
     })
 
     if (!product || product.clientId !== userId) {

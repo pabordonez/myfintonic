@@ -1,7 +1,10 @@
 import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
 import { IProductFactory } from '@domain/factories/productFactory'
 import { IProductRepository } from '@domain/repository/IProductRepository'
-import { CreateProductDto, UpdateProductDto } from '@application/dtos/productDto'
+import {
+  CreateProductDto,
+  UpdateProductDto,
+} from '@application/dtos/productDto'
 
 export class ProductUseCases {
   constructor(
@@ -9,7 +12,9 @@ export class ProductUseCases {
     private productFactory: IProductFactory
   ) {}
 
-  async getProducts(filters: Partial<IFinancialProduct>): Promise<IFinancialProduct[]> {
+  async getProducts(
+    filters: Partial<IFinancialProduct>
+  ): Promise<IFinancialProduct[]> {
     return this.productRepository.findAll(filters)
   }
 
@@ -17,7 +22,9 @@ export class ProductUseCases {
     return this.productRepository.findById(id)
   }
 
-  async getProductHistory(id: string): Promise<Array<{ date: Date; value: number }> | null> {
+  async getProductHistory(
+    id: string
+  ): Promise<Array<{ date: Date; value: number }> | null> {
     const product = await this.productRepository.findById(id)
     if (!product) {
       return null
@@ -25,9 +32,9 @@ export class ProductUseCases {
     return product.valueHistory || []
   }
 
-  async createProduct(productData: CreateProductDto): Promise<IFinancialProduct> {
-
-
+  async createProduct(
+    productData: CreateProductDto
+  ): Promise<IFinancialProduct> {
     if (
       !productData.name ||
       !productData.type ||
@@ -40,7 +47,10 @@ export class ProductUseCases {
     return this.productRepository.create(product)
   }
 
-  async updateProduct(id: string, productData: UpdateProductDto): Promise<void> {
+  async updateProduct(
+    id: string,
+    productData: UpdateProductDto
+  ): Promise<void> {
     const existingProduct = await this.productRepository.findById(id)
     if (!existingProduct) {
       throw new Error('Product not found')

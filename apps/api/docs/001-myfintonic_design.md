@@ -92,6 +92,7 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `monthlyInterestRate` (Number): Porcentaje de interés (e.g., 0.01 para 1%).
 
 **FixedTermDeposit** (hereda de `FinancialProduct`)
+
 - `currentBalance` (Number): Valor actual del depósito (permite seguimiento de valoración).
 - `initialDate` (Date): Fecha de inicio del depósito.
 - `maturityDate` (Date): Fecha de finalización del depósito.
@@ -292,7 +293,11 @@ La API seguirá los principios REST, utilizando sustantivos en plural para las c
 - **`POST /products/{id}/transactions`**: Agrega una nueva transacción a un producto (Solo Cuentas Corrientes y de Ahorro).
   - **Body**:
     ```json
-    { "description": "Salary", "date": "2023-10-27T10:00:00Z", "amount": 1500.00 }
+    {
+      "description": "Salary",
+      "date": "2023-10-27T10:00:00Z",
+      "amount": 1500.0
+    }
     ```
   - **Respuestas**:
     - `201 Created`: Transacción creada y saldo actualizado.

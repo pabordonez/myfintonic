@@ -35,7 +35,9 @@ describe('FinancialEntityUseCases', () => {
 
   it('updateEntity should throw if not found', async () => {
     vi.mocked(mockRepo.findById).mockResolvedValue(null)
-    await expect(useCases.updateEntity('1', { name: 'New' })).rejects.toThrow('Financial Entity not found')
+    await expect(useCases.updateEntity('1', { name: 'New' })).rejects.toThrow(
+      'Financial Entity not found'
+    )
   })
 
   it('updateEntity should call repository.update if found', async () => {
@@ -46,7 +48,9 @@ describe('FinancialEntityUseCases', () => {
 
   it('deleteEntity should throw if not found', async () => {
     vi.mocked(mockRepo.findById).mockResolvedValue(null)
-    await expect(useCases.deleteEntity('1')).rejects.toThrow('Financial Entity not found')
+    await expect(useCases.deleteEntity('1')).rejects.toThrow(
+      'Financial Entity not found'
+    )
   })
 
   it('deleteEntity should call repository.delete if found', async () => {

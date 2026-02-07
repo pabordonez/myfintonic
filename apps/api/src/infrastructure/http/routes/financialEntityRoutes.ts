@@ -3,7 +3,9 @@ import { FinancialEntityController } from '@infrastructure/http/controllers/fina
 import { authenticate } from '@infrastructure/http/middlewares/authenticate'
 import { isAdmin } from '@infrastructure/http/middlewares/isAdmin'
 
-export const createFinancialEntityRoutes = (controller: FinancialEntityController): Router => {
+export const createFinancialEntityRoutes = (
+  controller: FinancialEntityController
+): Router => {
   const router = Router()
 
   router.use(authenticate)

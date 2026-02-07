@@ -6,43 +6,48 @@ import { env } from '../../src/config/env'
 
 // 1. Hoisted variable to simulate the catalog in-memory
 const { mockCatalog } = vi.hoisted(() => ({
-  mockCatalog: [] as any[]
+  mockCatalog: [] as any[],
 }))
 
 // 2. Mock Prisma client (Infrastructure)
-vi.mock('../../src/infrastructure/persistence/prisma/client', async importOriginal => {
-  const actual = await importOriginal()
-  return {
-    ...(actual as any),
-    default: {
-      financialEntity: {
-        create: vi.fn().mockImplementation(async ({ data }) => {
-          const newEntry = {
-            id: `catalog-${Math.random()}`,
-            name: data.name,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }
-          mockCatalog.push(newEntry)
-          return newEntry
-        }),
-        findMany: vi.fn().mockImplementation(async ({ where }) => {
-          return mockCatalog.filter(e => !where?.name || e.name === where.name)
-        }),
-        findUnique: vi.fn().mockImplementation(async ({ where }) => {
-          return mockCatalog.find(e => e.id === where.id) || null
-        }),
-        delete: vi.fn().mockImplementation(async ({ where }) => {
-          const index = mockCatalog.findIndex(e => e.id === where.id)
-          if (index === -1) throw new Error('Record not found')
-          const deleted = mockCatalog.splice(index, 1)
-          return deleted[0]
-        }),
+vi.mock(
+  '../../src/infrastructure/persistence/prisma/client',
+  async (importOriginal) => {
+    const actual = await importOriginal()
+    return {
+      ...(actual as any),
+      default: {
+        financialEntity: {
+          create: vi.fn().mockImplementation(async ({ data }) => {
+            const newEntry = {
+              id: `catalog-${Math.random()}`,
+              name: data.name,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }
+            mockCatalog.push(newEntry)
+            return newEntry
+          }),
+          findMany: vi.fn().mockImplementation(async ({ where }) => {
+            return mockCatalog.filter(
+              (e) => !where?.name || e.name === where.name
+            )
+          }),
+          findUnique: vi.fn().mockImplementation(async ({ where }) => {
+            return mockCatalog.find((e) => e.id === where.id) || null
+          }),
+          delete: vi.fn().mockImplementation(async ({ where }) => {
+            const index = mockCatalog.findIndex((e) => e.id === where.id)
+            if (index === -1) throw new Error('Record not found')
+            const deleted = mockCatalog.splice(index, 1)
+            return deleted[0]
+          }),
+        },
+        $disconnect: vi.fn(),
       },
-      $disconnect: vi.fn(),
-    },
+    }
   }
-})
+)
 
 describe('Financial Entities Catalog API', () => {
   const baseEntity = {

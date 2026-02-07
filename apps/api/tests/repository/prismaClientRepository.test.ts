@@ -42,9 +42,18 @@ describe('PrismaClientRepository', () => {
 
   describe('create', () => {
     it('should create a client', async () => {
-      const dto: RegisterClientDto = { email: 'test@test.com', password: '123', firstName: 'T', lastName: 'U' }
-      vi.mocked(prisma.client.create).mockResolvedValue({ id: '1', ...dto, role: 'USER' } as any)
-      
+      const dto: RegisterClientDto = {
+        email: 'test@test.com',
+        password: '123',
+        firstName: 'T',
+        lastName: 'U',
+      }
+      vi.mocked(prisma.client.create).mockResolvedValue({
+        id: '1',
+        ...dto,
+        role: 'USER',
+      } as any)
+
       const result = await repository.create(dto)
       expect(result).toHaveProperty('id')
       expect(prisma.client.create).toHaveBeenCalled()
@@ -54,16 +63,28 @@ describe('PrismaClientRepository', () => {
       const error: any = new Error('Unique constraint')
       error.code = 'P2002'
       vi.mocked(prisma.client.create).mockRejectedValue(error)
-      
-      const dto: RegisterClientDto = { email: 'test@test.com', password: '123', firstName: 'T', lastName: 'U' }
-      await expect(repository.create(dto)).rejects.toThrow('Email already in use')
+
+      const dto: RegisterClientDto = {
+        email: 'test@test.com',
+        password: '123',
+        firstName: 'T',
+        lastName: 'U',
+      }
+      await expect(repository.create(dto)).rejects.toThrow(
+        'Email already in use'
+      )
     })
 
     it('should rethrow other errors', async () => {
       const error = new Error('DB Error')
       vi.mocked(prisma.client.create).mockRejectedValue(error)
-      
-      const dto: RegisterClientDto = { email: 'test@test.com', password: '123', firstName: 'T', lastName: 'U' }
+
+      const dto: RegisterClientDto = {
+        email: 'test@test.com',
+        password: '123',
+        firstName: 'T',
+        lastName: 'U',
+      }
       await expect(repository.create(dto)).rejects.toThrow('DB Error')
     })
   })

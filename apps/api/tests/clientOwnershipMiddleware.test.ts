@@ -10,11 +10,11 @@ describe('clientOwnershipMiddleware', () => {
   beforeEach(() => {
     req = {
       params: {},
-      user: undefined
+      user: undefined,
     }
     res = {
       status: vi.fn().mockReturnThis(),
-      json: vi.fn()
+      json: vi.fn(),
     }
     next = vi.fn()
   })
@@ -22,7 +22,7 @@ describe('clientOwnershipMiddleware', () => {
   it('should call next if user is ADMIN', () => {
     req.user = { id: 'admin', role: 'ADMIN' } as any
     req.params = { clientId: 'other' }
-    
+
     clientOwnershipMiddleware(req as Request, res as Response, next)
     expect(next).toHaveBeenCalled()
   })
@@ -41,6 +41,8 @@ describe('clientOwnershipMiddleware', () => {
 
     clientOwnershipMiddleware(req as Request, res as Response, next)
     expect(res.status).toHaveBeenCalledWith(403)
-    expect(res.json).toHaveBeenCalledWith({ error: 'Forbidden: You can only access your own resources' })
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'Forbidden: You can only access your own resources',
+    })
   })
 })

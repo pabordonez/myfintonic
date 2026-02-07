@@ -18,7 +18,10 @@ describe('ProductTransactionUseCases', () => {
       findById: vi.fn(),
     } as unknown as IProductRepository
 
-    useCase = new ProductTransactionUseCases(mockTransactionRepo, mockProductRepo)
+    useCase = new ProductTransactionUseCases(
+      mockTransactionRepo,
+      mockProductRepo
+    )
   })
 
   describe('add', () => {
@@ -28,13 +31,13 @@ describe('ProductTransactionUseCases', () => {
         productId: 'prod-1',
         description: 'Test',
         date: new Date(),
-        amount: 100
+        amount: 100,
       }
 
       vi.mocked(mockProductRepo.findById).mockResolvedValue({
         id: 'prod-1',
         clientId: 'user-1',
-        type: 'CURRENT_ACCOUNT'
+        type: 'CURRENT_ACCOUNT',
       } as any)
 
       await useCase.add(request)
@@ -43,34 +46,37 @@ describe('ProductTransactionUseCases', () => {
         productId: 'prod-1',
         description: 'Test',
         date: request.date,
-        amount: 100
+        amount: 100,
       })
     })
 
     it('should throw error if product not found', async () => {
       vi.mocked(mockProductRepo.findById).mockResolvedValue(null)
-      await expect(useCase.add({ userId: 'u1', productId: 'p1' } as any))
-        .rejects.toThrow('Product not found')
+      await expect(
+        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+      ).rejects.toThrow('Product not found')
     })
 
     it('should throw error if user is not owner', async () => {
       vi.mocked(mockProductRepo.findById).mockResolvedValue({
         id: 'p1',
         clientId: 'other-user',
-        type: 'CURRENT_ACCOUNT'
+        type: 'CURRENT_ACCOUNT',
       } as any)
-      await expect(useCase.add({ userId: 'u1', productId: 'p1' } as any))
-        .rejects.toThrow('Unauthorized access to product')
+      await expect(
+        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+      ).rejects.toThrow('Unauthorized access to product')
     })
 
     it('should throw error if product type is invalid', async () => {
       vi.mocked(mockProductRepo.findById).mockResolvedValue({
         id: 'p1',
         clientId: 'u1',
-        type: 'STOCKS'
+        type: 'STOCKS',
       } as any)
-      await expect(useCase.add({ userId: 'u1', productId: 'p1' } as any))
-        .rejects.toThrow('Transactions are not allowed')
+      await expect(
+        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+      ).rejects.toThrow('Transactions are not allowed')
     })
   })
 
@@ -86,8 +92,9 @@ describe('ProductTransactionUseCases', () => {
 
     it('should throw error if product not found', async () => {
       vi.mocked(mockProductRepo.findById).mockResolvedValue(null)
-      await expect(useCase.getProductTransactions('p1'))
-        .rejects.toThrow('Product not found')
+      await expect(useCase.getProductTransactions('p1')).rejects.toThrow(
+        'Product not found'
+      )
     })
   })
 })

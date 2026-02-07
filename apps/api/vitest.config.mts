@@ -19,7 +19,7 @@ export default defineConfig({
         '**/node_modules/**',
         '**/dist/**',
       ],
-    }
+    },
   },
   resolve: {
     alias: {

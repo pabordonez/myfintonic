@@ -16,7 +16,9 @@ describe('Middlewares', () => {
     req = {
       headers: {},
       user: undefined,
-      header: vi.fn((name: string) => req.headers ? req.headers[name.toLowerCase()] : undefined),
+      header: vi.fn((name: string) =>
+        req.headers ? req.headers[name.toLowerCase()] : undefined
+      ),
     } as any
 
     // Creamos el objeto mock primero para asegurar que las referencias sean circulares y correctas
@@ -30,7 +32,7 @@ describe('Middlewares', () => {
     resMock.status.mockReturnValue(resMock)
     resMock.json.mockReturnValue(resMock)
     resMock.send.mockReturnValue(resMock)
-    
+
     res = resMock
 
     next = vi.fn()
@@ -64,7 +66,9 @@ describe('Middlewares', () => {
 
     it('should return 401 if token is invalid', () => {
       req.headers = { authorization: 'Bearer invalid-token' }
-      vi.mocked(jwt.verify).mockImplementation(() => { throw new Error('Invalid token') })
+      vi.mocked(jwt.verify).mockImplementation(() => {
+        throw new Error('Invalid token')
+      })
 
       authenticate(req as Request, res as Response, next)
       expect(res.status).toHaveBeenCalledWith(401)

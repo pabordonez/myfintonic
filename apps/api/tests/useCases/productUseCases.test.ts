@@ -25,11 +25,18 @@ describe('ProductUseCases', () => {
 
   describe('createProduct', () => {
     it('should throw if missing fields', async () => {
-      await expect(useCases.createProduct({} as any)).rejects.toThrow('Missing required fields')
+      await expect(useCases.createProduct({} as any)).rejects.toThrow(
+        'Missing required fields'
+      )
     })
 
     it('should create product if valid', async () => {
-      const data = { name: 'P', type: 'T', financialEntity: 'F', status: 'S' } as any
+      const data = {
+        name: 'P',
+        type: 'T',
+        financialEntity: 'F',
+        status: 'S',
+      } as any
       vi.mocked(mockFactory.create).mockReturnValue(data)
       await useCases.createProduct(data)
       expect(mockRepo.create).toHaveBeenCalledWith(data)
@@ -39,7 +46,9 @@ describe('ProductUseCases', () => {
   describe('updateProduct', () => {
     it('should throw if product not found', async () => {
       vi.mocked(mockRepo.findById).mockResolvedValue(null)
-      await expect(useCases.updateProduct('1', {})).rejects.toThrow('Product not found')
+      await expect(useCases.updateProduct('1', {})).rejects.toThrow(
+        'Product not found'
+      )
     })
 
     it('should validate and update if found', async () => {
@@ -54,21 +63,25 @@ describe('ProductUseCases', () => {
         id: '1',
         type: 'FIXED_TERM_DEPOSIT',
         currentBalance: 1000,
-        initialBalance: 1000
+        initialBalance: 1000,
       }
       vi.mocked(mockRepo.findById).mockResolvedValue(existingProduct as any)
 
       await useCases.updateProduct('1', { currentBalance: 1050 })
 
       expect(mockFactory.validateUpdate).toHaveBeenCalled()
-      expect(mockRepo.update).toHaveBeenCalledWith('1', { currentBalance: 1050 })
+      expect(mockRepo.update).toHaveBeenCalledWith('1', {
+        currentBalance: 1050,
+      })
     })
   })
 
   describe('deleteProduct', () => {
     it('should throw if product not found', async () => {
       vi.mocked(mockRepo.findById).mockResolvedValue(null)
-      await expect(useCases.deleteProduct('1')).rejects.toThrow('Product not found')
+      await expect(useCases.deleteProduct('1')).rejects.toThrow(
+        'Product not found'
+      )
     })
 
     it('should delete if found', async () => {
@@ -86,13 +99,17 @@ describe('ProductUseCases', () => {
     })
 
     it('should return history if found', async () => {
-      vi.mocked(mockRepo.findById).mockResolvedValue({ valueHistory: [] } as any)
+      vi.mocked(mockRepo.findById).mockResolvedValue({
+        valueHistory: [],
+      } as any)
       const res = await useCases.getProductHistory('1')
       expect(res).toEqual([])
     })
 
     it('should return empty array if history is undefined', async () => {
-      vi.mocked(mockRepo.findById).mockResolvedValue({ valueHistory: undefined } as any)
+      vi.mocked(mockRepo.findById).mockResolvedValue({
+        valueHistory: undefined,
+      } as any)
       const res = await useCases.getProductHistory('1')
       expect(res).toEqual([])
     })

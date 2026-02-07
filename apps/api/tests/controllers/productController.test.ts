@@ -33,16 +33,22 @@ describe('ProductController', () => {
 
   describe('create', () => {
     it('should return 400 if missing fields', async () => {
-      vi.mocked(mockUseCases.createProduct).mockRejectedValue(new Error('Missing required fields'))
+      vi.mocked(mockUseCases.createProduct).mockRejectedValue(
+        new Error('Missing required fields')
+      )
       const req = mockRequest({})
       const res = mockResponse()
       await controller.create(req, res)
       expect(res.status).toHaveBeenCalledWith(400)
-      expect(res.json).toHaveBeenCalledWith({ error: 'Missing required fields' })
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'Missing required fields',
+      })
     })
 
     it('should return 400 if validation failed', async () => {
-      vi.mocked(mockUseCases.createProduct).mockRejectedValue(new Error('Validation failed: reason'))
+      vi.mocked(mockUseCases.createProduct).mockRejectedValue(
+        new Error('Validation failed: reason')
+      )
       const req = mockRequest({})
       const res = mockResponse()
       await controller.create(req, res)
@@ -50,7 +56,9 @@ describe('ProductController', () => {
     })
 
     it('should return 400 if financial entity error', async () => {
-      vi.mocked(mockUseCases.createProduct).mockRejectedValue(new Error('Financial Entity not found'))
+      vi.mocked(mockUseCases.createProduct).mockRejectedValue(
+        new Error('Financial Entity not found')
+      )
       const req = mockRequest({})
       const res = mockResponse()
       await controller.create(req, res)
@@ -88,7 +96,9 @@ describe('ProductController', () => {
     })
 
     it('should return 500 on error', async () => {
-      vi.mocked(mockUseCases.getProductById).mockRejectedValue(new Error('Boom'))
+      vi.mocked(mockUseCases.getProductById).mockRejectedValue(
+        new Error('Boom')
+      )
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
       await controller.getById(req, res)
@@ -98,7 +108,9 @@ describe('ProductController', () => {
 
   describe('update', () => {
     it('should return 404 if not found', async () => {
-      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(new Error('Product not found'))
+      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(
+        new Error('Product not found')
+      )
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
       await controller.update(req, res)
@@ -106,7 +118,9 @@ describe('ProductController', () => {
     })
 
     it('should return 400 on validation error', async () => {
-      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(new Error('Validation failed'))
+      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(
+        new Error('Validation failed')
+      )
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
       await controller.update(req, res)
@@ -125,7 +139,9 @@ describe('ProductController', () => {
 
   describe('delete', () => {
     it('should return 404 if not found', async () => {
-      vi.mocked(mockUseCases.deleteProduct).mockRejectedValue(new Error('Product not found'))
+      vi.mocked(mockUseCases.deleteProduct).mockRejectedValue(
+        new Error('Product not found')
+      )
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
       await controller.delete(req, res)
@@ -161,7 +177,9 @@ describe('ProductController', () => {
     })
 
     it('should return 500 on error', async () => {
-      vi.mocked(mockUseCases.getProductHistory).mockRejectedValue(new Error('Boom'))
+      vi.mocked(mockUseCases.getProductHistory).mockRejectedValue(
+        new Error('Boom')
+      )
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
       await controller.getHistory(req, res)

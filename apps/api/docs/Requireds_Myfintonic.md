@@ -45,6 +45,7 @@ Crear una aplicación web para el seguimiento de finanzas personales: fondos ind
 - **Deploy:** Local vía `docker-compose up`. CI/CD preparado para futuro, con pipelines en GitHub Actions.
 
 ## 5. Modelo de Datos (Simplificado)
+
 ```
 
 ```

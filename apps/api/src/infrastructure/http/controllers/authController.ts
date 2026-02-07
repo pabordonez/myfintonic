@@ -3,7 +3,7 @@ import { AuthUseCases } from '@application/useCases/authUseCases'
 
 export class AuthController {
   constructor(private useCases: AuthUseCases) {}
-  
+
   login = async (req: Request, res: Response) => {
     try {
       const result = await this.useCases.login(req.body)
