@@ -98,4 +98,26 @@ describe('LoginPage', () => {
       expect(screen.getByText(/Credenciales inválidas/i)).toBeInTheDocument()
     })
   })
+
+  it('displays default error message on login failure without message', async () => {
+    vi.mocked(authService.login).mockRejectedValue(new Error()) // Error sin mensaje
+
+    render(
+      <BrowserRouter>
+        <LoginPage />
+      </BrowserRouter>
+    )
+
+    fireEvent.change(screen.getByPlaceholderText(/Email/i), {
+      target: { value: 'test@test.com' },
+    })
+    fireEvent.change(screen.getByPlaceholderText(/Contraseña/i), {
+      target: { value: '123' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Error al iniciar sesión')).toBeInTheDocument()
+    })
+  })
 })

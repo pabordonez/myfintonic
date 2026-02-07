@@ -1,20 +1,18 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
-import '@testing-library/jest-dom'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ChangePasswordPage } from '../features/clients/pages/ChangePasswordPage'
-import axios from 'axios'
-import { MemoryRouter } from 'react-router-dom'
-import { API_URL } from '../config/api'
+import { BrowserRouter } from 'react-router-dom'
+import { changePassword } from '../features/profile/services/client.service'
+
+vi.mock('../features/profile/services/client.service')
 
 const { mockNavigate, mockUseParams, mockUseAuth } = vi.hoisted(() => {
   return {
     mockNavigate: vi.fn(),
-    mockUseParams: vi.fn().mockReturnValue({ id: 'user-123' }),
+    mockUseParams: vi.fn().mockReturnValue({ id: '123' }),
     mockUseAuth: vi.fn(),
   }
 })
-
-vi.mock('axios')
 
 vi.mock('react-router-dom', async () => {
   const actual =
@@ -33,141 +31,150 @@ vi.mock('@/hooks/useAuth', () => ({
 describe('ChangePasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseParams.mockReturnValue({ id: 'user-123' })
+    mockUseAuth.mockReturnValue({ user: { role: 'USER' } })
   })
 
-  it('renders form correctly for USER', () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'user-123', role: 'USER' },
-      token: 'token',
-    })
-    render(
-      <MemoryRouter>
-        <ChangePasswordPage />
-      </MemoryRouter>
-    )
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
+  it('renders form elements', () => {
+    render(
+      <BrowserRouter>
+        <ChangePasswordPage />
+      </BrowserRouter>
+    )
     expect(screen.getByText('Cambiar Contraseña')).toBeInTheDocument()
-    expect(screen.getByLabelText(/Contraseña Actual/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Nueva Contraseña/i)).toBeInTheDocument()
+    expect(screen.getByText('Contraseña Actual')).toBeInTheDocument()
+    expect(screen.getByText('Nueva Contraseña')).toBeInTheDocument()
   })
 
-  it('renders form correctly for ADMIN (no current password)', () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'admin-1', role: 'ADMIN' },
-      token: 'token',
-    })
-    render(
-      <MemoryRouter>
+  it('submits form successfully', async () => {
+    const originalSetTimeout = global.setTimeout
+    const setTimeoutSpy = vi
+      .spyOn(global, 'setTimeout')
+      .mockImplementation((fn: any, delay?: number) => {
+        if (delay === 1500) {
+          fn()
+          return 0 as any
+        }
+        return originalSetTimeout(fn, delay)
+      })
+    vi.mocked(changePassword).mockResolvedValue()
+
+    const { container } = render(
+      <BrowserRouter>
         <ChangePasswordPage />
-      </MemoryRouter>
+      </BrowserRouter>
     )
 
-    expect(screen.getByText('Cambiar Contraseña')).toBeInTheDocument()
-    expect(
-      screen.queryByLabelText(/Contraseña Actual/i)
-    ).not.toBeInTheDocument()
-    expect(screen.getByLabelText(/Nueva Contraseña/i)).toBeInTheDocument()
-  })
-
-  it('submits form successfully for USER', async () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'user-123', role: 'USER' },
-      token: 'token',
-    })
-    vi.mocked(axios.put).mockResolvedValue({})
-
-    render(
-      <MemoryRouter>
-        <ChangePasswordPage />
-      </MemoryRouter>
+    fireEvent.change(
+      container.querySelector('input[name="currentPassword"]')!,
+      { target: { value: 'oldPass' } }
     )
-
-    fireEvent.change(screen.getByLabelText(/Contraseña Actual/i), {
-      target: { value: 'oldPass' },
-    })
-    fireEvent.change(screen.getByLabelText(/Nueva Contraseña/i), {
+    fireEvent.change(container.querySelector('input[name="newPassword"]')!, {
       target: { value: 'newPass' },
     })
-    fireEvent.click(screen.getByText('Guardar Cambios'))
+
+    fireEvent.click(screen.getByText('Actualizar Contraseña'))
 
     await waitFor(() => {
-      expect(axios.put).toHaveBeenCalledWith(
-        `${API_URL}/clients/user-123/change-password`,
-        { currentPassword: 'oldPass', newPassword: 'newPass' },
-        expect.any(Object)
-      )
+      expect(changePassword).toHaveBeenCalledWith('123', {
+        currentPassword: 'oldPass',
+        newPassword: 'newPass',
+      })
       expect(
         screen.getByText('Contraseña actualizada correctamente')
       ).toBeInTheDocument()
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard')
     })
+
+    setTimeoutSpy.mockRestore()
   })
 
-  it('submits form successfully for ADMIN', async () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'admin-1', role: 'ADMIN' },
-      token: 'token',
-    })
-    vi.mocked(axios.put).mockResolvedValue({})
+  it('displays error message on submission failure', async () => {
+    vi.mocked(changePassword).mockRejectedValue(new Error('Update failed'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(
-      <MemoryRouter>
+    const { container } = render(
+      <BrowserRouter>
         <ChangePasswordPage />
-      </MemoryRouter>
+      </BrowserRouter>
     )
 
-    fireEvent.change(screen.getByLabelText(/Nueva Contraseña/i), {
-      target: { value: 'newPassAdmin' },
-    })
-    fireEvent.click(screen.getByText('Guardar Cambios'))
-
-    await waitFor(() => {
-      expect(axios.put).toHaveBeenCalledWith(
-        `${API_URL}/clients/user-123/change-password`,
-        { newPassword: 'newPassAdmin' },
-        expect.any(Object)
-      )
-      expect(
-        screen.getByText('Contraseña actualizada correctamente')
-      ).toBeInTheDocument()
-    })
-  })
-
-  it('displays error message on failure', async () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'user-123', role: 'USER' },
-      token: 'token',
-    })
-    vi.mocked(axios.put).mockRejectedValue({
-      response: { data: { error: 'Invalid password' } },
-    })
-
-    render(
-      <MemoryRouter>
-        <ChangePasswordPage />
-      </MemoryRouter>
+    fireEvent.change(
+      container.querySelector('input[name="currentPassword"]')!,
+      { target: { value: 'old' } }
     )
-
-    fireEvent.change(screen.getByLabelText(/Contraseña Actual/i), {
-      target: { value: 'wrong' },
-    })
-    fireEvent.change(screen.getByLabelText(/Nueva Contraseña/i), {
+    fireEvent.change(container.querySelector('input[name="newPassword"]')!, {
       target: { value: 'new' },
     })
-    fireEvent.click(screen.getByText('Guardar Cambios'))
+
+    fireEvent.click(screen.getByText('Actualizar Contraseña'))
 
     await waitFor(() => {
-      expect(screen.getByText('Invalid password')).toBeInTheDocument()
+      expect(screen.getByText('Update failed')).toBeInTheDocument()
     })
+    consoleSpy.mockRestore()
   })
 
   it('navigates back when back button is clicked', () => {
     render(
-      <MemoryRouter>
+      <BrowserRouter>
         <ChangePasswordPage />
-      </MemoryRouter>
+      </BrowserRouter>
     )
-    fireEvent.click(screen.getByText('Volver'))
+
+    const backButton = screen.getByText('Volver')
+    fireEvent.click(backButton)
     expect(mockNavigate).toHaveBeenCalledWith(-1)
+  })
+
+  it('hides current password field for ADMIN', () => {
+    mockUseAuth.mockReturnValue({ user: { role: 'ADMIN' } })
+    render(
+      <BrowserRouter>
+        <ChangePasswordPage />
+      </BrowserRouter>
+    )
+    expect(screen.queryByText('Contraseña Actual')).not.toBeInTheDocument()
+  })
+
+  it('submits form successfully as ADMIN without current password', async () => {
+    mockUseAuth.mockReturnValue({ user: { role: 'ADMIN' } })
+    const originalSetTimeout = global.setTimeout
+    const setTimeoutSpy = vi
+      .spyOn(global, 'setTimeout')
+      .mockImplementation((fn: any, delay?: number) => {
+        if (delay === 1500) {
+          fn()
+          return 0 as any
+        }
+        return originalSetTimeout(fn, delay)
+      })
+    vi.mocked(changePassword).mockResolvedValue()
+
+    const { container } = render(
+      <BrowserRouter>
+        <ChangePasswordPage />
+      </BrowserRouter>
+    )
+
+    fireEvent.change(container.querySelector('input[name="newPassword"]')!, {
+      target: { value: 'newPass' },
+    })
+
+    fireEvent.click(screen.getByText('Actualizar Contraseña'))
+
+    await waitFor(() => {
+      expect(changePassword).toHaveBeenCalledWith('123', {
+        newPassword: 'newPass',
+      })
+      expect(
+        screen.getByText('Contraseña actualizada correctamente')
+      ).toBeInTheDocument()
+    })
+
+    setTimeoutSpy.mockRestore()
   })
 })

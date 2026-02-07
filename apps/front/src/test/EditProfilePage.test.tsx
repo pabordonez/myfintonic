@@ -128,6 +128,31 @@ describe('EditProfilePage', () => {
     })
   })
 
+  it('does not submit if token is missing', async () => {
+    ;(useAuth as any).mockReturnValue({
+      user: {
+        id: '1',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@test.com',
+      },
+      token: null,
+      refreshUser: mockRefreshUser,
+    })
+
+    render(
+      <BrowserRouter>
+        <EditProfilePage />
+      </BrowserRouter>
+    )
+
+    fireEvent.click(screen.getByText('Guardar Cambios'))
+
+    await waitFor(() => {
+      expect(updateClientProfile).not.toHaveBeenCalled()
+    })
+  })
+
   it('navigates back when back button is clicked', () => {
     const { container } = render(
       <BrowserRouter>

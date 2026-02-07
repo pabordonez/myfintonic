@@ -40,4 +40,22 @@ describe('LogoutButton', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
     })
   })
+
+  it('handles logout error gracefully', async () => {
+    vi.mocked(authService.logout).mockRejectedValue(new Error('Logout failed'))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    render(
+      <MemoryRouter>
+        <LogoutButton />
+      </MemoryRouter>
+    )
+
+    fireEvent.click(screen.getByRole('button'))
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
+    )
+    consoleSpy.mockRestore()
+  })
 })
