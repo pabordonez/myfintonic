@@ -7,8 +7,7 @@ export const corsMiddleware = cors({
   origin: (origin, callback) => {
     // Permitir peticiones sin origen (como curl, Postman o server-to-server)
     if (!origin) {
-      if (env.NODE_ENV !== 'production') return callback(null, true)
-      return callback(new Error('Not allowed by CORS'))
+      return callback(null, true)
     }
 
     if (allowedOrigins.includes(origin)) {
