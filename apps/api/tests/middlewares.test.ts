@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import { authenticate } from '../src/infrastructure/http/middlewares/authenticate'
 import { isAdmin } from '../src/infrastructure/http/middlewares/isAdmin'
 import { env } from '../src/config/env'
+import { requestLogger } from '../src/infrastructure/http/middlewares/requestLogger'
 
 vi.mock('jsonwebtoken')
 
@@ -20,6 +21,7 @@ describe('Middlewares', () => {
       header: vi.fn((name: string) =>
         req.headers ? req.headers[name.toLowerCase()] : undefined
       ),
+      originalUrl: '/test',
     } as any
 
     // Creamos el objeto mock primero para asegurar que las referencias sean circulares y correctas
@@ -28,6 +30,7 @@ describe('Middlewares', () => {
       json: vi.fn(),
       send: vi.fn(),
       sendStatus: vi.fn(),
+      on: vi.fn(),
     }
     // Configuramos el encadenamiento (chaining)
     resMock.status.mockReturnValue(resMock)
@@ -83,6 +86,34 @@ describe('Middlewares', () => {
       await isAdmin(req as Request, res as Response, next)
       expect(res.status).toHaveBeenCalledWith(403)
       expect(res.json).toHaveBeenCalledWith({ error: 'Forbidden' })
+    })
+  })
+
+  describe('requestLogger', () => {
+    it('should log sanitized body', () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      req.method = 'POST'
+      req.originalUrl = '/auth/login'
+      req.body = { email: 'test@test.com', password: 'secret-password' }
+      res.statusCode = 200
+
+      let finishCallback: (() => void) | undefined
+      res.on.mockImplementation((event: string, cb: () => void) => {
+        if (event === 'finish') finishCallback = cb
+      })
+
+      requestLogger(req, res, next)
+      expect(next).toHaveBeenCalled()
+
+      if (finishCallback) finishCallback()
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('POST /auth/login 200'),
+        expect.objectContaining({
+          body: { email: 'test@test.com', password: '***' },
+        })
+      )
+      consoleSpy.mockRestore()
     })
   })
 })
