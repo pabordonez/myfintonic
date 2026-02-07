@@ -89,15 +89,4 @@ describe('product.service', () => {
     )
     expect(result).toEqual(mockData)
   })
-
-  it('getFinancialEntities calls axios.get', async () => {
-    const mockData = [{ id: 1, name: 'Bank' }]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockData })
-    const result = await productService.getFinancialEntities()
-    expect(axios.get).toHaveBeenCalledWith(
-      `${API_URL}/financial-entities`,
-      expect.any(Object)
-    )
-    expect(result).toEqual(mockData)
-  })
 })

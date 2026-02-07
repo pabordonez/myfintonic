@@ -7,6 +7,7 @@ import {
   ValueHistory,
 } from '../../financial-entities/components/ValueHistoryList'
 import { ProductTransactionButton } from '../components/ProductTransactionButton'
+import { financialEntityService } from '../../financial-entities/services/financialEntity.service'
 
 export const ProductFormPage = () => {
   const { id } = useParams()
@@ -33,7 +34,7 @@ export const ProductFormPage = () => {
         // Cargar catálogo de entidades
         const userStr = localStorage.getItem('user')
         if (!userStr) throw new Error('User not found')
-        const entitiesData = await productService.getFinancialEntities()
+        const entitiesData = await financialEntityService.getAll()
         setEntities(entitiesData)
 
         if (isEditMode) {

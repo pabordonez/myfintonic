@@ -32,13 +32,6 @@ export const productService = {
     )
     return response.data
   },
-  getFinancialEntities: async () => {
-    const response = await axios.get(
-      `${API_URL}/financial-entities`,
-      axiosConfig
-    )
-    return response.data
-  },
   patch: async (id: string, data: any) => {
     const response = await axios.patch(
       `${API_URL}/products/${id}`,
