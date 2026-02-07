@@ -142,6 +142,12 @@ export const ProductFormPage = () => {
         await productService.update(id as string, updateData)
         setSuccess('Producto actualizado correctamente')
       } else {
+        // Fix: Ensure initialBalance is sent for FIXED_TERM_DEPOSIT creation
+        if (preparedData.type === 'FIXED_TERM_DEPOSIT') {
+          if (preparedData.currentBalance && !preparedData.initialBalance) {
+            preparedData.initialBalance = preparedData.currentBalance
+          }
+        }
         await productService.create(preparedData)
         setSuccess('Producto creado correctamente')
         reset()
