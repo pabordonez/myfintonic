@@ -62,7 +62,7 @@ describe('Financial Entities Catalog API', () => {
     mockCatalog.length = 0
     const response = await request(app)
       .post('/financial-entities')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', [`token=${adminToken}`])
       .send(baseEntity)
     entityId = response.body?.id
   })
@@ -72,7 +72,7 @@ describe('Financial Entities Catalog API', () => {
       const newEntity = { ...baseEntity, name: 'BBVA' }
       const response = await request(app)
         .post('/financial-entities')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', [`token=${adminToken}`])
         .send(newEntity)
       expect(response.status).toBe(201)
       expect(response.body.name).toBe('BBVA')
@@ -83,7 +83,7 @@ describe('Financial Entities Catalog API', () => {
     it('should return all entities from the catalog', async () => {
       const response = await request(app)
         .get('/financial-entities')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(response.status).toBe(200)
       expect(response.body.length).toBeGreaterThan(0)
       expect(response.body[0]).toHaveProperty('name', 'Banco Santander')
@@ -95,19 +95,19 @@ describe('Financial Entities Catalog API', () => {
       // 1. Borrar
       const response = await request(app)
         .delete(`/financial-entities/${entityId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', [`token=${adminToken}`])
       expect(response.status).toBe(204)
 
       // 2. Verificar que ya no aparece en el detalle (404)
       const getResponse = await request(app)
         .get(`/financial-entities/${entityId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(getResponse.status).toBe(404)
 
       // 3. Verificar que ya no aparece en el listado
       const listResponse = await request(app)
         .get('/financial-entities')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       const found = listResponse.body.find((e: any) => e.id === entityId)
       expect(found).toBeUndefined()
     })

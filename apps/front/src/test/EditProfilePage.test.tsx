@@ -81,8 +81,7 @@ describe('EditProfilePage', () => {
     await waitFor(() => {
       expect(updateClientProfile).toHaveBeenCalledWith(
         '1',
-        expect.objectContaining({ firstName: 'Jane' }),
-        'token'
+        expect.objectContaining({ firstName: 'Jane' })
       )
       expect(mockRefreshUser).toHaveBeenCalled()
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard')

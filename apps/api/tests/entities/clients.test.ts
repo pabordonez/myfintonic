@@ -63,7 +63,7 @@ describe('Client API', () => {
     it('ADMIN should change password of any user without current password', async () => {
       const res = await request(app)
         .put('/clients/user-1/change-password')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', [`token=${adminToken}`])
         .send({ newPassword: 'newAdminPassword' })
 
       expect(res.status).toBe(204)
@@ -77,7 +77,7 @@ describe('Client API', () => {
     it('USER should change their own password with correct current password', async () => {
       const res = await request(app)
         .put('/clients/user-1/change-password')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({
           currentPassword: 'oldPassword123',
           newPassword: 'newUserPassword',
@@ -93,7 +93,7 @@ describe('Client API', () => {
     it('USER should fail to change password without sending current password', async () => {
       const res = await request(app)
         .put('/clients/user-1/change-password')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ newPassword: 'newUserPassword' })
 
       expect(res.status).toBe(400)
@@ -103,7 +103,7 @@ describe('Client API', () => {
     it('USER should fail to change password with incorrect current password', async () => {
       const res = await request(app)
         .put('/clients/user-1/change-password')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({
           currentPassword: 'WRONGPassword',
           newPassword: 'newUserPassword',
@@ -116,7 +116,7 @@ describe('Client API', () => {
     it('USER should fail to change password of another user', async () => {
       const res = await request(app)
         .put('/clients/user-2/change-password')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({
           currentPassword: 'oldPassword123',
           newPassword: 'hackedPassword',
@@ -130,7 +130,7 @@ describe('Client API', () => {
     it('ADMIN should get all clients', async () => {
       const res = await request(app)
         .get('/clients')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', [`token=${adminToken}`])
 
       expect(res.status).toBe(200)
       expect(res.body).toHaveLength(2)
@@ -141,7 +141,7 @@ describe('Client API', () => {
     it('USER should get their own profile', async () => {
       const res = await request(app)
         .get('/clients/user-1')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
 
       expect(res.status).toBe(200)
       expect(res.body.id).toBe('user-1')
@@ -150,7 +150,7 @@ describe('Client API', () => {
     it('USER should not get other profile', async () => {
       const res = await request(app)
         .get('/clients/user-2')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
 
       expect(res.status).toBe(403)
     })
@@ -160,7 +160,7 @@ describe('Client API', () => {
     it('USER should update their own profile', async () => {
       const res = await request(app)
         .put('/clients/user-1')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ firstName: 'UpdatedName' })
 
       expect(res.status).toBe(200)

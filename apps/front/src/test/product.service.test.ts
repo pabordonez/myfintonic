@@ -21,7 +21,6 @@ vi.mock('axios', () => {
 describe('product.service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorage.setItem('token', 'test-token')
   })
 
   it('getAll calls axios.get', async () => {

@@ -31,8 +31,6 @@ export const ProductFormPage = () => {
       setLoading(true)
       try {
         // Cargar catálogo de entidades
-        const token = localStorage.getItem('token')
-        if (!token) throw new Error('Token not found')
         const userStr = localStorage.getItem('user')
         if (!userStr) throw new Error('User not found')
         const entitiesData = await productService.getFinancialEntities()

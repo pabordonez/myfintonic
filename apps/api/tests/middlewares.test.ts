@@ -15,6 +15,7 @@ describe('Middlewares', () => {
   beforeEach(() => {
     req = {
       headers: {},
+      cookies: {},
       user: undefined,
       header: vi.fn((name: string) =>
         req.headers ? req.headers[name.toLowerCase()] : undefined
@@ -41,7 +42,7 @@ describe('Middlewares', () => {
 
   describe('authenticate', () => {
     it('should call next if token is valid', () => {
-      req.headers = { authorization: 'Bearer valid-token' }
+      req.cookies = { token: 'valid-token' }
       vi.mocked(jwt.verify).mockReturnValue({ id: '1', role: 'USER' } as any)
 
       authenticate(req as Request, res as Response, next)
@@ -51,21 +52,15 @@ describe('Middlewares', () => {
       expect(next).toHaveBeenCalled()
     })
 
-    it('should return 401 if no authorization header', () => {
-      req.headers = {}
+    it('should return 401 if no token provided', () => {
+      req.cookies = {}
       authenticate(req as Request, res as Response, next)
       expect(res.status).toHaveBeenCalledWith(401)
       expect(res.json).toHaveBeenCalledWith({ error: 'No token provided' })
     })
 
-    it('should return 401 if header format is invalid', () => {
-      req.headers = { authorization: 'InvalidFormat' }
-      authenticate(req as Request, res as Response, next)
-      expect(res.status).toHaveBeenCalledWith(401)
-    })
-
     it('should return 401 if token is invalid', () => {
-      req.headers = { authorization: 'Bearer invalid-token' }
+      req.cookies = { token: 'invalid-token' }
       vi.mocked(jwt.verify).mockImplementation(() => {
         throw new Error('Invalid token')
       })

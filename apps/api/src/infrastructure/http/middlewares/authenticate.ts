@@ -8,22 +8,10 @@ export const authenticate = (
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization
+  const token = req.cookies.token
 
-  if (!authHeader) {
+  if (!token) {
     return res.status(401).json({ error: 'No token provided' })
-  }
-
-  const parts = authHeader.split(' ')
-
-  if (parts.length !== 2) {
-    return res.status(401).json({ error: 'Token error' })
-  }
-
-  const [scheme, token] = parts
-
-  if (!/^Bearer$/i.test(scheme)) {
-    return res.status(401).json({ error: 'Token malformatted' })
   }
 
   try {

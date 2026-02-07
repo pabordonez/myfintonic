@@ -42,7 +42,6 @@ const renderWithRouter = (component: React.ReactNode) => {
 describe('Transaction Feature', () => {
   beforeEach(() => {
     vi.resetAllMocks()
-    localStorage.setItem('token', 'test-token')
     mockUseParams.mockReturnValue({ id: '123' })
     vi.mocked(axios.create).mockReturnThis()
   })
@@ -136,6 +135,7 @@ describe('Transaction Feature', () => {
       // Verificar llamada a API
       await waitFor(() => {
         expect(axios.post).toHaveBeenCalledWith(
+          // Se elimina el check de headers
           expect.stringContaining('/products/123/transactions'),
           {
             description: 'Salary',

@@ -187,7 +187,7 @@ describe('Financial Products API', () => {
     // Create a base product for tests that need it
     const response = await request(app)
       .post('/products')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', [`token=${userToken}`])
       .send(baseProduct)
     productId = response.body?.id || 'dummy-id'
   })
@@ -196,7 +196,7 @@ describe('Financial Products API', () => {
     it('should return 200 and a list of products', async () => {
       const response = await request(app)
         .get('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(response.status).toBe(200)
       expect(Array.isArray(response.body)).toBe(true)
     })
@@ -210,12 +210,12 @@ describe('Financial Products API', () => {
       }
       await request(app)
         .post('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(inactiveProduct)
 
       const response = await request(app)
         .get('/products?status=INACTIVE')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(response.status).toBe(200)
       expect(response.body.length).toBeGreaterThan(0)
       expect(response.body.every((p: any) => p.status === 'INACTIVE')).toBe(
@@ -235,12 +235,12 @@ describe('Financial Products API', () => {
       }
       await request(app)
         .post('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(investmentFund)
 
       const response = await request(app)
         .get('/products?type=INVESTMENT_FUND')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(response.status).toBe(200)
       expect(response.body.length).toBeGreaterThan(0)
       expect(
@@ -256,12 +256,12 @@ describe('Financial Products API', () => {
       }
       await request(app)
         .post('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(otherBankProduct)
 
       const response = await request(app)
         .get('/products?financialEntity=Global Bank')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(response.status).toBe(200)
       expect(response.body.length).toBeGreaterThan(0)
       expect(
@@ -274,7 +274,7 @@ describe('Financial Products API', () => {
     it('should return 201 and the created product on valid input', async () => {
       const response = await request(app)
         .post('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(baseProduct)
 
       expect(response.status).toBe(201)
@@ -289,7 +289,7 @@ describe('Financial Products API', () => {
       const invalidProduct = { name: 'Incomplete Product' }
       const response = await request(app)
         .post('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(invalidProduct)
 
       expect(response.status).toBe(400)
@@ -302,7 +302,7 @@ describe('Financial Products API', () => {
       }
       const response = await request(app)
         .post('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(invalidProduct)
 
       expect(response.status).toBe(400)
@@ -328,7 +328,7 @@ describe('Financial Products API', () => {
       }
       const response = await request(app)
         .post('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(deposit)
       expect(response.status).toBe(201)
       expect(response.body).toHaveProperty('initialDate')
@@ -348,7 +348,7 @@ describe('Financial Products API', () => {
       }
       const response = await request(app)
         .post('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(fund)
       expect(response.status).toBe(201)
       expect(response.body).toHaveProperty('currentBalance', 10500)
@@ -360,7 +360,7 @@ describe('Financial Products API', () => {
     it('should return 200 and the product if found', async () => {
       const response = await request(app)
         .get(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
 
       // In the initial TDD phase, this will fail with 404
       expect(response.status).toBe(200)
@@ -370,14 +370,14 @@ describe('Financial Products API', () => {
     it('should return 404 if product not found', async () => {
       const response = await request(app)
         .get('/products/non-existent-id')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(response.status).toBe(404)
     })
 
     it('should filter out fields not belonging to the product type', async () => {
       const response = await request(app)
         .get(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(response.status).toBe(200)
       expect(response.body.type).toBe('CURRENT_ACCOUNT')
       // Should have specific fields
@@ -390,14 +390,14 @@ describe('Financial Products API', () => {
     it('should return 404 (Security) if user tries to access another users product', async () => {
       const response = await request(app)
         .get(`/products/${productId}`)
-        .set('Authorization', `Bearer ${otherUserToken}`)
+        .set('Cookie', [`token=${otherUserToken}`])
       expect(response.status).toBe(404)
     })
 
     it('should return 200 if ADMIN accesses any product', async () => {
       const response = await request(app)
         .get(`/products/${productId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', [`token=${adminToken}`])
       expect(response.status).toBe(200)
     })
   })
@@ -407,7 +407,7 @@ describe('Financial Products API', () => {
       const updatedProduct = { name: 'Updated Name' }
       const response = await request(app)
         .put(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(updatedProduct)
 
       expect(response.status).toBe(204)
@@ -417,7 +417,7 @@ describe('Financial Products API', () => {
       const newBalance = 1500.0
       const response = await request(app)
         .put(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ currentBalance: newBalance })
 
       expect(response.status).toBe(204)
@@ -425,7 +425,7 @@ describe('Financial Products API', () => {
       // Verify history via GET
       const getResponse = await request(app)
         .get(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(Number(getResponse.body.currentBalance)).toBe(newBalance)
       expect(getResponse.body.valueHistory).toHaveLength(1)
       expect(Number(getResponse.body.valueHistory[0].value)).toBe(newBalance)
@@ -439,7 +439,7 @@ describe('Financial Products API', () => {
       const invalidUpdate = { numberOfShares: 10 }
       const response = await request(app)
         .put(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(invalidUpdate)
 
       expect(response.status).toBe(400)
@@ -451,7 +451,7 @@ describe('Financial Products API', () => {
     it('should return 400 if updating to a non-existent financialEntity', async () => {
       const response = await request(app)
         .put(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ financialEntity: 'non-existent-id' })
 
       expect(response.status).toBe(400)
@@ -465,21 +465,21 @@ describe('Financial Products API', () => {
     it('should return 204 and update status', async () => {
       const response = await request(app)
         .patch(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ status: 'PAUSED' })
 
       expect(response.status).toBe(204)
 
       const getResponse = await request(app)
         .get(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(getResponse.body.status).toBe('PAUSED')
     })
 
     it('should return 404 if product not found', async () => {
       const response = await request(app)
         .patch('/products/non-existent-id')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ status: 'PAUSED' })
       expect(response.status).toBe(404)
     })
@@ -487,7 +487,7 @@ describe('Financial Products API', () => {
     it('should return 400 if patching with non-existent financialEntity', async () => {
       const response = await request(app)
         .patch(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ financialEntity: 'non-existent-id' })
 
       expect(response.status).toBe(400)
@@ -502,19 +502,19 @@ describe('Financial Products API', () => {
       // 1. Borrar
       const response = await request(app)
         .delete(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(response.status).toBe(204)
 
       // 2. Verificar que el detalle da 404
       const getResponse = await request(app)
         .get(`/products/${productId}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(getResponse.status).toBe(404)
 
       // 3. Verificar que no sale en el listado
       const listResponse = await request(app)
         .get('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       const found = listResponse.body.find((p: any) => p.id === productId)
       expect(found).toBeUndefined()
     })
@@ -525,7 +525,7 @@ describe('Financial Products API', () => {
     const createProduct = async (data: any) => {
       const res = await request(app)
         .post('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(data)
       return res.body
     }
@@ -544,7 +544,7 @@ describe('Financial Products API', () => {
       // 1. Verificar filtrado en GET (solo campos de Savings)
       const getRes = await request(app)
         .get(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(getRes.body).toHaveProperty('monthlyInterestRate')
       expect(getRes.body).not.toHaveProperty('numberOfShares') // Campo de Stocks
       expect(getRes.body).not.toHaveProperty('transactions') // Campo de CurrentAccount (según mapToDomain actual)
@@ -552,7 +552,7 @@ describe('Financial Products API', () => {
       // 2. Verificar validación en PUT (no permitir campos de otros tipos)
       const updateRes = await request(app)
         .put(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ numberOfShares: 10 })
       expect(updateRes.status).toBe(400)
       expect(updateRes.body.error).toContain('Validation failed')
@@ -574,21 +574,21 @@ describe('Financial Products API', () => {
 
       const getRes = await request(app)
         .get(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(getRes.body).toHaveProperty('annualInterestRate')
       expect(getRes.body).toHaveProperty('interestPaymentFrequency')
 
       // Actualizar currentBalance (Ahora permitido para seguimiento de valoración)
       const updateRes = await request(app)
         .put(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ currentBalance: 500 })
       expect(updateRes.status).toBe(204)
 
       // Intentar actualizar con un valor de enum inválido
       const updateResEnum = await request(app)
         .put(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ interestPaymentFrequency: 'END' })
       expect(updateResEnum.status).toBe(400)
       expect(updateResEnum.body.error).toContain('Validation failed')
@@ -609,7 +609,7 @@ describe('Financial Products API', () => {
       }
       const response = await request(app)
         .post('/products')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send(deposit)
       expect(response.status).toBe(400)
       expect(response.body.error).toContain('Validation failed')
@@ -629,13 +629,13 @@ describe('Financial Products API', () => {
 
       const getRes = await request(app)
         .get(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(getRes.body).toHaveProperty('netAssetValue')
       expect(getRes.body).not.toHaveProperty('annualInterestRate')
 
       const updateRes = await request(app)
         .put(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ annualInterestRate: 0.05 })
       expect(updateRes.status).toBe(400)
     })
@@ -658,7 +658,7 @@ describe('Financial Products API', () => {
 
       const getRes = await request(app)
         .get(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(getRes.body).toHaveProperty('numberOfShares')
       expect(getRes.body).toHaveProperty('currentBalance', 16000)
       expect(getRes.body).toHaveProperty('initialBalance', 16000)
@@ -666,7 +666,7 @@ describe('Financial Products API', () => {
 
       const updateRes = await request(app)
         .put(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ monthlyInterestRate: 0.01 })
       expect(updateRes.status).toBe(400)
     })
@@ -690,7 +690,7 @@ describe('Financial Products API', () => {
       const newBalance = 2500
       const updateRes = await request(app)
         .put(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ currentBalance: newBalance })
 
       if (updateRes.status === 400) {
@@ -704,7 +704,7 @@ describe('Financial Products API', () => {
 
       const getRes = await request(app)
         .get(`/products/${product.id}`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
       expect(getRes.body.currentBalance).toBe(newBalance)
       // Verificamos que se haya generado histórico (asumiendo que la lógica de negocio lo implementa)
       expect(getRes.body.valueHistory).toHaveLength(1)

@@ -7,14 +7,13 @@ export interface UpdateClientData {
 
 export const updateClientProfile = async (
   id: string,
-  data: UpdateClientData,
-  token: string
+  data: UpdateClientData
 ) => {
   const response = await fetch(`${API_URL}/clients/${id}`, {
     method: 'PUT',
+    credentials: 'include', // Enviar cookies
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(data),
   })

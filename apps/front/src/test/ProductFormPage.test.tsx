@@ -35,7 +35,6 @@ describe('ProductFormPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseParams.mockReturnValue({}) // Por defecto modo crear (sin ID)
-    localStorage.setItem('token', 'test-token')
     localStorage.setItem('user', JSON.stringify({ id: 'user-123' }))
   })
 
@@ -945,27 +944,6 @@ describe('ProductFormPage', () => {
       ).toBeInTheDocument()
     )
     consoleSpy.mockRestore()
-  })
-
-  it('handles missing token gracefully', async () => {
-    const getItemSpy = vi
-      .spyOn(Storage.prototype, 'getItem')
-      .mockImplementation((key) => {
-        if (key === 'token') return null
-        return JSON.stringify({ id: 'user-123' }) // Return user for other calls
-      })
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    render(
-      <MemoryRouter>
-        <ProductFormPage />
-      </MemoryRouter>
-    )
-    await waitFor(() =>
-      expect(screen.getByText('Error al cargar los datos')).toBeInTheDocument()
-    )
-    consoleSpy.mockRestore()
-    getItemSpy.mockRestore()
   })
 
   it('cancels delete action', async () => {

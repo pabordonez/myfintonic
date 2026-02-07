@@ -1,4 +1,5 @@
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import { createProductRouter } from '@infrastructure/http/routes/productRoutes'
 import { createAuthRoutes } from '@infrastructure/http/routes/authRoutes'
 import { createClientFinancialEntityRoutes } from '@infrastructure/http/routes/clientFinancialEntityRoutes'
@@ -38,6 +39,7 @@ app.use(rateLimitMiddleware)
 app.use('/auth/login', loginRateLimiter)
 app.use('/products', productsRateLimiter)
 
+app.use(cookieParser())
 app.use(express.json())
 app.use(requestLogger)
 

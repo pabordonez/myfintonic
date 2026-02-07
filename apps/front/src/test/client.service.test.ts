@@ -16,11 +16,10 @@ describe('client.service', () => {
       })
       global.fetch = mockFetch
 
-      const result = await updateClientProfile(
-        '1',
-        { firstName: 'Updated', lastName: 'User' },
-        'token'
-      )
+      const result = await updateClientProfile('1', {
+        firstName: 'Updated',
+        lastName: 'User',
+      })
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/clients/1'),
@@ -28,7 +27,6 @@ describe('client.service', () => {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer token',
           },
           body: JSON.stringify({ firstName: 'Updated', lastName: 'User' }),
         })
@@ -40,7 +38,7 @@ describe('client.service', () => {
       global.fetch = vi.fn().mockResolvedValue({ ok: false })
 
       await expect(
-        updateClientProfile('1', { firstName: 'A', lastName: 'B' }, 'token')
+        updateClientProfile('1', { firstName: 'A', lastName: 'B' })
       ).rejects.toThrow('Error al actualizar el perfil')
     })
   })

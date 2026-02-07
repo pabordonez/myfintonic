@@ -84,7 +84,7 @@ describe('Client Financial Entities API (Admin)', () => {
     it('should return 403 for USER', async () => {
       const res = await request(app)
         .get('/clients-financial-entities')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
 
       expect(res.status).toBe(403)
     })
@@ -92,7 +92,7 @@ describe('Client Financial Entities API (Admin)', () => {
     it('should return 200 and list with client info for ADMIN', async () => {
       const res = await request(app)
         .get('/clients-financial-entities')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', [`token=${adminToken}`])
 
       expect(res.status).toBe(200)
     })
@@ -104,7 +104,7 @@ describe('Client Financial Entities API (Admin)', () => {
     it('POST / should create association', async () => {
       const res = await request(app)
         .post(baseUrl)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ financialEntityId: 'fe-2', balance: 500 })
 
       expect(res.status).toBe(201)
@@ -113,7 +113,7 @@ describe('Client Financial Entities API (Admin)', () => {
     it('GET / should list user associations', async () => {
       const res = await request(app)
         .get(baseUrl)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
 
       expect(res.status).toBe(200)
       expect(res.body).toHaveLength(1)
@@ -122,7 +122,7 @@ describe('Client Financial Entities API (Admin)', () => {
     it('GET /:id should return detail', async () => {
       const res = await request(app)
         .get(`${baseUrl}/1`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
 
       expect(res.status).toBe(200)
       expect(res.body.id).toBe('1')
@@ -131,7 +131,7 @@ describe('Client Financial Entities API (Admin)', () => {
     it('PUT /:id should update balance', async () => {
       const res = await request(app)
         .put(`${baseUrl}/1`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
         .send({ balance: 2000 })
 
       expect(res.status).toBe(204)
@@ -140,7 +140,7 @@ describe('Client Financial Entities API (Admin)', () => {
     it('DELETE /:id should delete association', async () => {
       const res = await request(app)
         .delete(`${baseUrl}/1`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', [`token=${userToken}`])
 
       expect(res.status).toBe(204)
     })

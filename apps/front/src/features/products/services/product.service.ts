@@ -1,45 +1,41 @@
 import axios from 'axios'
 import { API_URL } from '../../../config/api'
 
-const getHeaders = () => {
-  const token = localStorage.getItem('token')
-  return {
-    headers: { Authorization: `Bearer ${token}` },
-  }
-}
+// Configuración base para enviar cookies
+const axiosConfig = { withCredentials: true }
 
 export const productService = {
   getAll: async () => {
-    const response = await axios.get(`${API_URL}/products`, getHeaders())
+    const response = await axios.get(`${API_URL}/products`, axiosConfig)
     return response.data
   },
   getById: async (id: string) => {
-    const response = await axios.get(`${API_URL}/products/${id}`, getHeaders())
+    const response = await axios.get(`${API_URL}/products/${id}`, axiosConfig)
     return response.data
   },
   create: async (data: any) => {
-    const response = await axios.post(`${API_URL}/products`, data, getHeaders())
+    const response = await axios.post(`${API_URL}/products`, data, axiosConfig)
     return response.data
   },
   update: async (id: string, data: any) => {
     const response = await axios.put(
       `${API_URL}/products/${id}`,
       data,
-      getHeaders()
+      axiosConfig
     )
     return response.data
   },
   delete: async (id: string) => {
     const response = await axios.delete(
       `${API_URL}/products/${id}`,
-      getHeaders()
+      axiosConfig
     )
     return response.data
   },
   getFinancialEntities: async () => {
     const response = await axios.get(
       `${API_URL}/financial-entities`,
-      getHeaders()
+      axiosConfig
     )
     return response.data
   },
@@ -47,7 +43,7 @@ export const productService = {
     const response = await axios.patch(
       `${API_URL}/products/${id}`,
       data,
-      getHeaders()
+      axiosConfig
     )
     return response.data
   },

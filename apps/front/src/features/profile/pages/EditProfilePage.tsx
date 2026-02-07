@@ -30,7 +30,7 @@ export const EditProfilePage = () => {
     setSuccess(null)
 
     try {
-      await updateClientProfile(user.id, data, token)
+      await updateClientProfile(user.id, data)
       await refreshUser()
       setSuccess('Perfil actualizado correctamente')
       setTimeout(() => {
