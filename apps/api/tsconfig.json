@@ -16,7 +16,8 @@
       "@config/*": ["config/*"]
     },
     //TODO:REVIEW
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "types": ["node"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "tests"]
