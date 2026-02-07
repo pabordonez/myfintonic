@@ -13,7 +13,7 @@ export class AuthController {
         httpOnly: true,
         secure: env.NODE_ENV === 'production',
         sameSite: env.NODE_ENV === 'production' ? 'strict' : 'lax',
-        maxAge: 24 * 60 * 60 * 1000, // 24h
+        maxAge: env.COOKIE_MAX_AGE,
       })
 
       res.status(200).json({ token, user })

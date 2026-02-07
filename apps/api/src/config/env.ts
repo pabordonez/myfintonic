@@ -41,6 +41,9 @@ const envSchema = z.object({
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000), // 15 minutos (900000 ms)
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
+
+  // Cookie Configuration
+  COOKIE_MAX_AGE: z.coerce.number().default(24 * 60 * 60 * 1000), // 24 hours (86400000 ms)
 })
 
 const _env = envSchema.safeParse(process.env)
