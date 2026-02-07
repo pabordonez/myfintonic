@@ -18,6 +18,10 @@ import { requestLogger } from '@infrastructure/http/middlewares/requestLogger'
 import { corsMiddleware } from '@infrastructure/http/middlewares/corsMiddleware'
 import { rateLimitMiddleware } from '@infrastructure/http/middlewares/rateLimitMiddleware'
 import { securityHeaders } from '@infrastructure/http/middlewares/securityHeaders'
+import {
+  loginRateLimiter,
+  productsRateLimiter,
+} from '@infrastructure/http/middlewares/rateLimiters'
 
 export const app = express()
 
@@ -29,6 +33,10 @@ app.use(securityHeaders)
 
 app.use(corsMiddleware)
 app.use(rateLimitMiddleware)
+
+// Rate Limits Específicos (Granular)
+app.use('/auth/login', loginRateLimiter)
+app.use('/products', productsRateLimiter)
 
 app.use(express.json())
 app.use(requestLogger)
