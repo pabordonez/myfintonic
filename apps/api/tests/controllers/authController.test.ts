@@ -12,13 +12,15 @@ describe('AuthController', () => {
   let res: Partial<Response>
   let json: any
   let status: any
+  let cookie: any
 
   beforeEach(() => {
     useCases = new AuthUseCases({} as any)
     controller = new AuthController(useCases)
     json = vi.fn()
     status = vi.fn().mockReturnValue({ json })
-    res = { status } as unknown as Response
+    cookie = vi.fn()
+    res = { status, cookie } as unknown as Response
   })
 
   describe('login', () => {
@@ -43,7 +45,7 @@ describe('AuthController', () => {
       await controller.login(req as Request, res as Response)
 
       expect(status).toHaveBeenCalledWith(401)
-      expect(json).toHaveBeenCalledWith({ error: 'Invalid credentials' })
+      expect(json).toHaveBeenCalledWith({ error: 'Invalid' })
     })
   })
 })

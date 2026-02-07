@@ -2,9 +2,9 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage'
-import axios from 'axios'
 import { MemoryRouter } from 'react-router-dom'
-import { API_URL } from '../config/api'
+import { clientFinancialEntityService } from '../features/client-financial-entities/services/clientFinancialEntity.service'
+import { getClients } from '../features/profile/services/client.service'
 
 // Mock dependencies
 vi.mock('axios')
@@ -12,10 +12,22 @@ const mockUseAuth = vi.fn()
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
 }))
+vi.mock(
+  '../features/client-financial-entities/services/clientFinancialEntity.service',
+  () => ({
+    clientFinancialEntityService: {
+      getByClientId: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+      getAllAssociations: vi.fn(),
+    },
+  })
+)
+vi.mock('../features/profile/services/client.service')
 
 describe('DashboardPage', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
   })
 
   it('renders nothing if user is null', () => {
@@ -29,7 +41,9 @@ describe('DashboardPage', () => {
       user: { role: 'USER', id: '1' },
       token: 'token',
     })
-    vi.mocked(axios.get).mockImplementation(() => new Promise(() => {})) // Never resolves
+    vi.mocked(clientFinancialEntityService.getByClientId).mockImplementation(
+      () => new Promise(() => {})
+    )
     render(
       <MemoryRouter>
         <DashboardPage />
@@ -43,7 +57,9 @@ describe('DashboardPage', () => {
       user: { role: 'USER', id: '1' },
       token: 'token',
     })
-    vi.mocked(axios.get).mockRejectedValue(new Error('Network error'))
+    vi.mocked(clientFinancialEntityService.getByClientId).mockRejectedValue(
+      new Error('Network error')
+    )
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(
       <MemoryRouter>
@@ -57,29 +73,32 @@ describe('DashboardPage', () => {
   })
 
   describe('USER Role', () => {
-    const mockItems = [
-      {
-        id: '1',
-        balance: 1000,
-        initialBalance: 800,
-        financialEntity: { name: 'Bank A' },
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        balance: 500,
-        initialBalance: 600,
-        financialEntity: { name: 'Bank B' },
-        updatedAt: new Date().toISOString(),
-      },
-    ]
+    let mockItems: any[]
 
     beforeEach(() => {
+      mockItems = [
+        {
+          id: '1',
+          balance: 1000,
+          initialBalance: 800,
+          financialEntity: { name: 'Bank A' },
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          balance: 500,
+          initialBalance: 600,
+          financialEntity: { name: 'Bank B' },
+          updatedAt: new Date().toISOString(),
+        },
+      ]
       mockUseAuth.mockReturnValue({
         user: { role: 'USER', id: 'u1' },
         token: 'token',
       })
-      vi.mocked(axios.get).mockResolvedValue({ data: mockItems })
+      vi.mocked(clientFinancialEntityService.getByClientId).mockResolvedValue(
+        mockItems
+      )
     })
 
     it('fetches and renders user financial entities', async () => {
@@ -90,9 +109,8 @@ describe('DashboardPage', () => {
       )
 
       await waitFor(() =>
-        expect(axios.get).toHaveBeenCalledWith(
-          `${API_URL}/clients/u1/financial-entities`,
-          expect.any(Object)
+        expect(clientFinancialEntityService.getByClientId).toHaveBeenCalledWith(
+          'u1'
         )
       )
       expect(screen.getByText('Mis Entidades Financieras')).toBeInTheDocument()
@@ -185,7 +203,9 @@ describe('DashboardPage', () => {
           financialEntity: { name: 'C' },
         }, // Diff 0
       ]
-      vi.mocked(axios.get).mockResolvedValue({ data: items })
+      vi.mocked(clientFinancialEntityService.getByClientId).mockResolvedValue(
+        items
+      )
 
       render(
         <MemoryRouter>
@@ -220,7 +240,9 @@ describe('DashboardPage', () => {
           financialEntity: { name: 'B' },
         },
       ]
-      vi.mocked(axios.get).mockResolvedValue({ data: items })
+      vi.mocked(clientFinancialEntityService.getByClientId).mockResolvedValue(
+        items
+      )
 
       render(
         <MemoryRouter>
@@ -255,7 +277,7 @@ describe('DashboardPage', () => {
 
     it('deletes an item', async () => {
       vi.spyOn(window, 'confirm').mockReturnValue(true)
-      vi.mocked(axios.delete).mockResolvedValue({})
+      vi.mocked(clientFinancialEntityService.delete).mockResolvedValue()
 
       render(
         <MemoryRouter>
@@ -270,9 +292,9 @@ describe('DashboardPage', () => {
       fireEvent.click(deleteButtons[0]) // Delete Bank A
 
       await waitFor(() => {
-        expect(axios.delete).toHaveBeenCalledWith(
-          `${API_URL}/clients/u1/financial-entities/1`,
-          expect.any(Object)
+        expect(clientFinancialEntityService.delete).toHaveBeenCalledWith(
+          'u1',
+          '1'
         )
         expect(screen.queryByText('Bank A')).not.toBeInTheDocument()
       })
@@ -280,7 +302,9 @@ describe('DashboardPage', () => {
 
     it('handles delete error', async () => {
       vi.spyOn(window, 'confirm').mockReturnValue(true)
-      vi.mocked(axios.delete).mockRejectedValue(new Error('Delete failed'))
+      vi.mocked(clientFinancialEntityService.delete).mockRejectedValue(
+        new Error('Delete failed')
+      )
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
       render(
@@ -336,7 +360,7 @@ describe('DashboardPage', () => {
           role: 'USER',
         },
       ]
-      vi.mocked(axios.get).mockResolvedValue({ data: mockClients })
+      vi.mocked(getClients).mockResolvedValue(mockClients)
 
       render(
         <MemoryRouter>
@@ -344,12 +368,7 @@ describe('DashboardPage', () => {
         </MemoryRouter>
       )
 
-      await waitFor(() =>
-        expect(axios.get).toHaveBeenCalledWith(
-          `${API_URL}/clients`,
-          expect.any(Object)
-        )
-      )
+      await waitFor(() => expect(getClients).toHaveBeenCalled())
       expect(screen.getByText('Clientes')).toBeInTheDocument()
       expect(screen.getByText(/John Doe/)).toBeInTheDocument()
     })
@@ -378,7 +397,7 @@ describe('DashboardPage', () => {
       })
 
       it('renders tabs to switch views', async () => {
-        vi.mocked(axios.get).mockResolvedValue({ data: [] })
+        vi.mocked(getClients).mockResolvedValue([])
         render(
           <MemoryRouter>
             <DashboardPage />
@@ -393,10 +412,11 @@ describe('DashboardPage', () => {
       })
 
       it('switches to entities view and back to clients', async () => {
-        vi.mocked(axios.get)
-          .mockResolvedValueOnce({ data: [] }) // Initial load (Clients)
-          .mockResolvedValueOnce({ data: mockGlobalEntities }) // Switch to Entities
-          .mockResolvedValueOnce({ data: [] }) // Switch back to Clients
+        vi.mocked(getClients).mockResolvedValue([]) // Initial load (Clients)
+        vi.mocked(
+          clientFinancialEntityService.getAllAssociations
+        ).mockResolvedValue(mockGlobalEntities) // Switch to Entities
+        vi.mocked(getClients).mockResolvedValue([]) // Switch back to Clients
 
         render(
           <MemoryRouter>
@@ -412,10 +432,9 @@ describe('DashboardPage', () => {
         fireEvent.click(entitiesTab)
 
         await waitFor(() => {
-          expect(axios.get).toHaveBeenCalledWith(
-            `${API_URL}/clients-financial-entities`,
-            expect.any(Object)
-          )
+          expect(
+            clientFinancialEntityService.getAllAssociations
+          ).toHaveBeenCalled()
           expect(screen.getByText('Bank A')).toBeInTheDocument()
         })
 
@@ -433,7 +452,7 @@ describe('DashboardPage', () => {
         const clientsTab = screen.getByText('Clientes')
         fireEvent.click(clientsTab)
 
-        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(3))
+        await waitFor(() => expect(getClients).toHaveBeenCalledTimes(2))
       })
     })
   })

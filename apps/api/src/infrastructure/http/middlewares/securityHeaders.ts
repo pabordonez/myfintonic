@@ -30,6 +30,8 @@ export const securityHeaders = helmet({
       objectSrc: ["'none'"],
     },
   },
+  // Permitir peticiones desde otros orígenes (necesario para CORS con frontend separado)
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
   // HSTS: Forzar conexiones seguras (1 año)
   hsts: false,
   // Ocultar la cabecera X-Powered-By: Express para no revelar tecnología del servidor

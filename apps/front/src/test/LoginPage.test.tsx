@@ -48,7 +48,8 @@ describe('LoginPage', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          token: 'header.eyJpZCI6InVzZXItMTIzIn0.signature',
+          token: 'header.payload.signature',
+          user: { id: 'user-123', role: 'USER' },
         }),
       })
       .mockResolvedValueOnce({
@@ -75,7 +76,11 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/auth/login'),
-        expect.objectContaining({ method: 'POST' })
+        expect.objectContaining({ method: 'POST', credentials: 'include' })
+      )
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/clients/user-123'),
+        expect.objectContaining({ credentials: 'include' })
       )
       expect(mockLogin).toHaveBeenCalled() // refreshUser
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard')

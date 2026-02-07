@@ -1,15 +1,24 @@
 import { Request, Response } from 'express'
 import { AuthUseCases } from '@application/useCases/authUseCases'
+import { env } from '@config/env'
 
 export class AuthController {
   constructor(private useCases: AuthUseCases) {}
 
   login = async (req: Request, res: Response) => {
     try {
-      const result = await this.useCases.login(req.body)
-      res.status(200).json(result)
-    } catch {
-      res.status(401).json({ error: 'Invalid credentials' })
+      const { token, user } = await this.useCases.login(req.body)
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: env.NODE_ENV === 'production',
+        sameSite: env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000, // 24h
+      })
+
+      res.status(200).json({ token, user })
+    } catch (error: any) {
+      res.status(401).json({ error: error.message || 'Invalid credentials' })
     }
   }
 }

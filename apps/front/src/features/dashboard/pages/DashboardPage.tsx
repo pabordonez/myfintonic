@@ -12,12 +12,12 @@ import {
   Users,
   Key,
 } from 'lucide-react'
-import axios from 'axios'
-import { API_URL } from '@/config/api'
+import { clientFinancialEntityService } from '../../client-financial-entities/services/clientFinancialEntity.service'
+import { getClients } from '../../profile/services/client.service'
 import { ProfitabilityBadge } from '../../financial-entities/components/ProfitabilityBadge'
 
 export const DashboardPage = () => {
-  const { user, token } = useAuth()
+  const { user } = useAuth()
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -36,24 +36,20 @@ export const DashboardPage = () => {
       try {
         setLoading(true)
 
-        let url = ''
         if (user.role === 'ADMIN') {
           if (activeTab === 'clients') {
-            url = `${API_URL}/clients`
+            const data = await getClients()
+            setItems(data)
           } else {
-            url = `${API_URL}/clients-financial-entities`
+            const data = await clientFinancialEntityService.getAllAssociations()
+            setItems(data)
           }
         } else {
           // Verificación explícita para evitar el error "User ID not found"
           if (!user.id) throw new Error('User ID not found')
-          url = `${API_URL}/clients/${user.id}/financial-entities`
+          const data = await clientFinancialEntityService.getByClientId(user.id)
+          setItems(data)
         }
-
-        const response = await axios.get(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        setItems(response.data)
       } catch (err: any) {
         console.error(err)
         setError('Error al cargar los datos')
@@ -63,7 +59,7 @@ export const DashboardPage = () => {
     }
 
     fetchData()
-  }, [user, token, activeTab])
+  }, [user, activeTab])
 
   // Calcular el balance total
   const totalBalance = items.reduce(
@@ -84,13 +80,10 @@ export const DashboardPage = () => {
       return
 
     try {
-      await axios.delete(
-        `${API_URL}/clients/${user?.id}/financial-entities/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      setItems((prev) => prev.filter((item) => item.id !== id))
+      if (user?.id) {
+        await clientFinancialEntityService.delete(user.id, id)
+        setItems((prev) => prev.filter((item) => item.id !== id))
+      }
     } catch (err) {
       console.error(err)
       setError('Error al eliminar la entidad')

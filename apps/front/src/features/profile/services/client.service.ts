@@ -24,3 +24,11 @@ export const updateClientProfile = async (
 
   return response.json()
 }
+
+export const getClients = async () => {
+  const response = await fetch(`${API_URL}/clients`, {
+    credentials: 'include',
+  })
+  if (!response.ok) throw new Error('Error al obtener clientes')
+  return response.json()
+}

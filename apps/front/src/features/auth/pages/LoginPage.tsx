@@ -15,20 +15,17 @@ export const LoginPage = () => {
       // 1. Login para obtener token
       const loginRes = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
 
       if (!loginRes.ok) throw new Error('Credenciales inválidas')
-      const { token } = await loginRes.json()
-
-      // 2. Decodificar token para obtener ID (payload base64)
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      const userId = payload.id
+      const { token, user: loginUser } = await loginRes.json()
 
       // 3. Obtener datos completos del usuario
-      const userRes = await fetch(`${API_URL}/clients/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const userRes = await fetch(`${API_URL}/clients/${loginUser.id}`, {
+        credentials: 'include',
       })
 
       if (!userRes.ok) throw new Error('Error al obtener perfil')
