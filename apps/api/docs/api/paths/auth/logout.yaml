@@ -1,0 +1,16 @@
+post:
+  tags:
+    - Auth
+  summary: Cerrar sesión
+  description: Cierra la sesión del usuario limpiando la cookie de autenticación.
+  responses:
+    '200':
+      description: Logout exitoso
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Logged out successfully

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: myfintonic-api
+    env: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install && npx turbo run build --filter=@myfintonic/api && cd apps/api && npx prisma migrate deploy
+    startCommand: node apps/api/dist/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # Se configurará manualmente en el dashboard por seguridad
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: COOKIE_MAX_AGE
+        value: 86400000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 1000

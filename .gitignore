@@ -137,3 +137,46 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+.vite
+
+#DOCUMENTS
+HISTORY_PROMPT*
+001-myfintonic_features*
+001-myfintonic_requireds*
+*openapi-bundled.yaml
+apps/front/docs/features.md
+
+#AGENTS
+docs/AGENTS.md
+
+#IDE
+.DS_Store
+
+# Local Seeds
+apps/api/src/infrastructure/persistence/prisma/local-seed.ts
+
+# Monorepo (Turborepo)
+.turbo
+
+# Build outputs in workspaces
+apps/*/dist
+apps/*/build
+apps/*/.next
+apps/*/out
+packages/*/dist
+packages/*/build
+
+# Test coverage in workspaces
+apps/*/coverage
+packages/*/coverage
+
+# Environment files in workspaces
+apps/*/.env
+apps/*/.env.*
+!apps/*/.env.example
+packages/*/.env
+packages/*/.env.*
+!packages/*/.env.example
+
+# Turbo cache
+.turbo

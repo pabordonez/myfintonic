@@ -1,0 +1,33 @@
+parameters:
+  - in: path
+    name: id
+    required: true
+    schema:
+      type: string
+post:
+  tags:
+    - Stocks
+  summary: Vende un número determinado de acciones
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            shares:
+              type: number
+            sellingPrice:
+              type: number
+          required:
+            - shares
+            - sellingPrice
+  responses:
+    '200':
+      description: Venta realizada
+    '400':
+      description: Número de acciones insuficiente
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/common.yaml#/Error'

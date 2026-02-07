@@ -1,0 +1,65 @@
+{
+  "name": "@myfintonic/root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo para MyFintonic - Gestión de activos financieros personales",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "test:coverage": "turbo run test:coverage",
+    "test:silent": "turbo run test:silent",
+    "test-silent": "turbo run test:silent",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "lint-quiet": "turbo run lint:quiet",
+    "format": "turbo run format",
+    "audit": "turbo run audit",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:generate": "npm run db:generate -w @myfintonic/api",
+    "db:migrate": "npm run db:migrate -w @myfintonic/api",
+    "db:reset": "npm run db:reset -w @myfintonic/api",
+    "db:studio": "npm run db:studio -w @myfintonic/api",
+    "db:seed:local": "npm run db:seed:local -w @myfintonic/api",
+    "api:validate": "npm run api:validate -w @myfintonic/api",
+    "api:bundle": "npm run api:bundle -w @myfintonic/api",
+    "api:build": "npm run build -w @myfintonic/api",
+    "api:lint-quiet": "npm run lint-quiet -w @myfintonic/api",
+    "api:test-silent": "npm run test:silent -w @myfintonic/api",
+    "api:openapi:validate": "npm run api:validate -w @myfintonic/api",
+    "docker:dev": "docker compose -f docker/docker-compose.yml up -d --build",
+    "docker:prod": "docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d --build"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "prettier": "^3.4.2",
+    "eslint": "^9.17.0",
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "npm@10.8.1",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write"
+    ],
+    "apps/api/**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix --config apps/api/eslint.config.mjs"
+    ],
+    "apps/front/**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix --config apps/front/eslint.config.mjs"
+    ],
+    "*.{json,css,md,yml}": [
+      "prettier --write"
+    ]
+  }
+}

@@ -1,2 +1,0 @@
-# myfintonic
-project of myfintonic

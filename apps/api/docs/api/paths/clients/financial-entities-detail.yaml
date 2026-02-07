@@ -1,0 +1,110 @@
+summary: Operaciones sobre una vinculación específica
+description: Gestionar una relación específica entre cliente y entidad.
+get:
+  summary: Detalle de la vinculación
+  operationId: getClientFinancialEntityDetail
+  tags:
+    - Client Financial Entities
+  parameters:
+    - name: clientId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    '200':
+      description: Detalle recuperado.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              balance:
+                type: number
+              financialEntityId:
+                type: string
+                format: uuid
+              financialEntity:
+                $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
+              valueHistory:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    date:
+                      type: string
+                      format: date-time
+                    value:
+                      type: number
+                    previousValue:
+                      type: number
+                      nullable: true
+    '404':
+      description: Vinculación no encontrada.
+put:
+  summary: Actualizar saldo
+  operationId: updateClientFinancialEntityBalance
+  tags:
+    - Client Financial Entities
+  parameters:
+    - name: clientId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            balance:
+              type: number
+          required:
+            - balance
+  responses:
+    '204':
+      description: Saldo actualizado correctamente.
+    '404':
+      description: Vinculación no encontrada.
+delete:
+  summary: Eliminar vinculación
+  operationId: deleteClientFinancialEntity
+  tags:
+    - Client Financial Entities
+  parameters:
+    - name: clientId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    '204':
+      description: Vinculación eliminada correctamente.
+    '404':
+      description: Vinculación no encontrada.

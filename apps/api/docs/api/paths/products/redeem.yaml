@@ -1,0 +1,41 @@
+parameters:
+  - in: path
+    name: id
+    required: true
+    schema:
+      type: string
+post:
+  tags:
+    - Investment Funds
+  summary: Inicia el proceso de rescate de un fondo de inversión
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            units:
+              type: number
+          required:
+            - units
+  responses:
+    '200':
+      description: Operación exitosa
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              grossAmount:
+                type: number
+              withholdingTax:
+                type: number
+              netAmount:
+                type: number
+    '400':
+      description: Saldo insuficiente o error de validación
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/common.yaml#/Error'

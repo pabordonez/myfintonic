@@ -1,0 +1,41 @@
+put:
+  summary: Actualizar perfil de cliente
+  description: Permite a un usuario actualizar su propia información personal.
+  tags:
+    - Clients
+  security:
+    - bearerAuth: []
+  parameters:
+    - in: path
+      name: id
+      schema:
+        type: string
+        format: uuid
+      required: true
+      description: ID del cliente a actualizar
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            firstName:
+              type: string
+            lastName:
+              type: string
+            nickname:
+              type: string
+  responses:
+    '200':
+      description: Cliente actualizado correctamente
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/client.yaml#/Client'
+    '400':
+      description: Datos de entrada inválidos
+    '403':
+      description: Acceso denegado
+    '404':
+      description: Cliente no encontrado

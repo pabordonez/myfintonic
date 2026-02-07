@@ -1,0 +1,95 @@
+summary: Operaciones sobre un producto específico
+description: Endpoints para gestionar un producto financiero individual por su ID.
+get:
+  summary: Obtener detalle de un producto
+  operationId: getProductById
+  tags:
+    - Financial Products
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: ID del producto (UUID)
+      schema:
+        type: string
+        format: uuid
+  responses:
+    '200':
+      description: Detalle del producto recuperado exitosamente.
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/products.yaml#/Product'
+    '404':
+      description: Producto no encontrado.
+put:
+  summary: Actualizar producto
+  operationId: updateProduct
+  tags:
+    - Financial Products
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../schemas/products.yaml#/ProductUpdateRequest'
+  responses:
+    '204':
+      description: Producto actualizado correctamente.
+    '400':
+      description: Datos de entrada inválidos.
+    '404':
+      description: Producto no encontrado.
+patch:
+  summary: Actualizar estado (parcial)
+  operationId: patchProductStatus
+  tags:
+    - Financial Products
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [ACTIVE, INACTIVE, PAUSED, EXPIRED]
+  responses:
+    '204':
+      description: Estado actualizado correctamente.
+    '400':
+      description: Transición de estado no permitida.
+    '404':
+      description: Producto no encontrado.
+delete:
+  summary: Eliminar producto
+  operationId: deleteProduct
+  tags:
+    - Financial Products
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    '204':
+      description: Producto eliminado correctamente.
+    '404':
+      description: Producto no encontrado.

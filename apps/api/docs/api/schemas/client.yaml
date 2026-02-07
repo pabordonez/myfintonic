@@ -1,0 +1,15 @@
+Client:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+    username:
+      type: string
+    role:
+      $ref: './common.yaml#/Role'
+    deletedAt:
+      type: string
+      format: date-time
+      nullable: true
+      readOnly: true

@@ -1,0 +1,19 @@
+name: Enforce PR merge to develop
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  validate-pr-to-develop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR source branch and target
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const sourceBranch = context.payload.pull_request.head.ref;
+            const targetBranch = context.payload.pull_request.base.ref;
+            if (sourceBranch.startsWith("feature/") && targetBranch !== "develop") {
+              core.setFailed("PR from feature/* must target develop only!");
+            }

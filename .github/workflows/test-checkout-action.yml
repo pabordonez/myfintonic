@@ -1,0 +1,8 @@
+name: Test Checkout Action
+on: push
+jobs:
+  action-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test actions/checkout
+        uses: actions/checkout@v3

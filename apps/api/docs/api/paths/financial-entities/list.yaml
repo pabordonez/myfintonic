@@ -1,0 +1,42 @@
+get:
+  tags:
+    - Financial Entities
+  summary: Listar entidades financieras
+  description: Obtiene el catálogo de entidades financieras disponibles.
+  parameters:
+    - in: query
+      name: name
+      schema:
+        type: string
+      description: Filtrar por nombre de la entidad
+  responses:
+    '200':
+      description: Lista de entidades financieras
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
+post:
+  tags:
+    - Financial Entities
+  summary: Crear entidad financiera
+  description: Añade una nueva entidad financiera al catálogo global.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../schemas/financial-entities.yaml#/FinancialEntityCreation'
+  responses:
+    '201':
+      description: Entidad creada exitosamente
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
+    '400':
+      description: Datos inválidos
+    '500':
+      description: Error interno

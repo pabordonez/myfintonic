@@ -1,0 +1,13 @@
+services:
+  api:
+    build:
+      target: runner
+    environment:
+      NODE_ENV: production
+
+  front:
+    build:
+      target: production
+    ports:
+      - '8080:80'
+    # En producción real, VITE_API_URL debería ser el dominio público de la API

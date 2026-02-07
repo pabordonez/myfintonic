@@ -1,0 +1,16 @@
+get:
+  summary: Listar todas las vinculaciones
+  description: Obtiene un listado global de todas las relaciones entre clientes y entidades financieras (Admin).
+  operationId: getAllClientFinancialEntities
+  tags:
+    - Client Financial Entities
+  responses:
+    '200':
+      description: Lista global recuperada.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '../../schemas/financial-entities.yaml#/ClientFinancialEntityResponse'
+#SPLITEAR ESTA RESPUESTA PARA NO DAR TODOS LOS CAMPOS DE ENTIDADES INTERIORES QUITANDO UPDATE CREATED DELETE POR EJEMPLO

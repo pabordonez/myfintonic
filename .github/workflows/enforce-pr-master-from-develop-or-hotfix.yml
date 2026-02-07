@@ -1,0 +1,22 @@
+name: Enforce PR merge to master only from develop or hotfix
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+    branches: [master]
+
+jobs:
+  validate-pr-to-master:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source branch
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const sourceBranch = context.payload.pull_request.head.ref;
+            if (
+              sourceBranch !== "develop" &&
+              !sourceBranch.startsWith("hotfix/")
+            ) {
+              core.setFailed("Merge to master is only allowed from develop or hotfix/* branches");
+            }
