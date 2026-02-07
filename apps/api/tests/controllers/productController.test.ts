@@ -135,6 +135,16 @@ describe('ProductController', () => {
       expect(res.status).toHaveBeenCalledWith(400)
       expect(res.json).toHaveBeenCalledWith({ error: 'Bad Request' })
     })
+
+    it('should return 400 on financial entity error', async () => {
+      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(
+        new Error('Financial Entity not found')
+      )
+      const req = mockRequest({}, { id: '1' })
+      const res = mockResponse()
+      await controller.update(req, res)
+      expect(res.status).toHaveBeenCalledWith(400)
+    })
   })
 
   describe('delete', () => {

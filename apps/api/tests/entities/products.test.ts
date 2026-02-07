@@ -310,6 +310,18 @@ describe('Financial Products API', () => {
         "Financial Entity with ID 'non-existent-id' not found"
       )
     })
+
+    it('should infer clientId from token and default status if not provided', async () => {
+      const { ...minimalProduct } = baseProduct
+      const response = await request(app)
+        .post('/products')
+        .set('Cookie', [`token=${userToken}`])
+        .send(minimalProduct)
+
+      expect(response.status).toBe(201)
+      expect(response.body).toHaveProperty('clientId', userId)
+      expect(response.body).toHaveProperty('status', 'ACTIVE')
+    })
   })
 
   describe('POST /products (Specific Types)', () => {
@@ -547,7 +559,7 @@ describe('Financial Products API', () => {
         .set('Cookie', [`token=${userToken}`])
       expect(getRes.body).toHaveProperty('monthlyInterestRate')
       expect(getRes.body).not.toHaveProperty('numberOfShares') // Campo de Stocks
-      expect(getRes.body).not.toHaveProperty('transactions') // Campo de CurrentAccount (según mapToDomain actual)
+      expect(getRes.body).toHaveProperty('transactions')
 
       // 2. Verificar validación en PUT (no permitir campos de otros tipos)
       const updateRes = await request(app)

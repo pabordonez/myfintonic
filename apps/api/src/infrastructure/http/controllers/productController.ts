@@ -6,7 +6,12 @@ export class ProductController {
 
   create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const product = await this.productUseCases.createProduct(req.body)
+      const dto = {
+        status: 'ACTIVE',
+        ...req.body,
+        clientId: (req as any).user?.id,
+      }
+      const product = await this.productUseCases.createProduct(dto)
       res.status(201).json(product)
     } catch (error) {
       if (

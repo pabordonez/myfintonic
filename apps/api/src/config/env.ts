@@ -39,11 +39,33 @@ const envSchema = z.object({
     : corsOriginSchema.optional().default('http://localhost:3000'),
 
   // Rate Limiting
-  RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000), // 15 minutos (900000 ms)
-  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
+  RATE_LIMIT_WINDOW_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(15 * 60 * 1000), // 15 minutos (900000 ms)
+  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(1000),
+
+  // Rate Limiting Specifics
+  RATE_LIMIT_LOGIN_WINDOW_MS: z.coerce.number().int().positive().default(60000), // 1 minuto
+  RATE_LIMIT_LOGIN_MAX_REQUESTS: z.coerce.number().int().positive().default(5),
+  RATE_LIMIT_PRODUCTS_WINDOW_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(900000), // 15 minutos
+  RATE_LIMIT_PRODUCTS_MAX_REQUESTS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(1000),
 
   // Cookie Configuration
-  COOKIE_MAX_AGE: z.coerce.number().default(24 * 60 * 60 * 1000), // 24 hours (86400000 ms)
+  COOKIE_MAX_AGE: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(24 * 60 * 60 * 1000), // 24 hours (86400000 ms)
 })
 
 const _env = envSchema.safeParse(process.env)

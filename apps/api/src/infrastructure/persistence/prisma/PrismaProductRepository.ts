@@ -188,9 +188,9 @@ export class PrismaProductRepository implements IProductRepository {
       currentBalance: p.currentBalance ?? null,
       monthlyInterestRate: p.monthlyInterestRate ?? null,
       initialBalance: p.initialBalance ?? null,
-      initialDate: p.initialDate ?? null,
+      initialDate: p.initialDate ? new Date(p.initialDate) : null,
       annualInterestRate: p.annualInterestRate ?? null,
-      maturityDate: p.maturityDate ?? null,
+      maturityDate: p.maturityDate ? new Date(p.maturityDate) : null,
       interestPaymentFreq: p.interestPaymentFrequency ?? null,
       numberOfUnits: p.numberOfUnits ?? null,
       netAssetValue: p.netAssetValue ?? null,
@@ -248,6 +248,7 @@ export class PrismaProductRepository implements IProductRepository {
         specificFields = {
           currentBalance: prismaProduct.currentBalance,
           monthlyInterestRate: prismaProduct.monthlyInterestRate,
+          transactions: prismaProduct.transactions || [],
         }
         break
       case 'FIXED_TERM_DEPOSIT':

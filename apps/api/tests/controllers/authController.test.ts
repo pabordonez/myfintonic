@@ -56,6 +56,16 @@ describe('AuthController', () => {
       expect(status).toHaveBeenCalledWith(401)
       expect(json).toHaveBeenCalledWith({ error: 'Invalid' })
     })
+
+    it('should return 401 with default message on failure without message', async () => {
+      vi.mocked(useCases.login).mockRejectedValue(new Error())
+      req = { body: { email: 'a@b.c', password: '123' } }
+
+      await controller.login(req as Request, res as Response)
+
+      expect(status).toHaveBeenCalledWith(401)
+      expect(json).toHaveBeenCalledWith({ error: 'Invalid credentials' })
+    })
   })
 
   describe('logout', () => {
