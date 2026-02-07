@@ -135,6 +135,14 @@ describe('Client API', () => {
       expect(res.status).toBe(200)
       expect(res.body).toHaveLength(2)
     })
+
+    it('USER should NOT get all clients (BFLA Protection)', async () => {
+      const res = await request(app)
+        .get('/clients')
+        .set('Cookie', [`token=${userToken}`])
+
+      expect(res.status).toBe(403)
+    })
   })
 
   describe('Get Client By ID', () => {

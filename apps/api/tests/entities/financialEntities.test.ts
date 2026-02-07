@@ -77,6 +77,15 @@ describe('Financial Entities Catalog API', () => {
       expect(response.status).toBe(201)
       expect(response.body.name).toBe('BBVA')
     })
+
+    it('should return 403 if USER tries to create (BFLA Protection)', async () => {
+      const newEntity = { ...baseEntity, name: 'Hacker Bank' }
+      const response = await request(app)
+        .post('/financial-entities')
+        .set('Cookie', [`token=${userToken}`])
+        .send(newEntity)
+      expect(response.status).toBe(403)
+    })
   })
 
   describe('GET /financial-entities', () => {
@@ -110,6 +119,13 @@ describe('Financial Entities Catalog API', () => {
         .set('Cookie', [`token=${userToken}`])
       const found = listResponse.body.find((e: any) => e.id === entityId)
       expect(found).toBeUndefined()
+    })
+
+    it('should return 403 if USER tries to delete (BFLA Protection)', async () => {
+      const response = await request(app)
+        .delete(`/financial-entities/${entityId}`)
+        .set('Cookie', [`token=${userToken}`])
+      expect(response.status).toBe(403)
     })
   })
 })

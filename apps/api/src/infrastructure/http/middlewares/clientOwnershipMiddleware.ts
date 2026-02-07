@@ -15,7 +15,7 @@ export const clientOwnershipMiddleware = (
     return
   }
 
-  const routeClientId = req.params.clientId
+  const routeClientId = req.params.clientId || req.params.id
 
   if (!routeClientId || routeClientId !== req.user?.id) {
     res
