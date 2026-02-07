@@ -30,13 +30,11 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
     // Ejecutamos todo dentro de una transacción interactiva de Prisma
     // para asegurar consistencia ACID (Saldo + Transacción + Histórico)
     return await prisma.$transaction(async (tx) => {
-      // 1. Obtener el producto actual para calcular el nuevo saldo
-      // Usamos findUniqueOrThrow para asegurar que existe y bloquear si fuera necesario (dependiendo del nivel de aislamiento)
+      // 1. Obtener el producto para verificar tipo y saldo actual
       const product = await tx.financialProduct.findUniqueOrThrow({
         where: { id: productId },
       })
 
-      // 2. Crear el registro de la transacción
       const transaction = await tx.productTransaction.create({
         data: {
           productId,
@@ -47,23 +45,28 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
       })
 
       // 3. Actualizar el saldo del producto
-      const currentBalance = Number(product.currentBalance || 0)
-      const newBalance = currentBalance + amount
+      if (
+        product.type !== 'SAVINGS_ACCOUNT' &&
+        product.type !== 'CURRENT_ACCOUNT'
+      ) {
+        const currentBalance = Number(product.currentBalance || 0)
+        const newBalance = currentBalance + amount
 
-      await tx.financialProduct.update({
-        where: { id: productId },
-        data: { currentBalance: newBalance },
-      })
+        await tx.financialProduct.update({
+          where: { id: productId },
+          data: { currentBalance: newBalance },
+        })
 
-      // 4. Registrar el cambio en el historial de valor
-      await tx.valueHistory.create({
-        data: {
-          productId,
-          date: new Date(),
-          value: newBalance,
-          previousValue: currentBalance,
-        },
-      })
+        // 4. Registrar el cambio en el historial de valor
+        await tx.valueHistory.create({
+          data: {
+            productId,
+            date: new Date(),
+            value: newBalance,
+            previousValue: currentBalance,
+          },
+        })
+      }
 
       return this.mapToDomain(transaction)
     })

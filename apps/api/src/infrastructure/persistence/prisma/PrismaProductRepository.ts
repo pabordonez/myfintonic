@@ -248,6 +248,7 @@ export class PrismaProductRepository implements IProductRepository {
         specificFields = {
           currentBalance: prismaProduct.currentBalance,
           monthlyInterestRate: prismaProduct.monthlyInterestRate,
+          transactions: prismaProduct.transactions || [],
         }
         break
       case 'FIXED_TERM_DEPOSIT':

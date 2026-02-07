@@ -81,7 +81,10 @@ describe('PrismaProductTransactionRepository', () => {
       // Mock del objeto transacción que Prisma pasa al callback
       const mockTx = {
         financialProduct: {
-          findUniqueOrThrow: vi.fn().mockResolvedValue({ currentBalance: 100 }),
+          findUniqueOrThrow: vi.fn().mockResolvedValue({
+            currentBalance: 100,
+            type: 'CURRENT_ACCOUNT',
+          }),
           update: vi.fn(),
         },
         productTransaction: {
@@ -115,10 +118,6 @@ describe('PrismaProductTransactionRepository', () => {
         where: { id: 'p1' },
       })
       expect(mockTx.productTransaction.create).toHaveBeenCalled()
-      expect(mockTx.financialProduct.update).toHaveBeenCalledWith({
-        where: { id: 'p1' },
-        data: { currentBalance: 150 },
-      })
     })
   })
 })

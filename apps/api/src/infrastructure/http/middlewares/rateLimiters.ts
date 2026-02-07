@@ -1,18 +1,19 @@
 import rateLimit from 'express-rate-limit'
+import { env } from '@config/env'
 
 /**
  * Rate Limiter específico para Login (Prevención de Fuerza Bruta).
  * Muy estricto: 5 intentos por minuto.
  */
 export const loginRateLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minuto
-  limit: 5,
+  windowMs: env.RATE_LIMIT_LOGIN_WINDOW_MS,
+  limit: env.RATE_LIMIT_LOGIN_MAX_REQUESTS,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     status: 429,
     message:
-      'Demasiados intentos de inicio de sesión. Por favor, inténtalo de nuevo en 1 minuto.',
+      'Demasiados intentos de inicio de sesión. Por favor, inténtalo de nuevo más tarde.',
   },
 })
 
@@ -21,8 +22,8 @@ export const loginRateLimiter = rateLimit({
  * Más relajado que el login, pero protege contra extracción masiva de datos.
  */
 export const productsRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  limit: 300, // Permite navegación fluida, pero bloquea bots agresivos
+  windowMs: env.RATE_LIMIT_PRODUCTS_WINDOW_MS,
+  limit: env.RATE_LIMIT_PRODUCTS_MAX_REQUESTS,
   standardHeaders: true,
   legacyHeaders: false,
 })
