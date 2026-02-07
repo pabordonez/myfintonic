@@ -1,0 +1,101 @@
+openapi: 3.0.3
+info:
+  title: MyFintonic API
+  description: API de Gestión de Activos Financieros para el portfolio de productos.
+  version: 1.0.0
+servers:
+  - url: /api/v1
+    description: Servidor Principal
+
+tags:
+  - name: Auth
+    description: Autenticación y Registro de usuarios.
+  - name: Clients
+    description: Gestión de perfiles de usuario.
+  - name: Financial Products
+    description: Operaciones generales sobre productos financieros (CRUD e Histórico).
+  - name: Investment Funds
+    description: Operaciones específicas para Fondos de Inversión.
+  - name: Stocks
+    description: Operaciones específicas para Acciones.
+  - name: Financial Entities
+    description: Gestión de Entidades Financieras.
+  - name: Client Financial Entities
+    description: Gestión de la relación entre Clientes y Entidades Financieras.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: apiKey
+      in: cookie
+      name: token
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    $ref: 'paths/health.yaml'
+
+  /auth/register:
+    $ref: './paths/auth/register.yaml'
+
+  /auth/login:
+    $ref: './paths/auth/login.yaml'
+
+  /auth/logout:
+    $ref: './paths/auth/logout.yaml'
+
+  /clients:
+    get:
+      summary: Listar todos los clientes
+      operationId: getAllClients
+      tags:
+        - Clients
+      responses:
+        '200':
+          description: Lista de clientes recuperada
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /clients-financial-entities:
+    $ref: './paths/client-financial-entities/list.yaml'
+
+  /clients/{id}:
+    $ref: './paths/clients/update.yaml'
+
+  /clients/{id}/change-password:
+    $ref: './paths/clients/change-password.yaml'
+
+  /products:
+    $ref: './paths/products/list.yaml'
+
+  /products/{id}:
+    $ref: './paths/products/detail.yaml'
+
+  /products/{id}/history:
+    $ref: './paths/products/history.yaml'
+
+  /products/{id}/transactions:
+    $ref: './paths/products/transactions.yaml'
+
+  /investment-funds/{id}/redeem:
+    $ref: './paths/products/redeem.yaml'
+
+  /stocks/{id}/sell:
+    $ref: './paths/products/sell.yaml'
+
+  /financial-entities:
+    $ref: './paths/financial-entities/list.yaml'
+
+  /financial-entities/{id}:
+    $ref: './paths/financial-entities/detail.yaml'
+
+  /clients/{clientId}/financial-entities:
+    $ref: './paths/clients/financial-entities-list.yaml'
+
+  /clients/{clientId}/financial-entities/{id}:
+    $ref: './paths/clients/financial-entities-detail.yaml'

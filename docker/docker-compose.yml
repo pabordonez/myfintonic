@@ -1,0 +1,70 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: myfintonic-mysql
+    restart: unless-stopped
+    ports:
+      - '3306:3306'
+    env_file:
+      - ../apps/api/.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-p${DB_ROOT_PASSWORD}']
+      timeout: 20s
+      retries: 10
+
+  api:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
+      target: development
+    container_name: myfintonic-api
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file:
+      - ../apps/api/.env
+    environment:
+      PORT: 3000
+      DATABASE_URL: mysql://${DB_USER}:${DB_PASSWORD}@mysql:3306/${DB_NAME}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ../apps/api:/app
+      - /app/node_modules
+    networks:
+      - app-network
+
+  front:
+    build:
+      context: ../apps/front
+      dockerfile: Dockerfile
+      target: development
+    container_name: myfintonic-front
+    restart: unless-stopped
+    ports:
+      - '5173:5173'
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3000}
+    volumes:
+      - ../apps/front:/app
+      - /app/node_modules
+    networks:
+      - app-network
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:
+    driver: bridge

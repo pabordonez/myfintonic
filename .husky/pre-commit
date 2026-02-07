@@ -2,34 +2,32 @@
 
 echo "🔍 Running Quality Gates (pre-commit)..."
 
-# Gate 1: Linting
-echo "📝 Checking code style..."
-npm run lint-quiet || {
-  echo "❌ ESLint failed! Fix errors before committing."
-  npm run lint
-  exit 1
-}
+ # Gate 1: Lint-staged (Format & Lint staged files)
+  echo "📝 Running lint-staged..."
+  npx lint-staged || {
+    echo "❌ lint-staged failed!"
+    exit 1
+  }
 
-# Gate 2: Unit Tests
-echo "🧪 Running unit tests..."
-npm run test-silent || {
-  echo "❌ Tests failed! All must pass."
-  npm run test
-  exit 1
-}
+  # Gate 2: Unit Tests 
+  echo "🧪 Running unit tests ,.."
+  npm run test-silent || {
+    echo "❌ Tests failed!"
+    exit 1
+  }
 
-# Gate 3: TypeScript Build
-echo "🔧 Checking TypeScript..."
-npm run build || {
-  echo "❌ Build failed! Fix type errors."
-  exit 1
-}
+  # Gate 3: Build 
+  echo "🔧 Checking Build ..."
+  npm run build || {
+    echo "❌ Build failed!"
+    exit 1
+  }
 
 
-# Validar OpenAPI solo si hay cambios en la carpeta docs/api
+# Validar OpenAPI solo si hay cambios en la carpeta apps/api/docs
 # git diff --cached --name-only: lista los archivos en staging
-# grep -q "^docs/api/": busca silenciosamente si alguno empieza por docs/api/
-if git diff --cached --name-only | grep -q "^docs/api/"; then
+# grep -q "^apps/api/docs/": busca silenciosamente si alguno empieza por apps/api/docs/
+if git diff --cached --name-only | grep -q "^apps/api/docs/"; then
   echo "🔍 Cambios detectados en la documentación API. Ejecutando validación..."
   
   # Ejecuta el comando de validación
@@ -41,5 +39,7 @@ if git diff --cached --name-only | grep -q "^docs/api/"; then
     exit 1
   fi
 fi
+
+
 
 echo "✅ All pre-commit gates passed!"

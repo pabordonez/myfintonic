@@ -1,0 +1,63 @@
+summary: Operaciones sobre una entidad financiera del catálogo
+description: Gestionar una entidad financiera específica por su ID.
+get:
+  summary: Obtener detalle de entidad
+  operationId: getFinancialEntityById
+  tags:
+    - Financial Entities
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    '200':
+      description: Detalle de la entidad recuperado.
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/financial-entities.yaml#/FinancialEntity'
+    '404':
+      description: Entidad no encontrada.
+put:
+  summary: Actualizar entidad
+  operationId: updateFinancialEntity
+  tags:
+    - Financial Entities
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../schemas/financial-entities.yaml#/FinancialEntityCreation'
+  responses:
+    '204':
+      description: Entidad actualizada correctamente.
+    '404':
+      description: Entidad no encontrada.
+delete:
+  summary: Eliminar entidad
+  operationId: deleteFinancialEntity
+  tags:
+    - Financial Entities
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    '204':
+      description: Entidad eliminada correctamente.
+    '404':
+      description: Entidad no encontrada.

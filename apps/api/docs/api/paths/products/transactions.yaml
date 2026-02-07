@@ -1,0 +1,91 @@
+parameters:
+  - in: path
+    name: id
+    required: true
+    schema:
+      type: string
+      format: uuid
+    description: ID del producto
+get:
+  tags:
+    - Financial Products
+  summary: Listar transacciones
+  description: Obtiene el historial de transacciones de un producto (Cuentas Corrientes y de Ahorro).
+  responses:
+    '200':
+      description: Lista de transacciones recuperada
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                description:
+                  type: string
+                date:
+                  type: string
+                  format: date-time
+                amount:
+                  type: number
+    '404':
+      description: Producto no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/common.yaml#/Error'
+post:
+  tags:
+    - Financial Products
+  summary: Añadir transacción
+  description: Agrega una nueva transacción a un producto existente.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - description
+            - date
+            - amount
+          properties:
+            description:
+              type: string
+            date:
+              type: string
+              format: date-time
+            amount:
+              type: number
+  responses:
+    '201':
+      description: Transacción creada exitosamente
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Transaction added successfully
+    '400':
+      description: Datos inválidos o tipo de producto no permitido
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/common.yaml#/Error'
+    '403':
+      description: No autorizado
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/common.yaml#/Error'
+    '404':
+      description: Producto no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '../../schemas/common.yaml#/Error'
