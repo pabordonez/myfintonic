@@ -31,6 +31,10 @@
       "cache": false,
       "outputs": []
     },
+    "audit": {
+      "outputs": [],
+      "inputs": ["package.json", "package-lock.json"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
