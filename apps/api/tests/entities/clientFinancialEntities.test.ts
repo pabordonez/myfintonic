@@ -54,14 +54,12 @@ vi.mock('../../src/infrastructure/persistence/prisma/client', async () => {
         findUnique: vi.fn().mockImplementation(({ where }) => {
           return Promise.resolve(mockDb.find((i) => i.id === where.id) || null)
         }),
-        update: vi
-          .fn()
-          .mockImplementation(({ where, data }) =>
-            Promise.resolve({
-              ...mockDb.find((i) => i.id === where.id),
-              ...data,
-            })
-          ),
+        update: vi.fn().mockImplementation(({ where, data }) =>
+          Promise.resolve({
+            ...mockDb.find((i) => i.id === where.id),
+            ...data,
+          })
+        ),
         delete: vi.fn().mockResolvedValue({ id: '1' }),
       },
     },

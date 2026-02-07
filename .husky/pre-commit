@@ -2,23 +2,29 @@
 
 echo "🔍 Running Quality Gates (pre-commit)..."
 
+ # Fortmat 
+  echo "📝 Format code style .."
+  npm run format || {
+    echo "❌ ESLint failed!"
+    exit 1
+  }
 
-  # Gate 1: Linting (API)
-  echo "📝 Checking code style (@myfintonic/api)..."
+  # Gate 1: Linting 
+  echo "📝 Checking code style..."
   npm run lint-quiet || {
     echo "❌ ESLint failed!"
     exit 1
   }
 
-  # Gate 2: Unit Tests (API)
-  echo "🧪 Running unit tests (@myfintonic/api)..."
+  # Gate 2: Unit Tests 
+  echo "🧪 Running unit tests ,.."
   npm run test-silent || {
     echo "❌ Tests failed!"
     exit 1
   }
 
-  # Gate 3: Build (API)
-  echo "🔧 Checking Build (@myfintonic/api)..."
+  # Gate 3: Build 
+  echo "🔧 Checking Build ..."
   npm run build || {
     echo "❌ Build failed!"
     exit 1
