@@ -26,9 +26,7 @@ import {
 
 export const app = express()
 
-// Si despliegas detrás de un proxy (Nginx, Cloudflare, AWS ELB), descomenta la siguiente línea
-// para que el Rate Limit funcione correctamente con la IP real del usuario.
-// app.set('trust proxy', 1)
+app.set('trust proxy', 1)
 
 app.use(securityHeaders)
 
