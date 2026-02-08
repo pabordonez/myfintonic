@@ -1,28 +1,40 @@
-import prisma from './client'
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
-import { env } from '@config/env'
+import { z } from 'zod'
+
+const prisma = new PrismaClient()
+
+const envSchema = z.object({
+  ADMIN_EMAIL: z.string().email().default('admin@myfintonic.com'),
+  ADMIN_PASSWORD: z.string().min(8).default('admin123'),
+})
 
 async function main() {
-  const adminEmail = env.ADMIN_EMAIL
+  const { ADMIN_EMAIL, ADMIN_PASSWORD } = envSchema.parse(process.env)
+  const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10)
 
-  const existingAdmin = await prisma.client.findUnique({
-    where: { email: adminEmail },
+  const admin = await prisma.client.upsert({
+    where: { email: ADMIN_EMAIL },
+    update: {}, // Si existe, no hacemos nada (o podrías actualizar la password si quisieras)
+    create: {
+      firstName: 'Admin',
+      lastName: 'System',
+      nickname: 'admin',
+      email: ADMIN_EMAIL,
+      password: hashedPassword,
+      role: 'ADMIN', // Asegúrate de que coincida con tu enum en schema.prisma
+    },
   })
 
-  if (!existingAdmin) {
-    console.log(`Creating default admin user: ${adminEmail}`)
-    const hashedPassword = await bcrypt.hash(env.ADMIN_PASSWORD, 10)
-
-    await prisma.client.create({
-      data: {
-        email: adminEmail,
-        password: hashedPassword,
-        role: 'ADMIN',
-        firstName: 'Super',
-        lastName: 'Admin',
-      },
-    })
-  }
+  console.log(`Admin user upserted: ${admin.email}`)
 }
 
-main().catch(console.error)
+main()
+  .then(async () => {
+    await prisma.$disconnect()
+  })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
+  })
