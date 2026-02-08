@@ -66,6 +66,7 @@
     "zod": "^3.24.1"
   },
   "prisma": {
-    "schema": "src/infrastructure/persistence/prisma/schema.prisma"
+    "schema": "src/infrastructure/persistence/prisma/schema.prisma",
+    "seed": "tsx src/infrastructure/persistence/prisma/seed-admin.ts"
   }
 }
