@@ -11,11 +11,10 @@ export class AuthController {
 
       res.cookie('token', token, {
         httpOnly: true,
-        // En producción, como Front y Back están en dominios distintos (Vercel vs Render),
-        // necesitamos 'none' y secure: true para que la cookie viaje.
         secure: env.NODE_ENV === 'production',
         sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: env.COOKIE_MAX_AGE,
+        path: '/',
       })
 
       res.status(200).json({ token, user })
@@ -30,6 +29,7 @@ export class AuthController {
       secure: env.NODE_ENV === 'production',
       sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 0, // Expire immediately
+      path: '/',
     })
     res.status(200).json({ message: 'Logged out successfully' })
   }
