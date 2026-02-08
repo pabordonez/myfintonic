@@ -2,9 +2,11 @@ import cors from 'cors'
 import { env } from '@config/env'
 
 // Aseguramos que sea un array para coincidencia exacta, no de subcadenas
-const allowedOrigins = Array.isArray(env.CORS_ORIGIN)
-  ? env.CORS_ORIGIN
-  : (env.CORS_ORIGIN as string).split(',').map((origin) => origin.trim())
+const allowedOrigins = (
+  Array.isArray(env.CORS_ORIGIN)
+    ? env.CORS_ORIGIN
+    : (env.CORS_ORIGIN as string).split(',')
+).map((origin) => origin.trim())
 
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
