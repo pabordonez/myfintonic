@@ -1,11 +1,15 @@
 import { IProductTransactionRepository } from '@domain/repository/IProductTransactionRepository'
 import { IProductRepository } from '@domain/repository/IProductRepository'
-import { ProductType } from '@domain/types'
 import { ProductTransactionDto } from '@application/dtos/productTransactionDto'
 import {
   IProductTransaction,
   IProductTransactionDetail,
 } from '@domain/entities/IProductTransaction'
+import { FinancialProduct } from '@domain/models/financialProduct'
+import {
+  BankingTransactionPolicy,
+  InvestmentTransactionPolicy,
+} from '@domain/strategies/transactionPolicy'
 
 export class ProductTransactionUseCases {
   constructor(
@@ -17,22 +21,27 @@ export class ProductTransactionUseCases {
     const { userId, productId, description, date, amount } =
       productTransactionDto
 
-    const product = await this.productRepository.findById(productId)
+    const productData = await this.productRepository.findById(productId)
 
-    if (!product) {
+    if (!productData) {
       throw new Error('Product not found')
     }
 
-    if (product.clientId !== userId) {
+    // 1. Hidratamos el Modelo Rico
+    const product = FinancialProduct.fromPrimitives(productData)
+
+    // 2. Lógica de Dominio: Verificación de Propiedad
+    if (!product.isOwnedBy(userId)) {
       throw new Error('Unauthorized access to product')
     }
 
-    const allowedTypes: ProductType[] = ['CURRENT_ACCOUNT', 'SAVINGS_ACCOUNT']
-    if (!allowedTypes.includes(product.type)) {
-      throw new Error(
-        `Transactions are not allowed for product type: ${product.type}`
-      )
-    }
+    // 3. Lógica de Dominio: Validación vía Strategy
+    // El Caso de Uso decide QUÉ política aplicar, la Entidad decide CÓMO ejecutarse con ella.
+    const policy = ['CURRENT_ACCOUNT', 'SAVINGS_ACCOUNT'].includes(product.type)
+      ? new BankingTransactionPolicy()
+      : new InvestmentTransactionPolicy()
+
+    product.validateTransaction(policy)
 
     await this.productTransactionRepository.addTransaction({
       productId,

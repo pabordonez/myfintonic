@@ -38,6 +38,7 @@ describe('ProductTransactionUseCases', () => {
         id: 'prod-1',
         clientId: 'user-1',
         type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
       } as any)
 
       await useCase.add(request)
