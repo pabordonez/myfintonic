@@ -1,34 +1,39 @@
 import { IClientFinancialEntity } from '@domain/entities/IClientFinancialEntity'
 import { IClientFinancialEntityRepository } from '@domain/repository/IClientFinancialEntityRepository'
-import { CreateClientFinancialEntityDto } from '@application/dtos/clientFinancialEntityDto'
-import prisma from '@infrastructure/persistence/prisma/client'
+import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 
 export class PrismaClientFinancialEntityRepository implements IClientFinancialEntityRepository {
   async create(
-    dto: CreateClientFinancialEntityDto
+    clientFinancialEntity: Partial<IClientFinancialEntity>
   ): Promise<IClientFinancialEntity> {
     try {
       // Construimos el objeto data dinámicamente para evitar pasar 'undefined' en relaciones
       const data: any = {
-        clientId: dto.clientId,
-        financialEntityId: dto.financialEntityId,
+        clientId: clientFinancialEntity.clientId,
+        financialEntityId: clientFinancialEntity.financialEntityId,
         balance:
-          dto.balance !== null && dto.balance !== undefined
-            ? dto.balance
+          clientFinancialEntity.balance !== null &&
+          clientFinancialEntity.balance !== undefined
+            ? clientFinancialEntity.balance
             : null,
         initialBalance:
-          dto.initialBalance !== null && dto.initialBalance !== undefined
-            ? dto.initialBalance
-            : dto.balance !== null && dto.balance !== undefined
-              ? dto.balance
+          clientFinancialEntity.initialBalance !== null &&
+          clientFinancialEntity.initialBalance !== undefined
+            ? clientFinancialEntity.initialBalance
+            : clientFinancialEntity.balance !== null &&
+                clientFinancialEntity.balance !== undefined
+              ? clientFinancialEntity.balance
               : null,
       }
 
-      if (dto.balance !== null && dto.balance !== undefined) {
+      if (
+        clientFinancialEntity.balance !== null &&
+        clientFinancialEntity.balance !== undefined
+      ) {
         data.valueHistory = {
           create: {
             date: new Date(),
-            value: dto.balance,
+            value: clientFinancialEntity.balance,
           },
         }
       }
@@ -36,8 +41,9 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
       const created = await prisma.clientFinancialEntity.create({
         data: data,
         include: {
-          financialEntity: true,
           valueHistory: true,
+          client: true,
+          financialEntity: true,
         },
       })
 
@@ -45,12 +51,16 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     } catch (error: any) {
       // Si ya existe (activo o borrado), lo reactivamos y actualizamos
       if (error.code === 'P2002') {
+        const { clientId, financialEntityId } = clientFinancialEntity
+        if (!clientId || !financialEntityId) {
+          throw error
+        }
+
         // 1. Verificar si existe y está ACTIVO
-        // Usamos findFirst para evitar problemas con la extensión soft-delete y claves compuestas
         const existingActive = await prisma.clientFinancialEntity.findFirst({
           where: {
-            clientId: dto.clientId,
-            financialEntityId: dto.financialEntityId,
+            clientId,
+            financialEntityId,
           },
         })
 
@@ -61,12 +71,15 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
           deletedAt: null,
         }
 
-        if (dto.balance !== null && dto.balance !== undefined) {
-          updateData.balance = dto.balance
+        if (
+          clientFinancialEntity.balance !== null &&
+          clientFinancialEntity.balance !== undefined
+        ) {
+          updateData.balance = clientFinancialEntity.balance
           updateData.valueHistory = {
             create: {
               date: new Date(),
-              value: dto.balance,
+              value: clientFinancialEntity.balance,
             },
           }
         }
@@ -74,14 +87,15 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
         const updated = await prisma.clientFinancialEntity.update({
           where: {
             clientId_financialEntityId: {
-              clientId: dto.clientId,
-              financialEntityId: dto.financialEntityId,
+              clientId,
+              financialEntityId,
             },
           },
           data: updateData,
           include: {
             financialEntity: true,
             valueHistory: true,
+            client: true,
           },
         })
 
@@ -125,7 +139,11 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
   async findById(id: string): Promise<IClientFinancialEntity | null> {
     const entity = await prisma.clientFinancialEntity.findFirst({
       where: { id },
-      include: { valueHistory: true, financialEntity: true },
+      include: {
+        valueHistory: true,
+        financialEntity: true,
+        client: true,
+      },
     })
     if (!entity) return null
     return this.mapToDomain(entity)
@@ -162,7 +180,6 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
   }
 
   private mapToDomain(prismaEntity: any): IClientFinancialEntity {
-    //TODO MEJORAR PARA SEGMENTARLO MEJOR EN DISTINTOS TIPOS
     return {
       id: prismaEntity.id,
       balance: prismaEntity.balance ? Number(prismaEntity.balance) : 0,
@@ -176,6 +193,7 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
             firstName: prismaEntity.client.firstName,
             lastName: prismaEntity.client.lastName,
             email: prismaEntity.client.email,
+            nickname: prismaEntity.client.nickname,
           }
         : undefined,
       financialEntityId: prismaEntity.financialEntityId,

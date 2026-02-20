@@ -7,7 +7,6 @@ export interface IClientFinancialEntity {
   balance: number
   initialBalance?: number
   clientId: string
-  //TODO DEFINIR UN INTERFAZ
   client?: IClientDetails
   financialEntityId: string
   financialEntity?: IFinancialEntity

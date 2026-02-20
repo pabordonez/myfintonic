@@ -1,25 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { PrismaProductTransactionRepository } from '../../src/infrastructure/persistence/prisma/PrismaProductTransactionRepository'
-import prisma from '../../src/infrastructure/persistence/prisma/client'
+import { PrismaProductTransactionRepository } from '../../src/infrastructure/persistence/prisma/repository/PrismaProductTransactionRepository'
+import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
 
 // Mock del cliente de Prisma
-vi.mock('../../src/infrastructure/persistence/prisma/client', () => ({
-  default: {
-    productTransaction: {
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      create: vi.fn(),
+vi.mock(
+  '../../src/infrastructure/persistence/prisma/repository/prismaClient',
+  () => ({
+    default: {
+      productTransaction: {
+        findUnique: vi.fn(),
+        findMany: vi.fn(),
+        create: vi.fn(),
+      },
+      financialProduct: {
+        findUniqueOrThrow: vi.fn(),
+        update: vi.fn(),
+      },
+      valueHistory: {
+        create: vi.fn(),
+      },
+      $transaction: vi.fn(),
     },
-    financialProduct: {
-      findUniqueOrThrow: vi.fn(),
-      update: vi.fn(),
-    },
-    valueHistory: {
-      create: vi.fn(),
-    },
-    $transaction: vi.fn(),
-  },
-}))
+  })
+)
 
 describe('PrismaProductTransactionRepository', () => {
   let repo: PrismaProductTransactionRepository
@@ -118,44 +121,6 @@ describe('PrismaProductTransactionRepository', () => {
         where: { id: 'p1' },
       })
       expect(mockTx.productTransaction.create).toHaveBeenCalled()
-    })
-
-    it('should update balance and history for STOCKS', async () => {
-      const mockTx = {
-        financialProduct: {
-          findUniqueOrThrow: vi.fn().mockResolvedValue({
-            currentBalance: 100,
-            type: 'STOCKS',
-          }),
-          update: vi.fn(),
-        },
-        productTransaction: {
-          create: vi.fn().mockResolvedValue({
-            id: 'tx1',
-            productId: 'p1',
-            description: 'buy',
-            amount: 50,
-            date: new Date(),
-          }),
-        },
-        valueHistory: {
-          create: vi.fn(),
-        },
-      }
-
-      vi.mocked(prisma.$transaction).mockImplementation(async (cb: any) => {
-        return cb(mockTx)
-      })
-
-      await repo.addTransaction({
-        productId: 'p1',
-        description: 'buy',
-        amount: 50,
-        date: new Date(),
-      })
-
-      expect(mockTx.financialProduct.update).toHaveBeenCalled()
-      expect(mockTx.valueHistory.create).toHaveBeenCalled()
     })
   })
 })

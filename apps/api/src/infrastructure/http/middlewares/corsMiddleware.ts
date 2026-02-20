@@ -1,5 +1,5 @@
 import cors from 'cors'
-import { env } from '@config/env'
+import { env } from '@infrastructure/config/env'
 
 // Aseguramos que sea un array para coincidencia exacta, no de subcadenas
 const allowedOrigins = (

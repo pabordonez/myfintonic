@@ -1,17 +1,25 @@
 import { Request, Response } from 'express'
 import { ProductUseCases } from '@application/useCases/productUseCases'
+import {
+  CreateProductDto,
+  UpdateProductDto,
+} from '@application/dtos/productDto'
+import { randomUUID } from 'crypto'
 
 export class ProductController {
   constructor(private productUseCases: ProductUseCases) {}
 
   create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const dto = {
+      const dto: CreateProductDto = {
         status: 'ACTIVE',
         ...req.body,
         clientId: (req as any).user?.id,
       }
-      const product = await this.productUseCases.createProduct(dto)
+      const product = await this.productUseCases.createProduct(
+        dto,
+        randomUUID()
+      )
       res.status(201).json(product)
     } catch (error) {
       if (
@@ -97,10 +105,17 @@ export class ProductController {
 
   update = async (req: Request, res: Response): Promise<void> => {
     try {
+      const updateProductDto: UpdateProductDto = {
+        status: 'ACTIVE',
+        ...req.body,
+        clientId: (req as any).user?.id,
+      }
+
       await this.productUseCases.updateProduct(
         req.params.id as string,
-        req.body
+        updateProductDto
       )
+
       res.status(204).send()
     } catch (error) {
       if (error instanceof Error && error.message === 'Product not found') {
@@ -123,10 +138,16 @@ export class ProductController {
 
   patch = async (req: Request, res: Response): Promise<void> => {
     try {
+      const updateProductDto: UpdateProductDto = {
+        ...req.body,
+        clientId: (req as any).user?.id,
+      }
+
       await this.productUseCases.updateProduct(
         req.params.id as string,
-        req.body
+        updateProductDto
       )
+
       res.status(204).send()
     } catch (error) {
       if (error instanceof Error && error.message === 'Product not found') {

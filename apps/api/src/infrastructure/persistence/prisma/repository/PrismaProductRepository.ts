@@ -1,6 +1,6 @@
 import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
 import { IProductRepository } from '@domain/repository/IProductRepository'
-import prisma from '@infrastructure/persistence/prisma/client'
+import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 
 export class PrismaProductRepository implements IProductRepository {
   async create(product: IFinancialProduct): Promise<IFinancialProduct> {
@@ -37,9 +37,8 @@ export class PrismaProductRepository implements IProductRepository {
       'status',
       'currentBalance',
       'monthlyInterestRate',
-      'initialBalance',
-      'initialDate',
       'annualInterestRate',
+      'initialDate',
       'maturityDate',
       'numberOfUnits',
       'netAssetValue',

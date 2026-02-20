@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { AuthUseCases } from '@application/useCases/authUseCases'
-import { env } from '@config/env'
+import { env } from '@infrastructure/config/env'
 
 export class AuthController {
   constructor(private useCases: AuthUseCases) {}
@@ -28,7 +28,7 @@ export class AuthController {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 0, // Expire immediately
+      maxAge: 0,
       path: '/',
     })
     res.status(200).json({ message: 'Logged out successfully' })

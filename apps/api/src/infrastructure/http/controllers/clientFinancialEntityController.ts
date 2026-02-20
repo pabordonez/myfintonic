@@ -1,16 +1,22 @@
 import { Request, Response } from 'express'
 import { ClientFinancialEntityUseCases } from '@application/useCases/clientFinancialEntityUseCases'
+import {
+  CreateClientFinancialEntityDto,
+  UpdateClientFinancialEntityDto,
+} from '@application/dtos/clientFinancialEntityDto'
 
 export class ClientFinancialEntityController {
   constructor(private useCases: ClientFinancialEntityUseCases) {}
 
   create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const dto = {
+      const createClientFinancialEntityDto: CreateClientFinancialEntityDto = {
         ...req.body,
         clientId: req.params.clientId,
       }
-      const association = await this.useCases.createAssociation(dto)
+      const association = await this.useCases.createAssociation(
+        createClientFinancialEntityDto
+      )
       res.status(201).json(association)
     } catch (error: any) {
       if (error.code === 'P2002') {
@@ -66,7 +72,14 @@ export class ClientFinancialEntityController {
 
   updateBalance = async (req: Request, res: Response): Promise<void> => {
     try {
-      await this.useCases.updateBalance(req.params.id as string, req.body)
+      const updateClientFinancialEntityDto: UpdateClientFinancialEntityDto = {
+        ...req.body,
+        clientId: req.params.clientId,
+      }
+      await this.useCases.updateBalance(
+        req.params.id as string,
+        updateClientFinancialEntityDto
+      )
       res.status(204).send()
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {

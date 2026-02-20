@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductUseCases } from '../../src/application/useCases/productUseCases'
 import { IProductRepository } from '../../src/domain/repository/IProductRepository'
-import { IProductFactory } from '../../src/domain/factories/productFactory'
+import { IProductFactory } from '../../src/domain/factories/productService'
 
 const mockRepo = {
   create: vi.fn(),
@@ -13,7 +13,7 @@ const mockRepo = {
 
 const mockFactory = {
   create: vi.fn(),
-  validateUpdate: vi.fn(),
+  update: vi.fn((existing, data) => ({ ...existing, ...data })),
 } as unknown as IProductFactory
 
 const useCases = new ProductUseCases(mockRepo, mockFactory)
@@ -25,9 +25,12 @@ describe('ProductUseCases', () => {
 
   describe('createProduct', () => {
     it('should throw if missing fields', async () => {
-      await expect(useCases.createProduct({} as any)).rejects.toThrow(
-        'Missing required fields'
-      )
+      vi.mocked(mockFactory.create).mockImplementationOnce(() => {
+        throw new Error('Missing required fields')
+      })
+      await expect(
+        useCases.createProduct({} as any, 'test-uuid')
+      ).rejects.toThrow('Missing required fields')
     })
 
     it('should create product if valid', async () => {
@@ -38,7 +41,7 @@ describe('ProductUseCases', () => {
         status: 'S',
       } as any
       vi.mocked(mockFactory.create).mockReturnValue(data)
-      await useCases.createProduct(data)
+      await useCases.createProduct(data, 'test-uuid')
       expect(mockRepo.create).toHaveBeenCalledWith(data)
     })
   })
@@ -54,8 +57,11 @@ describe('ProductUseCases', () => {
     it('should validate and update if found', async () => {
       vi.mocked(mockRepo.findById).mockResolvedValue({ type: 'T' } as any)
       await useCases.updateProduct('1', {})
-      expect(mockFactory.validateUpdate).toHaveBeenCalled()
-      expect(mockRepo.update).toHaveBeenCalled()
+      expect(mockFactory.update).toHaveBeenCalled()
+      expect(mockRepo.update).toHaveBeenCalledWith(
+        '1',
+        expect.objectContaining({ type: 'T' })
+      )
     })
 
     it('should allow updating currentBalance for FIXED_TERM_DEPOSIT', async () => {
@@ -69,8 +75,9 @@ describe('ProductUseCases', () => {
 
       await useCases.updateProduct('1', { currentBalance: 1050 })
 
-      expect(mockFactory.validateUpdate).toHaveBeenCalled()
+      expect(mockFactory.update).toHaveBeenCalled()
       expect(mockRepo.update).toHaveBeenCalledWith('1', {
+        ...existingProduct,
         currentBalance: 1050,
       })
     })

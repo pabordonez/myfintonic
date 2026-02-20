@@ -1,12 +1,18 @@
 import { Request, Response } from 'express'
 import { FinancialEntityUseCases } from '@application/useCases/financialEntityUseCases'
+import {
+  CreateFinancialEntityDto,
+  UpdateFinancialEntityDto,
+} from '@application/dtos/financialEntityDto'
 
 export class FinancialEntityController {
   constructor(private useCases: FinancialEntityUseCases) {}
 
   create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const entity = await this.useCases.createEntity(req.body)
+      const financialEntityDto: CreateFinancialEntityDto = { ...req.body }
+
+      const entity = await this.useCases.createEntity(financialEntityDto)
       res.status(201).json(entity)
     } catch (error) {
       console.error('Error creating financial entity:', error)
@@ -42,7 +48,11 @@ export class FinancialEntityController {
 
   update = async (req: Request, res: Response): Promise<void> => {
     try {
-      await this.useCases.updateEntity(req.params.id as string, req.body)
+      const financialEntityDto: UpdateFinancialEntityDto = { ...req.body }
+      await this.useCases.updateEntity(
+        req.params.id as string,
+        financialEntityDto
+      )
       res.status(204).send()
     } catch (error) {
       if (

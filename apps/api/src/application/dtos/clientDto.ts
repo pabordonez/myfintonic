@@ -3,6 +3,7 @@ export interface RegisterClientDto {
   password: string
   firstName: string
   lastName: string
+  role: 'ADMIN' | 'USER'
   nickname?: string
 }
 

@@ -1,5 +1,5 @@
 import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
-import { IProductFactory } from '@domain/factories/productFactory'
+import { IProductFactory } from '@domain/factories/productService'
 import { IProductRepository } from '@domain/repository/IProductRepository'
 import {
   CreateProductDto,
@@ -33,17 +33,10 @@ export class ProductUseCases {
   }
 
   async createProduct(
-    productData: CreateProductDto
+    productData: CreateProductDto,
+    uuid: any
   ): Promise<IFinancialProduct> {
-    if (
-      !productData.name ||
-      !productData.type ||
-      !productData.financialEntity ||
-      !productData.status
-    ) {
-      throw new Error('Missing required fields')
-    }
-    const product = this.productFactory.create(productData)
+    const product = this.productFactory.create(productData, uuid)
     return this.productRepository.create(product)
   }
 
@@ -55,9 +48,12 @@ export class ProductUseCases {
     if (!existingProduct) {
       throw new Error('Product not found')
     }
-    this.productFactory.validateUpdate(existingProduct.type, productData)
+    const updatedProduct = this.productFactory.update(
+      existingProduct,
+      productData
+    )
 
-    await this.productRepository.update(id, productData)
+    await this.productRepository.update(id, updatedProduct)
   }
 
   async deleteProduct(id: string): Promise<void> {

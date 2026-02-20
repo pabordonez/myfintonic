@@ -3,5 +3,5 @@ export interface IClientFinancialEntityValueHistory {
   date: Date
   value: number
   previousValue?: number
-  clientFinancialEntityId?: string
+  clientFinancialEntityId: string
 }

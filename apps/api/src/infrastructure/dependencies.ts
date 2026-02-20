@@ -1,24 +1,26 @@
-import { PrismaProductRepository } from '@infrastructure/persistence/prisma/PrismaProductRepository'
-import { PrismaFinancialEntityRepository } from '@infrastructure/persistence/prisma/PrismaFinancialEntityRepository'
-import { PrismaClientFinancialEntityRepository } from '@infrastructure/persistence/prisma/PrismaClientFinancialEntityRepository'
-import { PrismaClientRepository } from '@infrastructure/persistence/prisma/PrismaClientRepository'
-import { PrismaProductTransactionRepository } from '@infrastructure/persistence/prisma/PrismaProductTransactionRepository'
+import { PrismaProductRepository } from '@infrastructure/persistence/prisma/repository/PrismaProductRepository'
+import { PrismaFinancialEntityRepository } from '@infrastructure/persistence/prisma/repository/PrismaFinancialEntityRepository'
+import { PrismaClientFinancialEntityRepository } from '@infrastructure/persistence/prisma/repository/PrismaClientFinancialEntityRepository'
+import { PrismaClientRepository } from '@infrastructure/persistence/prisma/repository/PrismaClientRepository'
+import { PrismaProductTransactionRepository } from '@infrastructure/persistence/prisma/repository/PrismaProductTransactionRepository'
 
 import { ProductUseCases } from '@application/useCases/productUseCases'
 import { FinancialEntityUseCases } from '@application/useCases/financialEntityUseCases'
 import { ClientFinancialEntityUseCases } from '@application/useCases/clientFinancialEntityUseCases'
 import { AuthUseCases } from '@application/useCases/authUseCases'
 import { ClientUseCases } from '@application/useCases/clientUseCases'
-import { ProductTransactionUseCases } from '@application/useCases/ProductTransactionUseCases'
+import { ProductTransactionUseCases } from '@application/useCases/productTransactionUseCases'
 
 import { ProductController } from '@infrastructure/http/controllers/productController'
 import { FinancialEntityController } from '@infrastructure/http/controllers/financialEntityController'
 import { ClientFinancialEntityController } from '@infrastructure/http/controllers/clientFinancialEntityController'
 import { HealthController } from '@infrastructure/http/controllers/healthController'
-import { ProductFactory } from '@domain/factories/productFactory'
+import { ProductFactory } from '@domain/factories/productService'
 import { AuthController } from '@infrastructure/http/controllers/authController'
 import { ClientController } from '@infrastructure/http/controllers/clientController'
-import { ProductTransactionController } from '@infrastructure/http/controllers/ProductTransactionController'
+import { ClientFactory } from '@domain/factories/clientFactory'
+import { BcryptEncryptionService } from '@infrastructure/services/bcryptEncryptionService'
+import { ProductTransactionController } from '@infrastructure/http/controllers/productTransactionController'
 
 export const productRepository = new PrismaProductRepository()
 const productFactory = new ProductFactory()
@@ -52,7 +54,13 @@ export const clientFinancialEntityController =
   new ClientFinancialEntityController(clientFinancialEntityUseCases)
 
 export const clientRepository = new PrismaClientRepository()
-const clientUseCases = new ClientUseCases(clientRepository)
+const clientFactory = new ClientFactory()
+const encryptionService = new BcryptEncryptionService()
+const clientUseCases = new ClientUseCases(
+  clientRepository,
+  clientFactory,
+  encryptionService
+)
 export const clientController = new ClientController(clientUseCases)
 
 const authUseCases = new AuthUseCases(clientRepository)

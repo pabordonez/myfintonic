@@ -1,18 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { PrismaFinancialEntityRepository } from '../../src/infrastructure/persistence/prisma/PrismaFinancialEntityRepository'
-import prisma from '../../src/infrastructure/persistence/prisma/client'
+import { PrismaFinancialEntityRepository } from '../../src/infrastructure/persistence/prisma/repository/PrismaFinancialEntityRepository'
+import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
 
-vi.mock('../../src/infrastructure/persistence/prisma/client', () => ({
-  default: {
-    financialEntity: {
-      create: vi.fn(),
-      update: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn().mockResolvedValue([]),
-      delete: vi.fn(),
+vi.mock(
+  '../../src/infrastructure/persistence/prisma/repository/prismaClient',
+  () => ({
+    default: {
+      financialEntity: {
+        create: vi.fn(),
+        update: vi.fn(),
+        findUnique: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
+        delete: vi.fn(),
+      },
     },
-  },
-}))
+  })
+)
 
 const repo = new PrismaFinancialEntityRepository()
 
@@ -29,7 +32,10 @@ describe('PrismaFinancialEntityRepository', () => {
     await repo.update('1', { name: 'New' })
     expect(prisma.financialEntity.update).toHaveBeenCalledWith({
       where: { id: '1' },
-      data: { name: 'New' },
+      data: expect.objectContaining({
+        name: 'New',
+        updatedAt: expect.any(Date),
+      }),
     })
   })
 

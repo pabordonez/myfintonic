@@ -1,10 +1,8 @@
-import { RegisterClientDto, UpdateClientDto } from '@application/dtos/clientDto'
-
-// Definimos una interfaz parcial para el Cliente para evitar dependencias circulares o de infraestructura aquí
+import { IClient } from '@domain/entities/IClient'
 export interface IClientRepository {
-  create(data: RegisterClientDto): Promise<any>
+  create(data: Partial<IClient>): Promise<any>
   findAll(): Promise<any[]>
   findById(id: string): Promise<any | null>
   findByEmail(email: string): Promise<any | null>
-  update(id: string, data: UpdateClientDto): Promise<any>
+  update(id: string, data: Partial<IClient>): Promise<any>
 }

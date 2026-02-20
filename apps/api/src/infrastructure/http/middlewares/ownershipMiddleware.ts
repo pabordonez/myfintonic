@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import prisma from '@infrastructure/persistence/prisma/client'
+import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 
 /**
  * Verifica si el usuario es dueño del recurso.

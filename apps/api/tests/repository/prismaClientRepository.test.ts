@@ -1,19 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { PrismaClientRepository } from '../../src/infrastructure/persistence/prisma/PrismaClientRepository'
-import prisma from '../../src/infrastructure/persistence/prisma/client'
-import { RegisterClientDto } from '../../src/application/dtos/client.dto'
+import { PrismaClientRepository } from '../../src/infrastructure/persistence/prisma/repository/PrismaClientRepository'
+import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
+import { IClient } from '../../src/domain/entities/IClient'
 
 // Mock de prisma
-vi.mock('../../src/infrastructure/persistence/prisma/client', () => ({
-  default: {
-    client: {
-      create: vi.fn(),
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      update: vi.fn(),
+vi.mock(
+  '../../src/infrastructure/persistence/prisma/repository/prismaClient',
+  () => ({
+    default: {
+      client: {
+        create: vi.fn(),
+        findMany: vi.fn(),
+        findUnique: vi.fn(),
+        update: vi.fn(),
+      },
     },
-  },
-}))
+  })
+)
 
 const repository = new PrismaClientRepository()
 
@@ -42,19 +45,21 @@ describe('PrismaClientRepository', () => {
 
   describe('create', () => {
     it('should create a client', async () => {
-      const dto: RegisterClientDto = {
+      const client: IClient = {
         email: 'test@test.com',
         password: '123',
         firstName: 'T',
         lastName: 'U',
+        role: 'USER',
+        createdAt: new Date(),
       }
       vi.mocked(prisma.client.create).mockResolvedValue({
         id: '1',
-        ...dto,
+        ...client,
         role: 'USER',
       } as any)
 
-      const result = await repository.create(dto)
+      const result = await repository.create(client)
       expect(result).toHaveProperty('id')
       expect(prisma.client.create).toHaveBeenCalled()
     })
@@ -64,13 +69,15 @@ describe('PrismaClientRepository', () => {
       error.code = 'P2002'
       vi.mocked(prisma.client.create).mockRejectedValue(error)
 
-      const dto: RegisterClientDto = {
+      const client: IClient = {
         email: 'test@test.com',
         password: '123',
         firstName: 'T',
         lastName: 'U',
+        role: 'USER',
+        createdAt: new Date(),
       }
-      await expect(repository.create(dto)).rejects.toThrow(
+      await expect(repository.create(client)).rejects.toThrow(
         'Email already in use'
       )
     })
@@ -79,13 +86,15 @@ describe('PrismaClientRepository', () => {
       const error = new Error('DB Error')
       vi.mocked(prisma.client.create).mockRejectedValue(error)
 
-      const dto: RegisterClientDto = {
+      const client: IClient = {
         email: 'test@test.com',
         password: '123',
         firstName: 'T',
         lastName: 'U',
+        role: 'USER',
+        createdAt: new Date(),
       }
-      await expect(repository.create(dto)).rejects.toThrow('DB Error')
+      await expect(repository.create(client)).rejects.toThrow('DB Error')
     })
   })
 })

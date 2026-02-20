@@ -7,33 +7,26 @@ import {
   IProductTransactionDetail,
 } from '@domain/entities/IProductTransaction'
 
-interface AddTransactionRequest extends ProductTransactionDto {
-  userId: string
-  productId: string
-}
-
 export class ProductTransactionUseCases {
   constructor(
     private readonly productTransactionRepository: IProductTransactionRepository,
     private readonly productRepository: IProductRepository
   ) {}
 
-  async add(request: AddTransactionRequest): Promise<void> {
-    const { userId, productId, description, date, amount } = request
+  async add(productTransactionDto: ProductTransactionDto): Promise<void> {
+    const { userId, productId, description, date, amount } =
+      productTransactionDto
 
-    // 1. Verificar existencia del producto
     const product = await this.productRepository.findById(productId)
 
     if (!product) {
       throw new Error('Product not found')
     }
 
-    // 2. Verificar propiedad (Security)
     if (product.clientId !== userId) {
       throw new Error('Unauthorized access to product')
     }
 
-    // 3. Validar Tipo de Producto (Business Rule)
     const allowedTypes: ProductType[] = ['CURRENT_ACCOUNT', 'SAVINGS_ACCOUNT']
     if (!allowedTypes.includes(product.type)) {
       throw new Error(
@@ -41,7 +34,6 @@ export class ProductTransactionUseCases {
       )
     }
 
-    // 4. Persistir
     await this.productTransactionRepository.addTransaction({
       productId,
       description,
@@ -53,7 +45,6 @@ export class ProductTransactionUseCases {
   async getProductTransactions(
     productId: string
   ): Promise<IProductTransactionDetail[]> {
-    // Verificamos que el producto exista antes de buscar sus transacciones
     const product = await this.productRepository.findById(productId)
     if (!product) {
       throw new Error('Product not found')

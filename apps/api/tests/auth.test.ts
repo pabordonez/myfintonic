@@ -6,32 +6,35 @@ import bcrypt from 'bcrypt'
 // Mock de Prisma para evitar tocar la BD real
 const { mockDb } = vi.hoisted(() => ({ mockDb: [] as any[] }))
 
-vi.mock('../src/infrastructure/persistence/prisma/client', () => {
-  return {
-    default: {
-      client: {
-        findUnique: vi.fn().mockImplementation(async ({ where }) => {
-          return mockDb.find((u) => u.email === where.email) || null
-        }),
-        create: vi.fn().mockImplementation(async ({ data }) => {
-          const existing = mockDb.find((u) => u.email === data.email)
-          if (existing) {
-            const error: any = new Error('Unique constraint failed')
-            error.code = 'P2002'
-            throw error
-          }
-          const newUser = {
-            id: 'mock-user-id',
-            ...data,
-            role: data.role || 'USER',
-          }
-          mockDb.push(newUser)
-          return newUser
-        }),
+vi.mock(
+  '../src/infrastructure/persistence/prisma/repository/prismaClient',
+  () => {
+    return {
+      default: {
+        client: {
+          findUnique: vi.fn().mockImplementation(async ({ where }) => {
+            return mockDb.find((u) => u.email === where.email) || null
+          }),
+          create: vi.fn().mockImplementation(async ({ data }) => {
+            const existing = mockDb.find((u) => u.email === data.email)
+            if (existing) {
+              const error: any = new Error('Unique constraint failed')
+              error.code = 'P2002'
+              throw error
+            }
+            const newUser = {
+              id: 'mock-user-id',
+              ...data,
+              role: data.role || 'USER',
+            }
+            mockDb.push(newUser)
+            return newUser
+          }),
+        },
       },
-    },
+    }
   }
-})
+)
 
 describe('Auth API', () => {
   beforeEach(() => {
@@ -48,7 +51,6 @@ describe('Auth API', () => {
       }
 
       const response = await request(app).post('/auth/register').send(userData)
-
       expect(response.status).toBe(201)
       expect(response.body).toHaveProperty('id')
       expect(response.body.email).toBe(userData.email)

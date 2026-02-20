@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import { env } from '@config/env'
+import { env } from '@infrastructure/config/env'
 import { Role } from '@domain/types'
 
 export const authenticate = (

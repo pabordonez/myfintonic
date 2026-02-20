@@ -5,8 +5,8 @@ import { z } from 'zod'
 const prisma = new PrismaClient()
 
 const envSchema = z.object({
-  ADMIN_EMAIL: z.string().email().default('admin@myfintonic.com'),
-  ADMIN_PASSWORD: z.string().min(8).default('admin123'),
+  ADMIN_EMAIL: z.string().email(),
+  ADMIN_PASSWORD: z.string().min(8),
 })
 
 async function main() {
@@ -22,7 +22,7 @@ async function main() {
       nickname: 'admin',
       email: ADMIN_EMAIL,
       password: hashedPassword,
-      role: 'ADMIN', // Asegúrate de que coincida con tu enum en schema.prisma
+      role: 'ADMIN',
     },
   })
 

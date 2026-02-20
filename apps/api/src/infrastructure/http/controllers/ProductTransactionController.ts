@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
 import { z } from 'zod'
-import { ProductTransactionUseCases } from '@application/useCases/ProductTransactionUseCases'
-import { AddTransactionSchema } from '@infrastructure/http/dtos/AddTransactionSchema'
+import { ProductTransactionUseCases } from '@application/useCases/productTransactionUseCases'
+import { AddTransactionSchema } from '@infrastructure/http/dtos/addTransactionSchema'
+import { ProductTransactionDto } from '@application/dtos/productTransactionDto'
 
 export class ProductTransactionController {
   constructor(private readonly useCase: ProductTransactionUseCases) {}
@@ -9,23 +10,20 @@ export class ProductTransactionController {
   addTransaction = async (req: Request, res: Response) => {
     try {
       const productId = req.params.id as string
-      // Asumimos que el middleware de autenticación inyecta el usuario en req.user
       const userId = (req as any).user?.id
 
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' })
       }
 
-      // 1. Validación de Infraestructura (Zod)
-      // Si falla, lanza un error que capturamos abajo
-      const dto = AddTransactionSchema.parse(req.body)
-
-      // 2. Ejecución del Caso de Uso
-      await this.useCase.add({
+      //TODO: Deberia esta validacion hacerla en la capa de dominio, pero como hacerlo con ZOD
+      const productTransactionDto: ProductTransactionDto = {
         userId,
         productId,
-        ...dto,
-      })
+        ...AddTransactionSchema.parse(req.body),
+      }
+
+      await this.useCase.add(productTransactionDto)
 
       return res.status(201).json({ message: 'Transaction added successfully' })
     } catch (error: any) {

@@ -1,15 +1,20 @@
 import { Request, Response } from 'express'
 import { ClientUseCases } from '@application/useCases/clientUseCases'
 import { toClientResponse } from '@infrastructure/http/mappers/clientMapper'
+import { RegisterClientDto, UpdateClientDto } from '@application/dtos/clientDto'
 
 export class ClientController {
   constructor(private clientUseCases: ClientUseCases) {}
 
   async register(req: Request, res: Response) {
     try {
-      const result = await this.clientUseCases.register(req.body)
+      const registerClientDto: RegisterClientDto = { ...req.body }
+      const result = await this.clientUseCases.register(registerClientDto)
       res.status(201).json(result)
     } catch (error) {
+      console.log(error)
+
+      console.error('Error registering client:', error)
       if (error instanceof Error && error.message === 'Email already in use') {
         res.status(409).json({ error: error.message })
       } else {
@@ -47,14 +52,14 @@ export class ClientController {
     const user = (req as any).user
     const { id } = req.params
 
-    // Seguridad: Solo el propio usuario puede actualizar sus datos
     if (user.id !== id) {
       return res.status(403).json({ error: 'Access denied' })
     }
 
+    const updateClientDto: UpdateClientDto = { ...req.body }
     const updatedClient = await this.clientUseCases.updateClient(
       id as string,
-      req.body
+      updateClientDto
     )
     return res.status(200).json(toClientResponse(updatedClient))
   }

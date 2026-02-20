@@ -1,5 +1,9 @@
-import { ProductStatus, ProductType } from '../types'
-import { IProductTransaction } from './IProductTransaction'
+import {
+  ProductStatus,
+  ProductType,
+  InterestPaymentFrequency,
+} from '@domain/types'
+import { IProductTransaction } from '@domain/entities/IProductTransaction'
 
 export interface IFinancialProduct {
   id?: string
@@ -7,12 +11,12 @@ export interface IFinancialProduct {
   name: string
   financialEntity: string
   status: ProductStatus
-  clientId?: string
+  clientId: string
   valueHistory?: Array<{ date: Date; value: number }>
   transaction?: Array<IProductTransaction>
   currentBalance?: number
-  //TODO MEJORAR ESTO
-  [key: string]: any
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface ICurrentAccount extends IFinancialProduct {
@@ -33,7 +37,7 @@ export interface IFixedTermDeposit extends IFinancialProduct {
   initialDate: Date
   maturityDate: Date
   annualInterestRate: number
-  interestPaymentFrequency: 'Monthly' | 'Quarterly' | 'Annual' | 'AtMaturity'
+  interestPaymentFrequency: InterestPaymentFrequency
 }
 
 export interface IInvestmentFund extends IFinancialProduct {

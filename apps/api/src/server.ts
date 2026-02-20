@@ -1,4 +1,4 @@
-import { env } from '@config/env'
+import { env } from '@infrastructure/config/env'
 import { app } from './app'
 
 const PORT = env.PORT

@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit'
-import { env } from '@config/env'
+import { env } from '@infrastructure/config/env'
 
 /**
  * Rate Limiter específico para Login (Prevención de Fuerza Bruta).

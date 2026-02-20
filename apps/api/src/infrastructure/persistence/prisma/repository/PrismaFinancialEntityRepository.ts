@@ -1,14 +1,13 @@
 import { IFinancialEntity } from '@domain/entities/IFinancialEntity'
 import { IFinancialEntityRepository } from '@domain/repository/IFinancialEntityRepository'
-import { CreateFinancialEntityDto } from '@application/dtos/financialEntityDto'
-import prisma from '@infrastructure/persistence/prisma/client'
+import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 import { Prisma } from '@prisma/client'
 
 export class PrismaFinancialEntityRepository implements IFinancialEntityRepository {
-  async create(dto: CreateFinancialEntityDto): Promise<IFinancialEntity> {
+  async create(financialEntity: IFinancialEntity): Promise<IFinancialEntity> {
     const created = await prisma.financialEntity.create({
       data: {
-        name: dto.name,
+        name: financialEntity.name,
       },
     })
 
@@ -19,6 +18,7 @@ export class PrismaFinancialEntityRepository implements IFinancialEntityReposito
     const data: Prisma.FinancialEntityUpdateInput = {}
 
     if (entity.name !== undefined) data.name = entity.name
+    data.updatedAt = entity.updatedAt ?? new Date()
 
     await prisma.financialEntity.update({
       where: { id },

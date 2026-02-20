@@ -13,7 +13,7 @@ export default defineConfig({
       provider: 'v8',
       // Añade el archivo de cliente de prisma a las exclusiones
       exclude: [
-        'src/infrastructure/persistence/prisma/client.ts',
+        'src/infrastructure/persistence/prisma/repository/prismaClient.ts',
         'src/infrastructure/persistence/prisma/seed.ts', // Si tienes seeds
         '**/*.d.ts',
         '**/node_modules/**',
