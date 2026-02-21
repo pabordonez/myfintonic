@@ -5,7 +5,7 @@ import { FinancialProductFactory } from '@domain/factories/financialProductFacto
 import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
 
 export class PrismaProductRepository implements IProductRepository {
-  async create(product: IFinancialProduct): Promise<FinancialProduct> {
+  async create(product: FinancialProduct): Promise<FinancialProduct> {
     const data = this.mapToPrisma(product)
     try {
       const createdProduct = await prisma.financialProduct.create({

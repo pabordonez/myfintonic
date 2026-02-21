@@ -21,6 +21,7 @@ export class ProductController {
         randomUUID()
       )
       res.status(201).json(product)
+      //TODO HACER ESTO EN UN Middleware QUEDA FEO PONER TODO ESTO AQUI
     } catch (error) {
       if (
         error instanceof Error &&
@@ -118,6 +119,7 @@ export class ProductController {
 
       res.status(204).send()
     } catch (error) {
+      //TODO HACER ESTO EN UN Middleware QUEDA FEO PONER TODO ESTO AQUI ADEMAS REPITE CODIGO CON CREATE
       if (error instanceof Error && error.message === 'Product not found') {
         res.status(404).json({ error: error.message })
       } else if (

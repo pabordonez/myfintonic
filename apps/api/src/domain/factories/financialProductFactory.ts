@@ -9,7 +9,11 @@ import { Stocks } from '@domain/factories/financialProduct/stocks'
 
 export class FinancialProductFactory {
   public static create(
-    data: Omit<IFinancialProduct, 'id'>,
+    data: Omit<IFinancialProduct, 'id' | 'createdAt' | 'updatedAt'> & {
+      createdAt?: Date
+      updatedAt?: Date
+      [key: string]: any
+    },
     uuid: string
   ): FinancialProduct {
     if (!data.name || !data.type || !data.financialEntity || !data.status) {

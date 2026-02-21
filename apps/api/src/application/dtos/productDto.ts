@@ -5,18 +5,17 @@ import {
 } from '@domain/types'
 import { IProductTransaction } from '@domain/entities/IProductTransaction'
 
-export interface CreateProductDto {
-  type: ProductType
-  name: string
-  financialEntity: string
-  status: ProductStatus
-  clientId: string
+export class CreateProductDto {
+  type!: ProductType
+  name!: string
+  financialEntity!: string
+  status!: ProductStatus
+  clientId!: string
   valueHistory?: Array<{ date: Date; value: number }>
   transaction?: Array<IProductTransaction>
   currentBalance?: number
-  createdAt: Date
-  updatedAt: Date
-
+  createdAt?: Date
+  updatedAt?: Date
   transactions?: Array<{ date: Date; description: string; amount: number }>
   monthlyInterestRate?: number
   initialBalance?: number
@@ -31,8 +30,8 @@ export interface CreateProductDto {
   currentMarketPrice?: number
 }
 
-export interface UpdateProductDto {
-  clientId: string
+export class UpdateProductDto {
+  clientId!: string
   name?: string
   status?: ProductStatus
 
