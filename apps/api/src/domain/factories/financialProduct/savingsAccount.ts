@@ -1,4 +1,4 @@
-import { FinancialProduct } from '@domain/models/financialProduct'
+import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
 
 export class SavingsAccount extends FinancialProduct {
   public currentBalance!: number

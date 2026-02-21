@@ -1,4 +1,4 @@
-import { FinancialProduct } from '@domain/models/financialProduct'
+import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
 import { InterestPaymentFrequency } from '@domain/types'
 
 export class FixedTermDeposit extends FinancialProduct {

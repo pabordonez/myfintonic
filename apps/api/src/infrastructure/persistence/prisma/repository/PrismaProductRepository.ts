@@ -2,9 +2,10 @@ import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
 import { IProductRepository } from '@domain/repository/IProductRepository'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 import { FinancialProductFactory } from '@domain/factories/financialProductFactory'
+import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
 
 export class PrismaProductRepository implements IProductRepository {
-  async create(product: IFinancialProduct): Promise<IFinancialProduct> {
+  async create(product: IFinancialProduct): Promise<FinancialProduct> {
     const data = this.mapToPrisma(product)
     try {
       const createdProduct = await prisma.financialProduct.create({
@@ -111,7 +112,7 @@ export class PrismaProductRepository implements IProductRepository {
     }
   }
 
-  async findById(id: string): Promise<IFinancialProduct | null> {
+  async findById(id: string): Promise<FinancialProduct | null> {
     const prismaProduct = await prisma.financialProduct.findFirst({
       where: { id },
       include: {
@@ -129,7 +130,7 @@ export class PrismaProductRepository implements IProductRepository {
 
   async findAll(
     filters?: Partial<IFinancialProduct>
-  ): Promise<IFinancialProduct[]> {
+  ): Promise<FinancialProduct[]> {
     const where: any = {}
 
     if (filters?.clientId) where.clientId = filters.clientId
@@ -202,7 +203,7 @@ export class PrismaProductRepository implements IProductRepository {
     }
   }
 
-  private mapToDomain(prismaProduct: any): IFinancialProduct {
+  private mapToDomain(prismaProduct: any): FinancialProduct {
     // Mapeo de Objeto de Base de Datos (Prisma) -> Entidad de Dominio
     // Aquí reconstruimos el objeto. Si usas clases específicas (CurrentAccount, Stocks),
     // deberías instanciar la clase correcta según prismaProduct.type.

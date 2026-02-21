@@ -1,11 +1,11 @@
 import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
 import { ProductType } from '@domain/types'
-import { FinancialProduct } from '@domain/models/financialProduct'
-import { CurrentAccount } from '@domain/models/currentAccount'
-import { SavingsAccount } from '@domain/models/savingsAccount'
-import { FixedTermDeposit } from '@domain/models/fixedTermDeposit'
-import { InvestmentFund } from '@domain/models/investmentFund'
-import { Stocks } from '@domain/models/stocks'
+import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
+import { CurrentAccount } from '@domain/factories/financialProduct/currentAccount'
+import { SavingsAccount } from '@domain/factories/financialProduct/savingsAccount'
+import { FixedTermDeposit } from '@domain/factories/financialProduct/fixedTermDeposit'
+import { InvestmentFund } from '@domain/factories/financialProduct/investmentFund'
+import { Stocks } from '@domain/factories/financialProduct/stocks'
 
 export class FinancialProductFactory {
   public static create(
