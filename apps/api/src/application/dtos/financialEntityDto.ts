@@ -1,7 +1,7 @@
-export interface CreateFinancialEntityDto {
-  name: string
+export class CreateFinancialEntityDto {
+  name!: string
 }
 
-export interface UpdateFinancialEntityDto {
+export class UpdateFinancialEntityDto {
   name?: string
 }

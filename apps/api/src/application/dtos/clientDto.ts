@@ -1,15 +1,15 @@
-export interface RegisterClientDto {
-  email: string
-  password: string
-  firstName: string
-  lastName: string
-  role: 'ADMIN' | 'USER'
+export class RegisterClientDto {
+  email!: string
+  password!: string
+  firstName!: string
+  lastName!: string
+  role!: 'ADMIN' | 'USER'
   nickname?: string
 }
 
-export interface UpdateClientDto {
+export class UpdateClientDto {
   firstName?: string
   lastName?: string
   nickname?: string
-  password: string
+  password!: string
 }
