@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { ProductUseCases } from '@application/useCases/productUseCases'
 import {
   CreateProductDto,
@@ -9,7 +9,11 @@ import { randomUUID } from 'crypto'
 export class ProductController {
   constructor(private productUseCases: ProductUseCases) {}
 
-  create = async (req: Request, res: Response): Promise<void> => {
+  create = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const dto: CreateProductDto = {
         status: 'ACTIVE',
@@ -21,31 +25,16 @@ export class ProductController {
         randomUUID()
       )
       res.status(201).json(product)
-      //TODO HACER ESTO EN UN Middleware QUEDA FEO PONER TODO ESTO AQUI
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.startsWith('Missing required')
-      ) {
-        res.status(400).json({ error: error.message })
-      } else if (
-        error instanceof Error &&
-        error.message.startsWith('Validation failed')
-      ) {
-        res.status(400).json({ error: error.message })
-      } else if (
-        error instanceof Error &&
-        error.message.includes('Financial Entity')
-      ) {
-        res.status(400).json({ error: error.message })
-      } else {
-        console.error('Error creating product:', error)
-        res.status(500).json({ error: 'Internal Server Error' })
-      }
+      next(error)
     }
   }
 
-  getAll = async (req: Request, res: Response): Promise<void> => {
+  getAll = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const filters: any = {}
 
@@ -62,12 +51,15 @@ export class ProductController {
       const products = await this.productUseCases.getProducts(filters)
       res.status(200).json(products)
     } catch (error) {
-      console.error('Error getting products:', error)
-      res.status(500).json({ error: 'Internal Server Error' })
+      next(error)
     }
   }
 
-  getById = async (req: Request, res: Response): Promise<void> => {
+  getById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const product = await this.productUseCases.getProductById(
         req.params.id as string
@@ -83,12 +75,15 @@ export class ProductController {
         res.status(404).json({ error: 'Product not found' })
       }
     } catch (error) {
-      console.error('Error getting product by id:', error)
-      res.status(500).json({ error: 'Internal Server Error' })
+      next(error)
     }
   }
 
-  getHistory = async (req: Request, res: Response): Promise<void> => {
+  getHistory = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const history = await this.productUseCases.getProductHistory(
         req.params.id as string
@@ -99,12 +94,15 @@ export class ProductController {
         res.status(404).json({ error: 'Product not found' })
       }
     } catch (error) {
-      console.error('Error getting product history:', error)
-      res.status(500).json({ error: 'Internal Server Error' })
+      next(error)
     }
   }
 
-  update = async (req: Request, res: Response): Promise<void> => {
+  update = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const updateProductDto: UpdateProductDto = {
         status: 'ACTIVE',
@@ -119,27 +117,15 @@ export class ProductController {
 
       res.status(204).send()
     } catch (error) {
-      //TODO HACER ESTO EN UN Middleware QUEDA FEO PONER TODO ESTO AQUI ADEMAS REPITE CODIGO CON CREATE
-      if (error instanceof Error && error.message === 'Product not found') {
-        res.status(404).json({ error: error.message })
-      } else if (
-        error instanceof Error &&
-        (error.message.startsWith('Validation failed') ||
-          error.message.startsWith('Missing required'))
-      ) {
-        res.status(400).json({ error: error.message })
-      } else if (
-        error instanceof Error &&
-        error.message.includes('Financial Entity')
-      ) {
-        res.status(400).json({ error: error.message })
-      } else {
-        res.status(400).json({ error: 'Bad Request' })
-      }
+      next(error)
     }
   }
 
-  patch = async (req: Request, res: Response): Promise<void> => {
+  patch = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const updateProductDto: UpdateProductDto = {
         ...req.body,
@@ -153,36 +139,20 @@ export class ProductController {
 
       res.status(204).send()
     } catch (error) {
-      if (error instanceof Error && error.message === 'Product not found') {
-        res.status(404).json({ error: error.message })
-      } else if (
-        error instanceof Error &&
-        (error.message.startsWith('Validation failed') ||
-          error.message.startsWith('Missing required'))
-      ) {
-        res.status(400).json({ error: error.message })
-      } else if (
-        error instanceof Error &&
-        error.message.includes('Financial Entity')
-      ) {
-        res.status(400).json({ error: error.message })
-      } else {
-        res.status(400).json({ error: 'Bad Request' })
-      }
+      next(error)
     }
   }
 
-  delete = async (req: Request, res: Response): Promise<void> => {
+  delete = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       await this.productUseCases.deleteProduct(req.params.id as string)
       res.status(204).send()
     } catch (error) {
-      if (error instanceof Error && error.message === 'Product not found') {
-        res.status(404).json({ error: error.message })
-      } else {
-        console.error('Error deleting product:', error)
-        res.status(500).json({ error: 'Internal Server Error' })
-      }
+      next(error)
     }
   }
 }

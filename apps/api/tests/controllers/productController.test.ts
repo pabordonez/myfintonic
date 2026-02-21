@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { ProductController } from '../../src/infrastructure/http/controllers/productController'
 import { ProductUseCases } from '../../src/application/useCases/productUseCases'
 
@@ -26,63 +26,60 @@ const mockResponse = () => {
   return res
 }
 
+// Mock de NextFunction
+const next = vi.fn() as unknown as NextFunction
+
 describe('ProductController', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   describe('create', () => {
-    it('should return 400 if missing fields', async () => {
-      vi.mocked(mockUseCases.createProduct).mockRejectedValue(
-        new Error('Missing required fields')
-      )
+    it('should call next with error if missing fields', async () => {
+      const error = new Error('Missing required fields')
+      vi.mocked(mockUseCases.createProduct).mockRejectedValue(error)
       const req = mockRequest({})
       const res = mockResponse()
-      await controller.create(req, res)
-      expect(res.status).toHaveBeenCalledWith(400)
-      expect(res.json).toHaveBeenCalledWith({
-        error: 'Missing required fields',
-      })
+      await controller.create(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 400 if validation failed', async () => {
-      vi.mocked(mockUseCases.createProduct).mockRejectedValue(
-        new Error('Validation failed: reason')
-      )
+    it('should call next with error if validation failed', async () => {
+      const error = new Error('Validation failed: reason')
+      vi.mocked(mockUseCases.createProduct).mockRejectedValue(error)
       const req = mockRequest({})
       const res = mockResponse()
-      await controller.create(req, res)
-      expect(res.status).toHaveBeenCalledWith(400)
+      await controller.create(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 400 if financial entity error', async () => {
-      vi.mocked(mockUseCases.createProduct).mockRejectedValue(
-        new Error('Financial Entity not found')
-      )
+    it('should call next with error if financial entity error', async () => {
+      const error = new Error('Financial Entity not found')
+      vi.mocked(mockUseCases.createProduct).mockRejectedValue(error)
       const req = mockRequest({})
       const res = mockResponse()
-      await controller.create(req, res)
-      expect(res.status).toHaveBeenCalledWith(400)
+      await controller.create(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 500 on generic error', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      vi.mocked(mockUseCases.createProduct).mockRejectedValue(new Error('Boom'))
+    it('should call next with error on generic error', async () => {
+      const error = new Error('Boom')
+      vi.mocked(mockUseCases.createProduct).mockRejectedValue(error)
       const req = mockRequest({})
       const res = mockResponse()
-      await controller.create(req, res)
-      expect(res.status).toHaveBeenCalledWith(500)
-      consoleSpy.mockRestore()
+      await controller.create(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
   describe('getAll', () => {
-    it('should return 500 on error', async () => {
-      vi.mocked(mockUseCases.getProducts).mockRejectedValue(new Error('Boom'))
+    it('should call next with error on error', async () => {
+      const error = new Error('Boom')
+      vi.mocked(mockUseCases.getProducts).mockRejectedValue(error)
       const req = mockRequest()
       const res = mockResponse()
-      await controller.getAll(req, res)
-      expect(res.status).toHaveBeenCalledWith(500)
+      await controller.getAll(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
@@ -91,79 +88,75 @@ describe('ProductController', () => {
       vi.mocked(mockUseCases.getProductById).mockResolvedValue(null)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.getById(req, res)
+      await controller.getById(req, res, next)
       expect(res.status).toHaveBeenCalledWith(404)
     })
 
-    it('should return 500 on error', async () => {
-      vi.mocked(mockUseCases.getProductById).mockRejectedValue(
-        new Error('Boom')
-      )
+    it('should call next with error on error', async () => {
+      const error = new Error('Boom')
+      vi.mocked(mockUseCases.getProductById).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.getById(req, res)
-      expect(res.status).toHaveBeenCalledWith(500)
+      await controller.getById(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
   describe('update', () => {
-    it('should return 404 if not found', async () => {
-      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(
-        new Error('Product not found')
-      )
+    it('should call next with error if not found', async () => {
+      const error = new Error('Product not found')
+      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.update(req, res)
-      expect(res.status).toHaveBeenCalledWith(404)
+      await controller.update(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 400 on validation error', async () => {
-      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(
-        new Error('Validation failed')
-      )
+    it('should call next with error on validation error', async () => {
+      const error = new Error('Validation failed')
+      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.update(req, res)
-      expect(res.status).toHaveBeenCalledWith(400)
+      await controller.update(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 400 on bad request (generic)', async () => {
-      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(new Error('Boom'))
+    it('should call next with error on bad request (generic)', async () => {
+      const error = new Error('Boom')
+      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.update(req, res)
-      expect(res.status).toHaveBeenCalledWith(400)
-      expect(res.json).toHaveBeenCalledWith({ error: 'Bad Request' })
+      await controller.update(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 400 on financial entity error', async () => {
-      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(
-        new Error('Financial Entity not found')
-      )
+    it('should call next with error on financial entity error', async () => {
+      const error = new Error('Financial Entity not found')
+      vi.mocked(mockUseCases.updateProduct).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.update(req, res)
-      expect(res.status).toHaveBeenCalledWith(400)
+      await controller.update(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
   describe('delete', () => {
-    it('should return 404 if not found', async () => {
-      vi.mocked(mockUseCases.deleteProduct).mockRejectedValue(
-        new Error('Product not found')
-      )
+    it('should call next with error if not found', async () => {
+      const error = new Error('Product not found')
+      vi.mocked(mockUseCases.deleteProduct).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.delete(req, res)
-      expect(res.status).toHaveBeenCalledWith(404)
+      await controller.delete(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 500 on generic error', async () => {
-      vi.mocked(mockUseCases.deleteProduct).mockRejectedValue(new Error('Boom'))
+    it('should call next with error on generic error', async () => {
+      const error = new Error('Boom')
+      vi.mocked(mockUseCases.deleteProduct).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.delete(req, res)
-      expect(res.status).toHaveBeenCalledWith(500)
+      await controller.delete(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
@@ -173,7 +166,7 @@ describe('ProductController', () => {
       vi.mocked(mockUseCases.getProductHistory).mockResolvedValue(history)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.getHistory(req, res)
+      await controller.getHistory(req, res, next)
       expect(res.status).toHaveBeenCalledWith(200)
       expect(res.json).toHaveBeenCalledWith(history)
     })
@@ -182,18 +175,17 @@ describe('ProductController', () => {
       vi.mocked(mockUseCases.getProductHistory).mockResolvedValue(null)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.getHistory(req, res)
+      await controller.getHistory(req, res, next)
       expect(res.status).toHaveBeenCalledWith(404)
     })
 
-    it('should return 500 on error', async () => {
-      vi.mocked(mockUseCases.getProductHistory).mockRejectedValue(
-        new Error('Boom')
-      )
+    it('should call next with error on error', async () => {
+      const error = new Error('Boom')
+      vi.mocked(mockUseCases.getProductHistory).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
-      await controller.getHistory(req, res)
-      expect(res.status).toHaveBeenCalledWith(500)
+      await controller.getHistory(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 })

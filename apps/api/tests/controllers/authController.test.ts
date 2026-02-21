@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { AuthController } from '../../src/infrastructure/http/controllers/authController'
 import { AuthUseCases } from '../../src/application/useCases/authUseCases'
 
@@ -10,6 +10,7 @@ describe('AuthController', () => {
   let useCases: AuthUseCases
   let req: Partial<Request>
   let res: Partial<Response>
+  let next: NextFunction
   let json: any
   let status: any
   let cookie: any
@@ -21,6 +22,7 @@ describe('AuthController', () => {
     status = vi.fn().mockReturnValue({ json })
     cookie = vi.fn()
     res = { status, cookie } as unknown as Response
+    next = vi.fn() as unknown as NextFunction
   })
 
   describe('login', () => {
@@ -38,7 +40,7 @@ describe('AuthController', () => {
       vi.mocked(useCases.login).mockResolvedValue(result)
       req = { body: { email: 'a@b.c', password: '123' } }
 
-      await controller.login(req as Request, res as Response)
+      await controller.login(req as Request, res as Response, next)
 
       expect(status).toHaveBeenCalledWith(200)
       expect(json).toHaveBeenCalledWith({
@@ -47,30 +49,20 @@ describe('AuthController', () => {
       })
     })
 
-    it('should return 401 on failure', async () => {
-      vi.mocked(useCases.login).mockRejectedValue(new Error('Invalid'))
+    it('should call next with error on failure', async () => {
+      const error = new Error('Invalid')
+      vi.mocked(useCases.login).mockRejectedValue(error)
       req = { body: { email: 'a@b.c', password: '123' } }
 
-      await controller.login(req as Request, res as Response)
+      await controller.login(req as Request, res as Response, next)
 
-      expect(status).toHaveBeenCalledWith(401)
-      expect(json).toHaveBeenCalledWith({ error: 'Invalid' })
-    })
-
-    it('should return 401 with default message on failure without message', async () => {
-      vi.mocked(useCases.login).mockRejectedValue(new Error())
-      req = { body: { email: 'a@b.c', password: '123' } }
-
-      await controller.login(req as Request, res as Response)
-
-      expect(status).toHaveBeenCalledWith(401)
-      expect(json).toHaveBeenCalledWith({ error: 'Invalid credentials' })
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
   describe('logout', () => {
     it('should clear cookie and return 200', async () => {
-      await controller.logout(req as Request, res as Response)
+      await controller.logout(req as Request, res as Response, next)
 
       expect(cookie).toHaveBeenCalledWith(
         'token',

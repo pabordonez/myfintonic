@@ -23,6 +23,7 @@ import {
   loginRateLimiter,
   productsRateLimiter,
 } from '@infrastructure/http/middlewares/rateLimiters'
+import { errorHandler } from '@infrastructure/http/middlewares/errorHandler'
 
 export const app = express()
 
@@ -54,3 +55,5 @@ app.use(
 )
 app.use('/clients', createClientRoutes(clientController))
 app.use('/', createClientFinancialEntityRoutes(clientFinancialEntityController))
+
+app.use(errorHandler)

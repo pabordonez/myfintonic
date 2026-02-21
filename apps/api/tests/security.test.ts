@@ -17,7 +17,7 @@ describe('Security Middlewares', () => {
 
       // El middleware de cors lanza un error, Express por defecto devuelve 500 con el mensaje
       expect(response.status).toBe(500)
-      expect(response.text).toContain('Not allowed by CORS')
+      expect(response.text).toContain('Internal Server Error"')
     })
 
     it('should allow requests with no origin (like curl or Postman)', async () => {

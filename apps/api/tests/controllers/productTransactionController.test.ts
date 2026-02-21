@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductTransactionController } from '../../src/infrastructure/http/controllers/ProductTransactionController'
-import { ProductTransactionUseCases } from '../../src/application/useCases/ProductTransactionUseCases'
-import { Request, Response } from 'express'
+import { ProductTransactionUseCases } from '../../src/application/useCases/productTransactionUseCases'
+import { Request, Response, NextFunction } from 'express'
 
 // Mock del caso de uso
 const mockUseCase = {
@@ -14,6 +14,9 @@ const mockRes = {
   status: vi.fn().mockReturnThis(),
   json: vi.fn(),
 } as unknown as Response
+
+// Mock de NextFunction
+const next = vi.fn() as unknown as NextFunction
 
 const controller = new ProductTransactionController(mockUseCase)
 
@@ -36,7 +39,7 @@ describe('ProductTransactionController', () => {
 
       vi.mocked(mockUseCase.add).mockResolvedValue(undefined)
 
-      await controller.addTransaction(req, mockRes)
+      await controller.addTransaction(req, mockRes, next)
 
       expect(mockUseCase.add).toHaveBeenCalledWith({
         userId: 'user-1',
@@ -58,13 +61,13 @@ describe('ProductTransactionController', () => {
         body: {},
       } as unknown as Request
 
-      await controller.addTransaction(req, mockRes)
+      await controller.addTransaction(req, mockRes, next)
 
       expect(mockRes.status).toHaveBeenCalledWith(401)
       expect(mockRes.json).toHaveBeenCalledWith({ error: 'Unauthorized' })
     })
 
-    it('should return 400 if validation fails (Zod)', async () => {
+    it('should call next with error if validation fails (Zod)', async () => {
       const req = {
         params: { id: 'prod-1' },
         user: { id: 'user-1' },
@@ -74,17 +77,13 @@ describe('ProductTransactionController', () => {
         },
       } as unknown as Request
 
-      await controller.addTransaction(req, mockRes)
+      await controller.addTransaction(req, mockRes, next)
 
-      expect(mockRes.status).toHaveBeenCalledWith(400)
-      expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: 'Validation Error',
-        })
-      )
+      expect(next).toHaveBeenCalled()
+      expect((next as any).mock.calls[0][0].name).toBe('ZodError')
     })
 
-    it('should return 404 if product not found', async () => {
+    it('should call next with error if product not found', async () => {
       const req = {
         params: { id: 'prod-1' },
         user: { id: 'user-1' },
@@ -98,13 +97,12 @@ describe('ProductTransactionController', () => {
       const error = new Error('Product not found')
       vi.mocked(mockUseCase.add).mockRejectedValue(error)
 
-      await controller.addTransaction(req, mockRes)
+      await controller.addTransaction(req, mockRes, next)
 
-      expect(mockRes.status).toHaveBeenCalledWith(404)
-      expect(mockRes.json).toHaveBeenCalledWith({ error: 'Product not found' })
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 403 if unauthorized access to product', async () => {
+    it('should call next with error if unauthorized access to product', async () => {
       const req = {
         params: { id: 'prod-1' },
         user: { id: 'user-1' },
@@ -118,15 +116,12 @@ describe('ProductTransactionController', () => {
       const error = new Error('Unauthorized access to product')
       vi.mocked(mockUseCase.add).mockRejectedValue(error)
 
-      await controller.addTransaction(req, mockRes)
+      await controller.addTransaction(req, mockRes, next)
 
-      expect(mockRes.status).toHaveBeenCalledWith(403)
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: 'Unauthorized access to product',
-      })
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 500 on unexpected error', async () => {
+    it('should call next with error on unexpected error', async () => {
       const req = {
         params: { id: 'prod-1' },
         user: { id: 'user-1' },
@@ -137,14 +132,12 @@ describe('ProductTransactionController', () => {
         },
       } as unknown as Request
 
-      vi.mocked(mockUseCase.add).mockRejectedValue(new Error('Boom'))
+      const error = new Error('Boom')
+      vi.mocked(mockUseCase.add).mockRejectedValue(error)
 
-      await controller.addTransaction(req, mockRes)
+      await controller.addTransaction(req, mockRes, next)
 
-      expect(mockRes.status).toHaveBeenCalledWith(500)
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: 'Internal Server Error',
-      })
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
@@ -165,37 +158,31 @@ describe('ProductTransactionController', () => {
         mockTransactions
       )
 
-      await controller.getTransaction(req, mockRes)
+      await controller.getTransaction(req, mockRes, next)
 
       expect(mockUseCase.getProductTransactions).toHaveBeenCalledWith('prod-1')
       expect(mockRes.status).toHaveBeenCalledWith(200)
       expect(mockRes.json).toHaveBeenCalledWith(mockTransactions)
     })
 
-    it('should return 404 if product not found', async () => {
+    it('should call next with error if product not found', async () => {
       const req = { params: { id: 'prod-1' } } as unknown as Request
-      vi.mocked(mockUseCase.getProductTransactions).mockRejectedValue(
-        new Error('Product not found')
-      )
+      const error = new Error('Product not found')
+      vi.mocked(mockUseCase.getProductTransactions).mockRejectedValue(error)
 
-      await controller.getTransaction(req, mockRes)
+      await controller.getTransaction(req, mockRes, next)
 
-      expect(mockRes.status).toHaveBeenCalledWith(404)
-      expect(mockRes.json).toHaveBeenCalledWith({ error: 'Product not found' })
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 500 on unexpected error', async () => {
+    it('should call next with error on unexpected error', async () => {
       const req = { params: { id: 'prod-1' } } as unknown as Request
-      vi.mocked(mockUseCase.getProductTransactions).mockRejectedValue(
-        new Error('Database fail')
-      )
+      const error = new Error('Database fail')
+      vi.mocked(mockUseCase.getProductTransactions).mockRejectedValue(error)
 
-      await controller.getTransaction(req, mockRes)
+      await controller.getTransaction(req, mockRes, next)
 
-      expect(mockRes.status).toHaveBeenCalledWith(500)
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: 'Internal Server Error',
-      })
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 })

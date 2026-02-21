@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { ClientFinancialEntityUseCases } from '@application/useCases/clientFinancialEntityUseCases'
 import {
   CreateClientFinancialEntityDto,
@@ -8,7 +8,11 @@ import {
 export class ClientFinancialEntityController {
   constructor(private useCases: ClientFinancialEntityUseCases) {}
 
-  create = async (req: Request, res: Response): Promise<void> => {
+  create = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const createClientFinancialEntityDto: CreateClientFinancialEntityDto = {
         ...req.body,
@@ -18,30 +22,29 @@ export class ClientFinancialEntityController {
         createClientFinancialEntityDto
       )
       res.status(201).json(association)
-    } catch (error: any) {
-      if (error.code === 'P2002') {
-        res.status(409).json({ error: 'Association already exists' })
-      } else if (
-        error instanceof Error &&
-        error.message.includes('not found')
-      ) {
-        res.status(404).json({ error: error.message })
-      } else {
-        res.status(500).json({ error: 'Internal Server Error' })
-      }
+    } catch (error) {
+      next(error)
     }
   }
 
-  getAllAssociations = async (req: Request, res: Response): Promise<void> => {
+  getAllAssociations = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const associations = await this.useCases.getAllAssociations()
       res.status(200).json(associations)
-    } catch {
-      res.status(500).json({ error: 'Internal Server Error' })
+    } catch (error) {
+      next(error)
     }
   }
 
-  getAll = async (req: Request, res: Response): Promise<void> => {
+  getAll = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const filters: any = {}
       if (req.params.clientId) filters.clientId = req.params.clientId
@@ -50,12 +53,16 @@ export class ClientFinancialEntityController {
 
       const associations = await this.useCases.getAssociations(filters)
       res.status(200).json(associations)
-    } catch {
-      res.status(500).json({ error: 'Internal Server Error' })
+    } catch (error) {
+      next(error)
     }
   }
 
-  getById = async (req: Request, res: Response): Promise<void> => {
+  getById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const association = await this.useCases.getAssociationById(
         req.params.id as string
@@ -65,12 +72,16 @@ export class ClientFinancialEntityController {
       } else {
         res.status(404).json({ error: 'Association not found' })
       }
-    } catch {
-      res.status(500).json({ error: 'Internal Server Error' })
+    } catch (error) {
+      next(error)
     }
   }
 
-  updateBalance = async (req: Request, res: Response): Promise<void> => {
+  updateBalance = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const updateClientFinancialEntityDto: UpdateClientFinancialEntityDto = {
         ...req.body,
@@ -82,24 +93,20 @@ export class ClientFinancialEntityController {
       )
       res.status(204).send()
     } catch (error) {
-      if (error instanceof Error && error.message.includes('not found')) {
-        res.status(404).json({ error: error.message })
-      } else {
-        res.status(500).json({ error: 'Internal Server Error' })
-      }
+      next(error)
     }
   }
 
-  delete = async (req: Request, res: Response): Promise<void> => {
+  delete = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       await this.useCases.deleteAssociation(req.params.id as string)
       res.status(204).send()
     } catch (error) {
-      if (error instanceof Error && error.message.includes('not found')) {
-        res.status(404).json({ error: error.message })
-      } else {
-        res.status(500).json({ error: 'Internal Server Error' })
-      }
+      next(error)
     }
   }
 }

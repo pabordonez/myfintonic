@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { FinancialEntityUseCases } from '@application/useCases/financialEntityUseCases'
 import {
   CreateFinancialEntityDto,
@@ -8,19 +8,26 @@ import {
 export class FinancialEntityController {
   constructor(private useCases: FinancialEntityUseCases) {}
 
-  create = async (req: Request, res: Response): Promise<void> => {
+  create = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const financialEntityDto: CreateFinancialEntityDto = { ...req.body }
 
       const entity = await this.useCases.createEntity(financialEntityDto)
       res.status(201).json(entity)
     } catch (error) {
-      console.error('Error creating financial entity:', error)
-      res.status(500).json({ error: 'Internal Server Error' })
+      next(error)
     }
   }
 
-  getAll = async (req: Request, res: Response): Promise<void> => {
+  getAll = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const filters: any = {}
       if (req.query.clientId) filters.clientId = req.query.clientId as string
@@ -28,12 +35,16 @@ export class FinancialEntityController {
 
       const entities = await this.useCases.getEntities(filters)
       res.status(200).json(entities)
-    } catch {
-      res.status(500).json({ error: 'Internal Server Error' })
+    } catch (error) {
+      next(error)
     }
   }
 
-  getById = async (req: Request, res: Response): Promise<void> => {
+  getById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const entity = await this.useCases.getEntityById(req.params.id as string)
       if (entity) {
@@ -41,12 +52,16 @@ export class FinancialEntityController {
       } else {
         res.status(404).json({ error: 'Entity not found' })
       }
-    } catch {
-      res.status(500).json({ error: 'Internal Server Error' })
+    } catch (error) {
+      next(error)
     }
   }
 
-  update = async (req: Request, res: Response): Promise<void> => {
+  update = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const financialEntityDto: UpdateFinancialEntityDto = { ...req.body }
       await this.useCases.updateEntity(
@@ -55,30 +70,20 @@ export class FinancialEntityController {
       )
       res.status(204).send()
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === 'Financial Entity not found'
-      ) {
-        res.status(404).json({ error: error.message })
-      } else {
-        res.status(400).json({ error: 'Bad Request' })
-      }
+      next(error)
     }
   }
 
-  delete = async (req: Request, res: Response): Promise<void> => {
+  delete = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       await this.useCases.deleteEntity(req.params.id as string)
       res.status(204).send()
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === 'Financial Entity not found'
-      ) {
-        res.status(404).json({ error: error.message })
-      } else {
-        res.status(500).json({ error: 'Internal Server Error' })
-      }
+      next(error)
     }
   }
 }

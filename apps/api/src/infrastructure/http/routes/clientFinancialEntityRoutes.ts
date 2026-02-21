@@ -14,7 +14,7 @@ export const createClientFinancialEntityRoutes = (
     '/clients-financial-entities',
     authenticate,
     isAdmin,
-    (req, res) => controller.getAllAssociations(req, res)
+    (req, res, next) => controller.getAllAssociations(req, res, next)
   )
 
   // 3. Rutas protegidas por propiedad del cliente (/clients/:clientId/...)
@@ -22,31 +22,31 @@ export const createClientFinancialEntityRoutes = (
     '/clients/:clientId/financial-entities',
     authenticate,
     clientOwnershipMiddleware,
-    (req, res) => controller.create(req, res)
+    (req, res, next) => controller.create(req, res, next)
   )
   clientFinancialEntityRouter.get(
     '/clients/:clientId/financial-entities',
     authenticate,
     clientOwnershipMiddleware,
-    (req, res) => controller.getAll(req, res)
+    (req, res, next) => controller.getAll(req, res, next)
   )
   clientFinancialEntityRouter.get(
     '/clients/:clientId/financial-entities/:id',
     authenticate,
     clientOwnershipMiddleware,
-    (req, res) => controller.getById(req, res)
+    (req, res, next) => controller.getById(req, res, next)
   )
   clientFinancialEntityRouter.put(
     '/clients/:clientId/financial-entities/:id',
     authenticate,
     clientOwnershipMiddleware,
-    (req, res) => controller.updateBalance(req, res)
+    (req, res, next) => controller.updateBalance(req, res, next)
   )
   clientFinancialEntityRouter.delete(
     '/clients/:clientId/financial-entities/:id',
     authenticate,
     clientOwnershipMiddleware,
-    (req, res) => controller.delete(req, res)
+    (req, res, next) => controller.delete(req, res, next)
   )
 
   return clientFinancialEntityRouter
