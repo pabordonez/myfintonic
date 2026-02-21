@@ -24,7 +24,7 @@ export class ProductController {
     } catch (error) {
       if (
         error instanceof Error &&
-        error.message.startsWith('Missing required fields')
+        error.message.startsWith('Missing required')
       ) {
         res.status(400).json({ error: error.message })
       } else if (
@@ -122,7 +122,8 @@ export class ProductController {
         res.status(404).json({ error: error.message })
       } else if (
         error instanceof Error &&
-        error.message.startsWith('Validation failed')
+        (error.message.startsWith('Validation failed') ||
+          error.message.startsWith('Missing required'))
       ) {
         res.status(400).json({ error: error.message })
       } else if (
@@ -154,7 +155,8 @@ export class ProductController {
         res.status(404).json({ error: error.message })
       } else if (
         error instanceof Error &&
-        error.message.startsWith('Validation failed')
+        (error.message.startsWith('Validation failed') ||
+          error.message.startsWith('Missing required'))
       ) {
         res.status(400).json({ error: error.message })
       } else if (

@@ -39,6 +39,9 @@ describe('ProductTransactionUseCases', () => {
         clientId: 'user-1',
         type: 'CURRENT_ACCOUNT',
         status: 'ACTIVE',
+        currentBalance: 1000,
+        name: 'Test Account',
+        financialEntity: 'Bank',
       } as any)
 
       await useCase.add(request)
@@ -63,6 +66,9 @@ describe('ProductTransactionUseCases', () => {
         id: 'p1',
         clientId: 'other-user',
         type: 'CURRENT_ACCOUNT',
+        currentBalance: 500,
+        name: 'Test Account',
+        financialEntity: 'Bank',
       } as any)
       await expect(
         useCase.add({ userId: 'u1', productId: 'p1' } as any)
@@ -74,10 +80,33 @@ describe('ProductTransactionUseCases', () => {
         id: 'p1',
         clientId: 'u1',
         type: 'STOCKS',
+        numberOfShares: 10,
+        unitPurchasePrice: 100,
+        currentMarketPrice: 120,
+        initialBalance: 1000,
+        currentBalance: 1200,
+        name: 'Tesla',
+        status: 'ACTIVE',
+        financialEntity: 'Bank',
       } as any)
       await expect(
         useCase.add({ userId: 'u1', productId: 'p1' } as any)
       ).rejects.toThrow('Transactions are not allowed')
+    })
+
+    it('should throw error if product is not active', async () => {
+      vi.mocked(mockProductRepo.findById).mockResolvedValue({
+        id: 'p1',
+        clientId: 'u1',
+        type: 'CURRENT_ACCOUNT',
+        status: 'INACTIVE',
+        currentBalance: 1000,
+        name: 'Test Account',
+        financialEntity: 'Bank',
+      } as any)
+      await expect(
+        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+      ).rejects.toThrow('Transaction failed: Product is not active')
     })
   })
 

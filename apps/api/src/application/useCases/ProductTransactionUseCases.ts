@@ -5,7 +5,7 @@ import {
   IProductTransaction,
   IProductTransactionDetail,
 } from '@domain/entities/IProductTransaction'
-import { FinancialProduct } from '@domain/models/financialProduct'
+import { FinancialProductFactory } from '@domain/factories/financialProductFactory'
 import {
   BankingTransactionPolicy,
   InvestmentTransactionPolicy,
@@ -28,7 +28,7 @@ export class ProductTransactionUseCases {
     }
 
     // 1. Hidratamos el Modelo Rico
-    const product = FinancialProduct.fromPrimitives(productData)
+    const product = FinancialProductFactory.fromPrimitives(productData)
 
     // 2. Lógica de Dominio: Verificación de Propiedad
     if (!product.isOwnedBy(userId)) {

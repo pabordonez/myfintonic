@@ -15,7 +15,6 @@ import { ProductController } from '@infrastructure/http/controllers/productContr
 import { FinancialEntityController } from '@infrastructure/http/controllers/financialEntityController'
 import { ClientFinancialEntityController } from '@infrastructure/http/controllers/clientFinancialEntityController'
 import { HealthController } from '@infrastructure/http/controllers/healthController'
-import { ProductFactory } from '@domain/factories/productService'
 import { AuthController } from '@infrastructure/http/controllers/authController'
 import { ClientController } from '@infrastructure/http/controllers/clientController'
 import { ClientFactory } from '@domain/factories/clientFactory'
@@ -23,8 +22,7 @@ import { BcryptEncryptionService } from '@infrastructure/services/bcryptEncrypti
 import { ProductTransactionController } from '@infrastructure/http/controllers/productTransactionController'
 
 export const productRepository = new PrismaProductRepository()
-const productFactory = new ProductFactory()
-const productUseCases = new ProductUseCases(productRepository, productFactory)
+const productUseCases = new ProductUseCases(productRepository)
 export const productController = new ProductController(productUseCases)
 
 export const productTransactionRepository =

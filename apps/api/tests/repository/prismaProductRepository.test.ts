@@ -167,6 +167,7 @@ describe('PrismaProductRepository', () => {
     it('should map SAVINGS_ACCOUNT fields', async () => {
       const res = await testMapping('SAVINGS_ACCOUNT', {
         monthlyInterestRate: 0.05,
+        currentBalance: 1000,
       })
       expect(res).toHaveProperty('monthlyInterestRate', 0.05)
     })
@@ -174,12 +175,19 @@ describe('PrismaProductRepository', () => {
     it('should map FIXED_TERM_DEPOSIT fields', async () => {
       const res = await testMapping('FIXED_TERM_DEPOSIT', {
         annualInterestRate: 0.03,
+        initialBalance: 1000,
+        initialDate: new Date(),
+        maturityDate: new Date(),
+        interestPaymentFreq: 'Monthly',
       })
       expect(res).toHaveProperty('annualInterestRate', 0.03)
     })
 
     it('should map INVESTMENT_FUND fields', async () => {
-      const res = await testMapping('INVESTMENT_FUND', { numberOfUnits: 10 })
+      const res = await testMapping('INVESTMENT_FUND', {
+        numberOfUnits: 10,
+        currentBalance: 1000,
+      })
       expect(res).toHaveProperty('numberOfUnits', 10)
     })
 
@@ -187,19 +195,26 @@ describe('PrismaProductRepository', () => {
       const res = await testMapping('STOCKS', {
         numberOfShares: 100,
         currentMarketPrice: 50,
+        unitPurchasePrice: 10,
+        initialBalance: 1000,
+        currentBalance: 1200,
       })
       expect(res).toHaveProperty('numberOfShares', 100)
       expect(res).toHaveProperty('currentMarketPrice', 50)
     })
 
     it('should map CURRENT_ACCOUNT fields', async () => {
-      const res = await testMapping('CURRENT_ACCOUNT', { transactions: [] })
+      const res = await testMapping('CURRENT_ACCOUNT', {
+        transactions: [],
+        currentBalance: 1000,
+      })
       expect(res).toHaveProperty('transactions', [])
     })
 
     it('should map fees correctly', async () => {
       const res = await testMapping('INVESTMENT_FUND', {
         fees: { maintenance: 10 },
+        currentBalance: 1000,
       })
       expect(res).toHaveProperty('fees', { maintenance: 10 })
     })

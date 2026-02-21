@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductUseCases } from '../../src/application/useCases/productUseCases'
 import { IProductRepository } from '../../src/domain/repository/IProductRepository'
-import { IProductFactory } from '../../src/domain/factories/productService'
+import { FinancialProductFactory } from '../../src/domain/factories/financialProductFactory'
 
 const mockRepo = {
   create: vi.fn(),
@@ -11,12 +11,7 @@ const mockRepo = {
   delete: vi.fn(),
 } as unknown as IProductRepository
 
-const mockFactory = {
-  create: vi.fn(),
-  update: vi.fn((existing, data) => ({ ...existing, ...data })),
-} as unknown as IProductFactory
-
-const useCases = new ProductUseCases(mockRepo, mockFactory)
+const useCases = new ProductUseCases(mockRepo)
 
 describe('ProductUseCases', () => {
   beforeEach(() => {
@@ -25,7 +20,7 @@ describe('ProductUseCases', () => {
 
   describe('createProduct', () => {
     it('should throw if missing fields', async () => {
-      vi.mocked(mockFactory.create).mockImplementationOnce(() => {
+      vi.spyOn(FinancialProductFactory, 'create').mockImplementationOnce(() => {
         throw new Error('Missing required fields')
       })
       await expect(
@@ -40,7 +35,7 @@ describe('ProductUseCases', () => {
         financialEntity: 'F',
         status: 'S',
       } as any
-      vi.mocked(mockFactory.create).mockReturnValue(data)
+      vi.spyOn(FinancialProductFactory, 'create').mockReturnValue(data)
       await useCases.createProduct(data, 'test-uuid')
       expect(mockRepo.create).toHaveBeenCalledWith(data)
     })
@@ -55,31 +50,49 @@ describe('ProductUseCases', () => {
     })
 
     it('should validate and update if found', async () => {
-      vi.mocked(mockRepo.findById).mockResolvedValue({ type: 'T' } as any)
+      const mockProduct = {
+        type: 'CURRENT_ACCOUNT',
+        update: vi.fn().mockReturnValue({ type: 'T' }),
+      }
+      vi.mocked(mockRepo.findById).mockResolvedValue(mockProduct as any)
+
+      const fromPrimitivesSpy = vi
+        .spyOn(FinancialProductFactory, 'fromPrimitives')
+        .mockReturnValue(mockProduct as any)
+
       await useCases.updateProduct('1', {})
-      expect(mockFactory.update).toHaveBeenCalled()
       expect(mockRepo.update).toHaveBeenCalledWith(
         '1',
         expect.objectContaining({ type: 'T' })
       )
+      fromPrimitivesSpy.mockRestore()
     })
 
     it('should allow updating currentBalance for FIXED_TERM_DEPOSIT', async () => {
+      // Simulamos una entidad real o un mock con el método update
       const existingProduct = {
         id: '1',
         type: 'FIXED_TERM_DEPOSIT',
         currentBalance: 1000,
         initialBalance: 1000,
+        update: vi.fn().mockReturnValue({ currentBalance: 1050 }),
       }
       vi.mocked(mockRepo.findById).mockResolvedValue(existingProduct as any)
 
+      const fromPrimitivesSpy = vi
+        .spyOn(FinancialProductFactory, 'fromPrimitives')
+        .mockReturnValue(existingProduct as any)
+
       await useCases.updateProduct('1', { currentBalance: 1050 })
 
-      expect(mockFactory.update).toHaveBeenCalled()
-      expect(mockRepo.update).toHaveBeenCalledWith('1', {
-        ...existingProduct,
+      expect(existingProduct.update).toHaveBeenCalledWith({
         currentBalance: 1050,
       })
+      expect(mockRepo.update).toHaveBeenCalledWith('1', {
+        currentBalance: 1050,
+      })
+
+      fromPrimitivesSpy.mockRestore()
     })
   })
 

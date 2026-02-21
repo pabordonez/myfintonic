@@ -1,6 +1,7 @@
 import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
 import { IProductRepository } from '@domain/repository/IProductRepository'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
+import { FinancialProductFactory } from '@domain/factories/financialProductFactory'
 
 export class PrismaProductRepository implements IProductRepository {
   async create(product: IFinancialProduct): Promise<IFinancialProduct> {
@@ -281,6 +282,9 @@ export class PrismaProductRepository implements IProductRepository {
         break
     }
 
-    return { ...base, ...specificFields } as IFinancialProduct
+    return FinancialProductFactory.fromPrimitives({
+      ...base,
+      ...specificFields,
+    } as IFinancialProduct)
   }
 }

@@ -1,5 +1,6 @@
 import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
-import { IProductFactory } from '@domain/factories/productService'
+import { FinancialProduct } from '@domain/models/financialProduct'
+import { FinancialProductFactory } from '@domain/factories/financialProductFactory'
 import { IProductRepository } from '@domain/repository/IProductRepository'
 import {
   CreateProductDto,
@@ -7,10 +8,7 @@ import {
 } from '@application/dtos/productDto'
 
 export class ProductUseCases {
-  constructor(
-    private productRepository: IProductRepository,
-    private productFactory: IProductFactory
-  ) {}
+  constructor(private productRepository: IProductRepository) {}
 
   async getProducts(
     filters: Partial<IFinancialProduct>
@@ -36,7 +34,7 @@ export class ProductUseCases {
     productData: CreateProductDto,
     uuid: any
   ): Promise<IFinancialProduct> {
-    const product = this.productFactory.create(productData, uuid)
+    const product = FinancialProductFactory.create(productData, uuid)
     return this.productRepository.create(product)
   }
 
@@ -48,10 +46,14 @@ export class ProductUseCases {
     if (!existingProduct) {
       throw new Error('Product not found')
     }
-    const updatedProduct = this.productFactory.update(
-      existingProduct,
-      productData
-    )
+
+    // Aseguramos que trabajamos con la entidad rica (por si el repo devolvió interfaz plana)
+    const productEntity =
+      existingProduct instanceof FinancialProduct
+        ? existingProduct
+        : FinancialProductFactory.fromPrimitives(existingProduct)
+
+    const updatedProduct = productEntity.update(productData)
 
     await this.productRepository.update(id, updatedProduct)
   }
