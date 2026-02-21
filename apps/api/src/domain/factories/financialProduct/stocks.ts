@@ -6,7 +6,6 @@ export class Stocks extends FinancialProduct {
   public currentMarketPrice!: number
   public initialBalance!: number
   public currentBalance!: number
-  public fees?: { buying: number; selling: number }
 
   private constructor(data: any) {
     super(data)
@@ -15,7 +14,6 @@ export class Stocks extends FinancialProduct {
     this.currentMarketPrice = data.currentMarketPrice
     this.initialBalance = data.initialBalance
     this.currentBalance = data.currentBalance
-    this.fees = data.fees
   }
 
   public static create(data: any): Stocks {
@@ -43,7 +41,6 @@ export class Stocks extends FinancialProduct {
       'numberOfShares',
       'unitPurchasePrice',
       'currentMarketPrice',
-      'fees',
     ]
   }
 }

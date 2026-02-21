@@ -210,14 +210,6 @@ describe('PrismaProductRepository', () => {
       })
       expect(res).toHaveProperty('transactions', [])
     })
-
-    it('should map fees correctly', async () => {
-      const res = await testMapping('INVESTMENT_FUND', {
-        fees: { maintenance: 10 },
-        currentBalance: 1000,
-      })
-      expect(res).toHaveProperty('fees', { maintenance: 10 })
-    })
   })
 
   describe('findAll', () => {

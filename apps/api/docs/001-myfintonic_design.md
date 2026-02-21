@@ -105,12 +105,6 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `numberOfUnits` (Number): Cantidad de participaciones del cliente.
 - `netAssetValue` (Number): Valor actual de una participación.Valor liquidativo
 
-- `fees` (Object):
-  - `opening` (Number) Coste de apertura o supscripcion
-  - `closing` (Number) coste de reembolso
-  - `maintenance` (Number) coste de mantenimiento o gestion
-  - `custody` (Number) coste de deposito
-
 **Stocks** (hereda de `FinancialProduct`)
 
 - `initialBalance` (Number): Inversión inicial (Obligatorio en creación).
@@ -118,9 +112,6 @@ Se propone una arquitectura basada en una entidad base `ProductoFinanciero` que 
 - `numberOfShares` (Number): Cantidad de acciones.
 - `unitPurchasePrice` (Number): Precio medio de compra por acción.
 - `currentMarketPrice` (Number): Precio actual de mercado por acción.
-- `fees` (Object):
-  - `buying` (Number)
-  - `selling` (Number)
 
 > **Nota de Validación**: La API implementa una validación estricta por tipo. Solo se permite enviar y recibir los campos definidos para cada tipo de producto específico. Intentar actualizar un campo ajeno al tipo (ej. `monthlyInterestRate` en `STOCKS`) provocará un error `400 Bad Request`.
 
@@ -181,12 +172,7 @@ A continuación se detallan los esquemas JSON esperados en el cuerpo de las peti
   "status": "ACTIVE",
   "currentBalance": 32000.0,
   "numberOfUnits": 150.5,
-  "netAssetValue": 210.45,
-  "fees": {
-    "opening": 15.0,
-    "closing": 15.0,
-    "maintenance": 10.0
-  }
+  "netAssetValue": 210.45
 }
 ```
 
@@ -202,11 +188,7 @@ A continuación se detallan los esquemas JSON esperados en el cuerpo de las peti
   "initialBalance": 3625.0,
   "numberOfShares": 25,
   "unitPurchasePrice": 145.0,
-  "currentMarketPrice": 178.2,
-  "fees": {
-    "buying": 5.0,
-    "selling": 5.0
-  }
+  "currentMarketPrice": 178.2
 }
 ```
 

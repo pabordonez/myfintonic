@@ -26,11 +26,6 @@ export interface CreateProductDto {
   interestPaymentFrequency?: InterestPaymentFrequency
   numberOfUnits?: number
   netAssetValue?: number
-  fees?: {
-    opening: number
-    closing: number
-    maintenance: number
-  }
   numberOfShares?: number
   unitPurchasePrice?: number
   currentMarketPrice?: number
@@ -54,11 +49,6 @@ export interface UpdateProductDto {
   interestPaymentFrequency?: InterestPaymentFrequency
   numberOfUnits?: number
   netAssetValue?: number
-  fees?: {
-    opening: number
-    closing: number
-    maintenance: number
-  }
   numberOfShares?: number
   unitPurchasePrice?: number
   currentMarketPrice?: number

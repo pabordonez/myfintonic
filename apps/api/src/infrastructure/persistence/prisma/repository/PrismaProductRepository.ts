@@ -70,7 +70,6 @@ export class PrismaProductRepository implements IProductRepository {
 
     // 2. Campos especiales (Relaciones y JSON)
     if (p.clientId !== undefined) data.client = { connect: { id: p.clientId } }
-    if (p.fees !== undefined) data.fees = p.fees ?? null
 
     // Generar histórico si cambia el saldo (Cuentas, Fondos)
     const newValue = p.currentBalance
@@ -198,8 +197,6 @@ export class PrismaProductRepository implements IProductRepository {
       numberOfShares: p.numberOfShares ?? null,
       unitPurchasePrice: p.unitPurchasePrice ?? null,
       currentMarketPrice: p.currentMarketPrice ?? null,
-
-      fees: p.fees ?? null,
     }
   }
 
@@ -268,7 +265,6 @@ export class PrismaProductRepository implements IProductRepository {
           currentBalance: prismaProduct.currentBalance,
           numberOfUnits: prismaProduct.numberOfUnits,
           netAssetValue: prismaProduct.netAssetValue,
-          fees: prismaProduct.fees,
         }
         break
       case 'STOCKS':
@@ -278,7 +274,6 @@ export class PrismaProductRepository implements IProductRepository {
           currentMarketPrice: prismaProduct.currentMarketPrice,
           currentBalance: prismaProduct.currentBalance,
           initialBalance: prismaProduct.initialBalance,
-          fees: prismaProduct.fees,
         }
         break
     }

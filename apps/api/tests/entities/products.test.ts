@@ -231,7 +231,6 @@ describe('Financial Products API', () => {
         numberOfUnits: 50,
         netAssetValue: 200,
         currentBalance: 10000,
-        fees: { opening: 0, closing: 0, maintenance: 10 },
       }
       await request(app)
         .post('/products')
@@ -356,7 +355,6 @@ describe('Financial Products API', () => {
         currentBalance: 10500,
         numberOfUnits: 100,
         netAssetValue: 105,
-        fees: { opening: 0, closing: 0, maintenance: 10 },
       }
       const response = await request(app)
         .post('/products')

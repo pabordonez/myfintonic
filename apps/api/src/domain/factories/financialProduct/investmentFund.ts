@@ -4,14 +4,12 @@ export class InvestmentFund extends FinancialProduct {
   public currentBalance!: number
   public numberOfUnits?: number
   public netAssetValue?: number
-  public fees?: { opening: number; closing: number; maintenance: number }
 
   private constructor(data: any) {
     super(data)
     this.currentBalance = data.currentBalance
     this.numberOfUnits = data.numberOfUnits
     this.netAssetValue = data.netAssetValue
-    this.fees = data.fees
   }
 
   public static create(data: any): InvestmentFund {
@@ -31,7 +29,6 @@ export class InvestmentFund extends FinancialProduct {
       'currentBalance',
       'numberOfUnits',
       'netAssetValue',
-      'fees',
     ]
   }
 }

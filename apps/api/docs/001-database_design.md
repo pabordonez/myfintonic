@@ -58,7 +58,6 @@ erDiagram
         decimal numberOfShares "Nullable"
         decimal unitPurchasePrice "Nullable"
         decimal currentMarketPrice "Nullable"
-        json fees "Estructuras complejas"
         datetime createdAt
         datetime updatedAt
     }
@@ -97,13 +96,6 @@ Para la entidad principal `FinancialProduct`, hemos optado por una estrategia de
   - **Rendimiento en Dashboard**: La consulta más frecuente es "obtener todos los activos de un usuario para calcular su patrimonio". Con esta estrategia, esto es un simple `SELECT * FROM FinancialProduct WHERE clientId = ?`, evitando múltiples `JOINs` costosos.
   - **Simplicidad**: Facilita la paginación y el ordenamiento global de productos.
 - **Implementación**: Los campos específicos de cada producto (ej. `numberOfShares` para acciones) son columnas `NULLABLE`. Si el producto es una Cuenta Corriente, `numberOfShares` será `NULL`.
-
-### 3.2. Uso de JSON para Estructuras Flexibles
-
-El campo `fees` se define como tipo `JSON` nativo de MySQL 8.
-
-- **Motivo**: Las comisiones varían drásticamente entre productos (Fondos tienen apertura/cierre, Acciones tienen compra/venta).
-- **Ventaja**: Evita crear múltiples tablas de "Comisiones" o llenar la tabla principal de columnas que casi siempre estarían vacías. MySQL 8 permite indexar y buscar dentro de este JSON si fuera necesario.
 
 ### 3.3. Separación de Históricos y Transacciones
 
@@ -148,7 +140,6 @@ A diferencia de los atributos del producto, el historial de valor y las transacc
 | `status`            | ENUM         | Estado del producto: `ACTIVE`, `INACTIVE`, `PAUSED`, `EXPIRED`.                                            |
 | `financialEntityId` | VARCHAR(191) | ID de la entidad financiera a la que pertenece.                                                            |
 | `clientId`          | VARCHAR(191) | ID del usuario propietario del producto. Indexado para búsquedas rápidas.                                  |
-| `fees`              | JSON         | Objeto JSON con las comisiones. Ej: `{"maintenance": 10.0}`.                                               |
 
 ### Tabla `ValueHistory`
 
