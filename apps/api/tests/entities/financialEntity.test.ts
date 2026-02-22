@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { FinancialEntity } from '../../src/domain/factories/financialEntity'
+import { FinancialEntity } from '../../src/domain/models/financialEntity'
 
 describe('FinancialEntity', () => {
   it('create should throw if name is empty', () => {

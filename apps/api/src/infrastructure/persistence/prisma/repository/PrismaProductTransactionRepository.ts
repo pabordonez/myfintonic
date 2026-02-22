@@ -1,7 +1,9 @@
 import { IProductTransactionRepository } from '@domain/repository/IProductTransactionRepository'
-import { IProductTransactionDetail } from '@domain/entities/IProductTransaction'
+import {
+  IProductTransactionDetail,
+  ProductTransaction,
+} from '@domain/models/productTransaction'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
-import { productTransactionEntity } from '@domain/factories/productTransactionEntity'
 
 export class PrismaProductTransactionRepository implements IProductTransactionRepository {
   async findById(id: string): Promise<IProductTransactionDetail | null> {
@@ -23,7 +25,7 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
   }
 
   async addTransaction(
-    transaction: productTransactionEntity
+    transaction: ProductTransaction
   ): Promise<IProductTransactionDetail> {
     const { productId, amount, date, description } = transaction
 

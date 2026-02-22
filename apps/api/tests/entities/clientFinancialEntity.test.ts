@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ClientFinancialEntity } from '../../src/domain/factories/clientFinancialEntity'
+import { ClientFinancialEntity } from '../../src/domain/models/clientFinancialEntity'
 
 describe('ClientFinancialEntity', () => {
   it('create should throw if financialEntityId is missing', () => {

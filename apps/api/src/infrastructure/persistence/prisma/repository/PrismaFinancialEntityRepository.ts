@@ -1,7 +1,7 @@
 import { IFinancialEntityRepository } from '@domain/repository/IFinancialEntityRepository'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 import { Prisma } from '@prisma/client'
-import { FinancialEntity } from '@domain/factories/financialEntity'
+import { FinancialEntity } from '@domain/models/financialEntity'
 
 export class PrismaFinancialEntityRepository implements IFinancialEntityRepository {
   async create(financialEntity: FinancialEntity): Promise<FinancialEntity> {

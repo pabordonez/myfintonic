@@ -1,4 +1,4 @@
-import { ClientFinancialEntity } from '@domain/factories/clientFinancialEntity'
+import { ClientFinancialEntity } from '@domain/models/clientFinancialEntity'
 
 export interface IClientFinancialEntityRepository {
   findAll(filters?: {

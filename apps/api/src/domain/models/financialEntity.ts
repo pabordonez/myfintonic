@@ -1,5 +1,9 @@
-// src/domain/models/financialEntity.ts
-import { IFinancialEntity } from '@domain/entities/IFinancialEntity'
+export interface IFinancialEntity {
+  id: string
+  name: string
+  createdAt: Date
+  updatedAt: Date | null
+}
 
 export class FinancialEntity implements IFinancialEntity {
   public id: string

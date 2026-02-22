@@ -3,7 +3,7 @@ import {
   ProductType,
   InterestPaymentFrequency,
 } from '@domain/types'
-import { IProductTransaction } from '@domain/entities/IProductTransaction'
+import { IProductTransaction } from '@domain/models/productTransaction'
 
 export class CreateProductDto {
   type!: ProductType

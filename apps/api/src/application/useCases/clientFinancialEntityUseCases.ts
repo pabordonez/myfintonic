@@ -3,7 +3,7 @@ import {
   CreateClientFinancialEntityDto,
   UpdateClientFinancialEntityDto,
 } from '@application/dtos/clientFinancialEntityDto'
-import { ClientFinancialEntity } from '@domain/factories/clientFinancialEntity'
+import { ClientFinancialEntity } from '@domain/models/clientFinancialEntity'
 
 export class ClientFinancialEntityUseCases {
   constructor(private repository: IClientFinancialEntityRepository) {}

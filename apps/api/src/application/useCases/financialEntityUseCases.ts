@@ -3,7 +3,7 @@ import {
   CreateFinancialEntityDto,
   UpdateFinancialEntityDto,
 } from '@application/dtos/financialEntityDto'
-import { FinancialEntity } from '@domain/factories/financialEntity'
+import { FinancialEntity } from '@domain/models/financialEntity'
 
 export class FinancialEntityUseCases {
   constructor(private repository: IFinancialEntityRepository) {}

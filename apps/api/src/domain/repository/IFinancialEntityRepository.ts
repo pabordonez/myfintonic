@@ -1,5 +1,7 @@
-import { IFinancialEntity } from '@domain/entities/IFinancialEntity'
-import { FinancialEntity } from '@domain/factories/financialEntity'
+import {
+  IFinancialEntity,
+  FinancialEntity,
+} from '@domain/models/financialEntity'
 
 export interface IFinancialEntityRepository {
   findAll(

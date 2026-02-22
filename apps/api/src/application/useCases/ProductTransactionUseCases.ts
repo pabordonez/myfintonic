@@ -2,8 +2,10 @@ import { IProductTransactionRepository } from '@domain/repository/IProductTransa
 import { IProductRepository } from '@domain/repository/IProductRepository'
 import { ProductType } from '@domain/types'
 import { ProductTransactionDto } from '@application/dtos/productTransactionDto'
-import { IProductTransactionDetail } from '@domain/entities/IProductTransaction'
-import { productTransactionEntity } from '@domain/factories/productTransactionEntity'
+import {
+  IProductTransactionDetail,
+  ProductTransaction,
+} from '@domain/models/productTransaction'
 
 export class ProductTransactionUseCases {
   constructor(
@@ -39,7 +41,7 @@ export class ProductTransactionUseCases {
       )
     }
 
-    const transaction = productTransactionEntity.create(
+    const transaction = ProductTransaction.create(
       {
         productId,
         description,

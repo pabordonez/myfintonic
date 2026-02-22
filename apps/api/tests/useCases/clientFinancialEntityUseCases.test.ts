@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ClientFinancialEntityUseCases } from '../../src/application/useCases/clientFinancialEntityUseCases'
 import { IClientFinancialEntityRepository } from '../../src/domain/repository/IClientFinancialEntityRepository'
-import { ClientFinancialEntity } from '../../src/domain/factories/clientFinancialEntity'
+import { ClientFinancialEntity } from '../../src/domain/models/clientFinancialEntity'
 
 const mockRepo = {
   create: vi.fn(),

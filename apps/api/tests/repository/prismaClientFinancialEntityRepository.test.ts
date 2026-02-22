@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PrismaClientFinancialEntityRepository } from '../../src/infrastructure/persistence/prisma/repository/PrismaClientFinancialEntityRepository'
 import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
-import { ClientFinancialEntity } from '../../src/domain/factories/clientFinancialEntity'
+import { ClientFinancialEntity } from '../../src/domain/models/clientFinancialEntity'
 
 vi.mock(
   '../../src/infrastructure/persistence/prisma/repository/prismaClient',
