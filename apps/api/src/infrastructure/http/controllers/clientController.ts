@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { ClientUseCases } from '@application/useCases/clientUseCases'
 import { toClientResponse } from '@infrastructure/http/mappers/clientMapper'
 import { RegisterClientDto, UpdateClientDto } from '@application/dtos/clientDto'
+import { randomUUID } from 'crypto'
 
 export class ClientController {
   constructor(private clientUseCases: ClientUseCases) {}
@@ -9,7 +10,10 @@ export class ClientController {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
       const registerClientDto: RegisterClientDto = { ...req.body }
-      const result = await this.clientUseCases.register(registerClientDto)
+      const result = await this.clientUseCases.register(
+        registerClientDto,
+        randomUUID()
+      )
       res.status(201).json(result)
     } catch (error) {
       next(error)

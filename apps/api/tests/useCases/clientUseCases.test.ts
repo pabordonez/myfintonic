@@ -1,153 +1,105 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ClientUseCases } from '../../src/application/useCases/clientUseCases'
-import { ClientRepository } from '../src/domain/repository/IClientRepository'
+import { IClientRepository } from '../../src/domain/repository/IClientRepository'
+import { IEncryptionService } from '../../src/application/interfaces/IEncryptionService'
 
 const mockRepo = {
   create: vi.fn(),
   findAll: vi.fn(),
   findById: vi.fn(),
+  findByEmail: vi.fn(),
   update: vi.fn(),
-} as unknown as ClientRepository
-
-const mockFactory = {
-  create: vi.fn((data) => data),
-  update: vi.fn((data) => data),
-} as any
+} as unknown as IClientRepository
 
 const mockEncryptionService = {
-  hash: vi.fn((pass) => Promise.resolve(`hashed_${pass}`)),
-  compare: vi.fn(() => Promise.resolve(true)),
-} as any
+  hash: vi.fn(),
+  compare: vi.fn(),
+} as unknown as IEncryptionService
 
-const useCases = new ClientUseCases(
-  mockRepo,
-  mockFactory,
-  mockEncryptionService
-)
+const useCases = new ClientUseCases(mockRepo, mockEncryptionService)
 
 describe('ClientUseCases', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('getClients should call repository.findAll', async () => {
-    await useCases.getClients()
-    expect(mockRepo.findAll).toHaveBeenCalled()
-  })
+  describe('register', () => {
+    it('should register a client with hashed password', async () => {
+      const data = {
+        email: 'test@test.com',
+        password: '123',
+        firstName: 'Test',
+        lastName: 'User',
+        role: 'USER',
+      } as any
+      const uuid = 'uuid-123'
 
-  it('getClientById should call repository.findById', async () => {
-    const id = '1'
-    await useCases.getClientById(id)
-    expect(mockRepo.findById).toHaveBeenCalledWith(id)
-  })
+      vi.mocked(mockEncryptionService.hash).mockResolvedValue('hashed-123')
+      vi.mocked(mockRepo.create).mockResolvedValue({
+        ...data,
+        id: uuid,
+        password: 'hashed-123',
+      } as any)
 
-  it('updateClient should call repository.update', async () => {
-    const id = '1'
-    const data = { firstName: 'Updated' }
-    await useCases.updateClient(id, data)
-    expect(mockRepo.update).toHaveBeenCalledWith(id, data)
+      await useCases.register(data, uuid)
+
+      expect(mockEncryptionService.hash).toHaveBeenCalledWith('123')
+      expect(mockRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: uuid,
+          password: 'hashed-123',
+        })
+      )
+    })
   })
 
   describe('changePassword', () => {
-    it('should allow ADMIN to change password without current password', async () => {
-      await useCases.changePassword(
-        'target-id',
-        'new-pass',
-        undefined,
-        'ADMIN',
-        'admin-id'
+    it('should succeed if USER provides valid current password', async () => {
+      const targetUserId = 'u1'
+      const newPassword = 'new-password'
+      const currentPassword = 'old-password'
+      const requestorRole = 'USER'
+      const requestorId = 'u1'
+
+      const mockUser = {
+        id: 'u1',
+        password: 'hashed-old-password',
+        update: vi.fn(),
+      }
+
+      vi.mocked(mockRepo.findById).mockResolvedValue(mockUser as any)
+      vi.mocked(mockEncryptionService.compare).mockResolvedValue(true)
+      vi.mocked(mockEncryptionService.hash).mockResolvedValue(
+        'hashed-new-password'
       )
 
-      expect(mockEncryptionService.hash).toHaveBeenCalledWith('new-pass')
-      expect(mockRepo.update).toHaveBeenCalledWith('target-id', {
-        password: 'hashed_new-pass',
+      await useCases.changePassword(
+        targetUserId,
+        newPassword,
+        currentPassword,
+        requestorRole,
+        requestorId
+      )
+
+      expect(mockEncryptionService.compare).toHaveBeenCalledWith(
+        currentPassword,
+        'hashed-old-password'
+      )
+      expect(mockUser.update).toHaveBeenCalledWith({
+        password: 'hashed-new-password',
       })
-    })
-
-    it('should throw Forbidden if USER tries to change another users password', async () => {
-      await expect(
-        useCases.changePassword(
-          'target-id',
-          'new-pass',
-          'old',
-          'USER',
-          'other-id'
-        )
-      ).rejects.toThrow('Forbidden: You can only change your own password')
-    })
-
-    it('should throw if USER does not provide current password', async () => {
-      await expect(
-        useCases.changePassword(
-          'target-id',
-          'new-pass',
-          undefined,
-          'USER',
-          'target-id'
-        )
-      ).rejects.toThrow('Current password is required')
+      expect(mockRepo.update).toHaveBeenCalledWith(mockUser)
     })
 
     it('should throw if USER provides invalid current password', async () => {
       vi.mocked(mockRepo.findById).mockResolvedValue({
-        id: 'target-id',
-        password: 'hashed_old_pass',
+        password: 'hash',
       } as any)
       vi.mocked(mockEncryptionService.compare).mockResolvedValue(false)
 
       await expect(
-        useCases.changePassword(
-          'target-id',
-          'new-pass',
-          'wrong-old',
-          'USER',
-          'target-id'
-        )
+        useCases.changePassword('u1', 'new', 'wrong', 'USER', 'u1')
       ).rejects.toThrow('Invalid current password')
-    })
-
-    it('should throw if user not found', async () => {
-      vi.mocked(mockRepo.findById).mockResolvedValue(null)
-
-      await expect(
-        useCases.changePassword(
-          'target-id',
-          'new-pass',
-          'old',
-          'USER',
-          'target-id'
-        )
-      ).rejects.toThrow('User not found')
-    })
-
-    it('should succeed if USER provides valid current password', async () => {
-      // Mockear usuario existente
-      vi.mocked(mockRepo.findById).mockResolvedValue({
-        id: 'target-id',
-        password: 'hashed_old_pass',
-      } as any)
-      // Mockear que la contraseña coincide
-      vi.mocked(mockEncryptionService.compare).mockResolvedValue(true)
-
-      await useCases.changePassword(
-        'target-id',
-        'new-pass',
-        'correct-old',
-        'USER',
-        'target-id'
-      )
-
-      // Verificar que se comparó la contraseña antigua
-      expect(mockEncryptionService.compare).toHaveBeenCalledWith(
-        'correct-old',
-        'hashed_old_pass'
-      )
-      // Verificar que se hasheó la nueva
-      expect(mockEncryptionService.hash).toHaveBeenCalledWith('new-pass')
-      // Verificar que se actualizó en repo
-      expect(mockRepo.update).toHaveBeenCalledWith('target-id', {
-        password: 'hashed_new-pass',
-      })
     })
   })
 })

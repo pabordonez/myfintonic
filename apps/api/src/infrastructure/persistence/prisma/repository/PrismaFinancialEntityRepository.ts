@@ -1,20 +1,22 @@
-import { IFinancialEntity } from '@domain/entities/IFinancialEntity'
 import { IFinancialEntityRepository } from '@domain/repository/IFinancialEntityRepository'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 import { Prisma } from '@prisma/client'
+import { FinancialEntity } from '@domain/factories/financialEntity'
 
 export class PrismaFinancialEntityRepository implements IFinancialEntityRepository {
-  async create(financialEntity: IFinancialEntity): Promise<IFinancialEntity> {
+  async create(financialEntity: FinancialEntity): Promise<FinancialEntity> {
     const created = await prisma.financialEntity.create({
       data: {
+        id: financialEntity.id,
         name: financialEntity.name,
+        createdAt: financialEntity.createdAt,
+        updatedAt: financialEntity.updatedAt ?? undefined,
       },
     })
-
     return this.mapToDomain(created)
   }
 
-  async update(id: string, entity: Partial<IFinancialEntity>): Promise<void> {
+  async update(id: string, entity: FinancialEntity): Promise<void> {
     const data: Prisma.FinancialEntityUpdateInput = {}
 
     if (entity.name !== undefined) data.name = entity.name
@@ -26,7 +28,7 @@ export class PrismaFinancialEntityRepository implements IFinancialEntityReposito
     })
   }
 
-  async findById(id: string): Promise<IFinancialEntity | null> {
+  async findById(id: string): Promise<FinancialEntity | null> {
     const entity = await prisma.financialEntity.findUnique({
       where: { id },
     })
@@ -34,9 +36,7 @@ export class PrismaFinancialEntityRepository implements IFinancialEntityReposito
     return this.mapToDomain(entity)
   }
 
-  async findAll(
-    filters?: Partial<IFinancialEntity> & { name?: string }
-  ): Promise<IFinancialEntity[]> {
+  async findAll(filters?: { name?: string }): Promise<FinancialEntity[]> {
     const where: Prisma.FinancialEntityWhereInput = {}
     if (filters?.name) where.name = filters.name
 
@@ -63,12 +63,12 @@ export class PrismaFinancialEntityRepository implements IFinancialEntityReposito
     })
   }
 
-  private mapToDomain(prismaEntity: any): IFinancialEntity {
-    return {
+  private mapToDomain(prismaEntity: any): FinancialEntity {
+    return FinancialEntity.fromPrimitives({
       id: prismaEntity.id,
       name: prismaEntity.name,
       createdAt: prismaEntity.createdAt,
       updatedAt: prismaEntity.updatedAt,
-    }
+    })
   }
 }

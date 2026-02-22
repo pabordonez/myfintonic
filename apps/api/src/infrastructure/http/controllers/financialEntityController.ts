@@ -4,6 +4,7 @@ import {
   CreateFinancialEntityDto,
   UpdateFinancialEntityDto,
 } from '@application/dtos/financialEntityDto'
+import { randomUUID } from 'crypto'
 
 export class FinancialEntityController {
   constructor(private useCases: FinancialEntityUseCases) {}
@@ -16,7 +17,10 @@ export class FinancialEntityController {
     try {
       const financialEntityDto: CreateFinancialEntityDto = { ...req.body }
 
-      const entity = await this.useCases.createEntity(financialEntityDto)
+      const entity = await this.useCases.createEntity(
+        financialEntityDto,
+        randomUUID()
+      )
       res.status(201).json(entity)
     } catch (error) {
       next(error)

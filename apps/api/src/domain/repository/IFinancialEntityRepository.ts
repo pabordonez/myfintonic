@@ -1,11 +1,12 @@
 import { IFinancialEntity } from '@domain/entities/IFinancialEntity'
+import { FinancialEntity } from '@domain/factories/financialEntity'
 
 export interface IFinancialEntityRepository {
   findAll(
     filters?: Partial<IFinancialEntity> & { name?: string }
-  ): Promise<IFinancialEntity[]>
-  findById(id: string): Promise<IFinancialEntity | null>
-  create(data: Partial<IFinancialEntity>): Promise<IFinancialEntity>
-  update(id: string, entity: Partial<IFinancialEntity>): Promise<void>
+  ): Promise<FinancialEntity[]>
+  findById(id: string): Promise<FinancialEntity | null>
+  create(entity: FinancialEntity): Promise<FinancialEntity>
+  update(id: string, entity: FinancialEntity): Promise<void>
   delete(id: string): Promise<void>
 }

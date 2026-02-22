@@ -1,23 +1,24 @@
 import { IClientRepository } from '@domain/repository/IClientRepository'
 import { RegisterClientDto, UpdateClientDto } from '@application/dtos/clientDto'
-import { ClientFactory } from '@domain/factories/clientFactory'
 import { IEncryptionService } from '@application/interfaces/IEncryptionService'
+import { clientEntity } from '@domain/factories/clientEntity'
 
 export class ClientUseCases {
   constructor(
     private clientRepository: IClientRepository,
-    private clientFactory: ClientFactory,
     private encryptionService: IEncryptionService
   ) {}
 
-  async register(data: RegisterClientDto) {
+  async register(data: RegisterClientDto, uuid: string) {
     const hashedPassword = await this.encryptionService.hash(data.password)
-    const clientData = {
-      ...data,
-      createdAt: new Date(),
-      password: hashedPassword,
-    }
-    return this.clientRepository.create(this.clientFactory.create(clientData))
+    const client = clientEntity.create(
+      {
+        ...data,
+        password: hashedPassword,
+      },
+      uuid
+    )
+    return this.clientRepository.create(client)
   }
 
   async getClients() {
@@ -25,7 +26,11 @@ export class ClientUseCases {
   }
 
   async updateClient(id: string, data: UpdateClientDto) {
-    return this.clientRepository.update(id, this.clientFactory.update(data))
+    const client = await this.clientRepository.findById(id)
+    if (!client) throw new Error('Client not found')
+
+    client.update(data)
+    return this.clientRepository.update(client)
   }
 
   async getClientById(id: string) {
@@ -69,8 +74,10 @@ export class ClientUseCases {
 
     // 4. Update
     // Assuming update method accepts Partial<Client> or similar
-    await this.clientRepository.update(targetUserId, {
-      password: hashedPassword,
-    })
+    const clientToUpdate = await this.clientRepository.findById(targetUserId)
+    if (clientToUpdate) {
+      clientToUpdate.update({ password: hashedPassword })
+      await this.clientRepository.update(clientToUpdate)
+    }
   }
 }

@@ -19,7 +19,7 @@ describe('FinancialEntityUseCases', () => {
 
   it('createEntity should call repository.create', async () => {
     const data = { name: 'Bank' }
-    await useCases.createEntity(data)
+    await useCases.createEntity(data, 'test-uuid')
     expect(mockRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Bank',
@@ -47,16 +47,16 @@ describe('FinancialEntityUseCases', () => {
   })
 
   it('updateEntity should call repository.update if found', async () => {
-    vi.mocked(mockRepo.findById).mockResolvedValue({
+    const mockEntity = {
       id: '1',
       name: 'Old',
       createdAt: new Date(),
-    } as any)
+      update: vi.fn(),
+    }
+    vi.mocked(mockRepo.findById).mockResolvedValue(mockEntity as any)
     await useCases.updateEntity('1', { name: 'New' })
-    expect(mockRepo.update).toHaveBeenCalledWith(
-      '1',
-      expect.objectContaining({ name: 'New' })
-    )
+    expect(mockEntity.update).toHaveBeenCalledWith('New')
+    expect(mockRepo.update).toHaveBeenCalledWith('1', mockEntity)
   })
 
   it('deleteEntity should throw if not found', async () => {

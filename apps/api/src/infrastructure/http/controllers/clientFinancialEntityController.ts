@@ -4,6 +4,7 @@ import {
   CreateClientFinancialEntityDto,
   UpdateClientFinancialEntityDto,
 } from '@application/dtos/clientFinancialEntityDto'
+import { randomUUID } from 'crypto'
 
 export class ClientFinancialEntityController {
   constructor(private useCases: ClientFinancialEntityUseCases) {}
@@ -19,7 +20,8 @@ export class ClientFinancialEntityController {
         clientId: req.params.clientId,
       }
       const association = await this.useCases.createAssociation(
-        createClientFinancialEntityDto
+        createClientFinancialEntityDto,
+        randomUUID()
       )
       res.status(201).json(association)
     } catch (error) {

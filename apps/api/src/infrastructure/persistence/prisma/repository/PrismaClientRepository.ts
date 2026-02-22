@@ -1,16 +1,24 @@
 import { IClientRepository } from '@domain/repository/IClientRepository'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
-import { IClient } from '@domain/entities/IClient'
+import { clientEntity } from '@domain/factories/clientEntity'
 
 export class PrismaClientRepository implements IClientRepository {
-  async create(data: IClient) {
+  async create(client: clientEntity): Promise<clientEntity> {
     try {
-      return await prisma.client.create({
+      const created = await prisma.client.create({
         data: {
-          ...data,
-          role: 'USER',
+          id: client.id,
+          firstName: client.firstName,
+          lastName: client.lastName,
+          email: client.email,
+          password: client.password,
+          nickname: client.nickname,
+          role: client.role,
+          createdAt: client.createdAt,
+          updatedAt: client.updatedAt,
         },
       })
+      return this.mapToDomain(created)
     } catch (error: any) {
       if (error.code === 'P2002') {
         throw new Error('Email already in use')
@@ -19,22 +27,37 @@ export class PrismaClientRepository implements IClientRepository {
     }
   }
 
-  async findAll() {
-    return prisma.client.findMany()
+  async findAll(): Promise<clientEntity[]> {
+    const clients = await prisma.client.findMany()
+    return clients.map((c) => this.mapToDomain(c))
   }
 
-  async findById(id: string) {
-    return prisma.client.findUnique({ where: { id } })
+  async findById(id: string): Promise<clientEntity | null> {
+    const client = await prisma.client.findUnique({ where: { id } })
+    return client ? this.mapToDomain(client) : null
   }
 
-  async findByEmail(email: string) {
-    return prisma.client.findUnique({ where: { email } })
+  async findByEmail(email: string): Promise<clientEntity | null> {
+    const client = await prisma.client.findUnique({ where: { email } })
+    return client ? this.mapToDomain(client) : null
   }
 
-  async update(id: string, data: Partial<IClient>) {
-    return prisma.client.update({
-      where: { id },
-      data,
+  async update(client: clientEntity): Promise<clientEntity> {
+    const updated = await prisma.client.update({
+      where: { id: client.id },
+      data: {
+        firstName: client.firstName,
+        lastName: client.lastName,
+        email: client.email,
+        password: client.password,
+        nickname: client.nickname,
+        updatedAt: client.updatedAt,
+      },
     })
+    return this.mapToDomain(updated)
+  }
+
+  private mapToDomain(prismaClient: any): clientEntity {
+    return clientEntity.fromPrimitives(prismaClient)
   }
 }

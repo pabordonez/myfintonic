@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PrismaClientRepository } from '../../src/infrastructure/persistence/prisma/repository/PrismaClientRepository'
 import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
-import { IClient } from '../../src/domain/entities/IClient'
+import { clientEntity } from '../../src/domain/factories/clientEntity'
 
 // Mock de prisma
 vi.mock(
@@ -26,6 +26,7 @@ describe('PrismaClientRepository', () => {
   })
 
   it('findAll should call prisma.client.findMany', async () => {
+    vi.mocked(prisma.client.findMany).mockResolvedValue([])
     await repository.findAll()
     expect(prisma.client.findMany).toHaveBeenCalled()
   })
@@ -37,24 +38,44 @@ describe('PrismaClientRepository', () => {
   })
 
   it('update should call prisma.client.update', async () => {
-    const id = '1'
-    const data = { firstName: 'Updated' }
-    await repository.update(id, data)
-    expect(prisma.client.update).toHaveBeenCalledWith({ where: { id }, data })
+    const client = clientEntity.fromPrimitives({
+      id: '1',
+      firstName: 'Updated',
+      lastName: 'User',
+      email: 'test@test.com',
+      password: 'hash',
+      role: 'USER',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+
+    vi.mocked(prisma.client.update).mockResolvedValue({
+      ...client,
+      firstName: 'Updated',
+    } as any)
+
+    await repository.update(client)
+    expect(prisma.client.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: '1' },
+        data: expect.objectContaining({ firstName: 'Updated' }),
+      })
+    )
   })
 
   describe('create', () => {
     it('should create a client', async () => {
-      const client: IClient = {
-        email: 'test@test.com',
-        password: '123',
-        firstName: 'T',
-        lastName: 'U',
-        role: 'USER',
-        createdAt: new Date(),
-      }
+      const client = clientEntity.create(
+        {
+          email: 'test@test.com',
+          password: '123',
+          firstName: 'T',
+          lastName: 'U',
+        },
+        '1'
+      )
+
       vi.mocked(prisma.client.create).mockResolvedValue({
-        id: '1',
         ...client,
         role: 'USER',
       } as any)
@@ -69,14 +90,16 @@ describe('PrismaClientRepository', () => {
       error.code = 'P2002'
       vi.mocked(prisma.client.create).mockRejectedValue(error)
 
-      const client: IClient = {
-        email: 'test@test.com',
-        password: '123',
-        firstName: 'T',
-        lastName: 'U',
-        role: 'USER',
-        createdAt: new Date(),
-      }
+      const client = clientEntity.create(
+        {
+          email: 'test@test.com',
+          password: '123',
+          firstName: 'T',
+          lastName: 'U',
+        },
+        '1'
+      )
+
       await expect(repository.create(client)).rejects.toThrow(
         'Email already in use'
       )
@@ -86,14 +109,16 @@ describe('PrismaClientRepository', () => {
       const error = new Error('DB Error')
       vi.mocked(prisma.client.create).mockRejectedValue(error)
 
-      const client: IClient = {
-        email: 'test@test.com',
-        password: '123',
-        firstName: 'T',
-        lastName: 'U',
-        role: 'USER',
-        createdAt: new Date(),
-      }
+      const client = clientEntity.create(
+        {
+          email: 'test@test.com',
+          password: '123',
+          firstName: 'T',
+          lastName: 'U',
+        },
+        '1'
+      )
+
       await expect(repository.create(client)).rejects.toThrow('DB Error')
     })
   })
