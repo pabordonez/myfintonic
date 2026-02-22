@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PrismaClientRepository } from '../../src/infrastructure/persistence/prisma/repository/PrismaClientRepository'
 import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
-import { clientEntity } from '../../src/domain/factories/clientEntity'
+import { Client } from '../../src/domain/models/client'
 
 // Mock prisma
 vi.mock(
@@ -38,7 +38,7 @@ describe('PrismaClientRepository', () => {
   })
 
   it('update should call prisma.client.update', async () => {
-    const client = clientEntity.fromPrimitives({
+    const client = Client.fromPrimitives({
       id: '1',
       firstName: 'Updated',
       lastName: 'User',
@@ -65,12 +65,13 @@ describe('PrismaClientRepository', () => {
 
   describe('create', () => {
     it('should create a client', async () => {
-      const client = clientEntity.create(
+      const client = Client.create(
         {
           email: 'test@test.com',
           password: '123',
           firstName: 'T',
           lastName: 'U',
+          role: 'USER',
         },
         '1'
       )
@@ -90,12 +91,13 @@ describe('PrismaClientRepository', () => {
       error.code = 'P2002'
       vi.mocked(prisma.client.create).mockRejectedValue(error)
 
-      const client = clientEntity.create(
+      const client = Client.create(
         {
           email: 'test@test.com',
           password: '123',
           firstName: 'T',
           lastName: 'U',
+          role: 'USER',
         },
         '1'
       )
@@ -109,12 +111,13 @@ describe('PrismaClientRepository', () => {
       const error = new Error('DB Error')
       vi.mocked(prisma.client.create).mockRejectedValue(error)
 
-      const client = clientEntity.create(
+      const client = Client.create(
         {
           email: 'test@test.com',
           password: '123',
           firstName: 'T',
           lastName: 'U',
+          role: 'USER',
         },
         '1'
       )

@@ -1,9 +1,9 @@
-import { clientEntity } from '@domain/factories/clientEntity'
+import { Client } from '@domain/models/client'
 
 export interface IClientRepository {
-  create(client: clientEntity): Promise<clientEntity>
-  findAll(): Promise<clientEntity[]>
-  findById(id: string): Promise<clientEntity | null>
-  findByEmail(email: string): Promise<clientEntity | null>
-  update(client: clientEntity): Promise<clientEntity>
+  create(client: Client): Promise<Client>
+  findAll(): Promise<Client[]>
+  findById(id: string): Promise<Client | null>
+  findByEmail(email: string): Promise<Client | null>
+  update(client: Client): Promise<Client>
 }

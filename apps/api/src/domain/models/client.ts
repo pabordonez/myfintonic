@@ -1,7 +1,36 @@
-import { IClient } from '@domain/entities/IClient'
 import { Role } from '@domain/types'
 
-export class clientEntity implements IClient {
+export interface IClient {
+  id?: string
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  nickname?: string
+  role: Role
+  createdAt: Date
+  updatedAt?: Date
+}
+
+export interface IClientUpdate {
+  id: string
+  firstName?: string
+  lastName?: string
+  email?: string
+  password?: string
+  nickname?: string
+  updatedAt: Date
+}
+
+export interface IClientDetails {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  nickname?: string
+}
+
+export class Client implements IClient {
   public id: string
   public firstName: string
   public lastName: string
@@ -27,19 +56,19 @@ export class clientEntity implements IClient {
   public static create(
     data: Omit<IClient, 'id' | 'createdAt' | 'updatedAt'>,
     id: string
-  ): clientEntity {
+  ): Client {
     if (!data.email) throw new Error('Email is required')
     if (!data.password) throw new Error('Password is required')
 
-    return new clientEntity({
+    return new Client({
       ...data,
       id,
       createdAt: new Date(),
     })
   }
 
-  public static fromPrimitives(data: any): clientEntity {
-    return new clientEntity(data)
+  public static fromPrimitives(data: any): Client {
+    return new Client(data)
   }
 
   public update(data: Partial<Omit<IClient, 'id' | 'createdAt'>>): void {

@@ -1,5 +1,5 @@
 import { IFinancialEntity } from './IFinancialEntity'
-import { IClientDetails } from './IClient'
+import { IClientDetails } from '@domain/models/client'
 import { IClientFinancialEntityValueHistory } from './IClientFinancialEntityHistory'
 
 export interface IClientFinancialEntity {

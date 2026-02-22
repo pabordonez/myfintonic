@@ -1,7 +1,7 @@
 import { IClientRepository } from '@domain/repository/IClientRepository'
 import { RegisterClientDto, UpdateClientDto } from '@application/dtos/clientDto'
 import { IEncryptionService } from '@application/interfaces/IEncryptionService'
-import { clientEntity } from '@domain/factories/clientEntity'
+import { Client } from '@domain/models/client'
 
 export class ClientUseCases {
   constructor(
@@ -11,7 +11,7 @@ export class ClientUseCases {
 
   async register(data: RegisterClientDto, uuid: string) {
     const hashedPassword = await this.encryptionService.hash(data.password)
-    const client = clientEntity.create(
+    const client = Client.create(
       {
         ...data,
         password: hashedPassword,

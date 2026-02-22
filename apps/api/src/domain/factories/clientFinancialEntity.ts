@@ -1,6 +1,6 @@
 import { IClientFinancialEntity } from '@domain/entities/IClientFinancialEntity'
 import { IClientFinancialEntityValueHistory } from '@domain/entities/IClientFinancialEntityHistory'
-import { IClientDetails } from '@domain/entities/IClient'
+import { IClientDetails } from '@domain/models/client'
 import { IFinancialEntity } from '@domain/entities/IFinancialEntity'
 
 export class ClientFinancialEntity implements IClientFinancialEntity {

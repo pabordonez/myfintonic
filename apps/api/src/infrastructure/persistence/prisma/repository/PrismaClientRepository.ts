@@ -1,9 +1,9 @@
 import { IClientRepository } from '@domain/repository/IClientRepository'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
-import { clientEntity } from '@domain/factories/clientEntity'
+import { Client } from '@domain/models/client'
 
 export class PrismaClientRepository implements IClientRepository {
-  async create(client: clientEntity): Promise<clientEntity> {
+  async create(client: Client): Promise<Client> {
     try {
       const created = await prisma.client.create({
         data: {
@@ -27,22 +27,22 @@ export class PrismaClientRepository implements IClientRepository {
     }
   }
 
-  async findAll(): Promise<clientEntity[]> {
+  async findAll(): Promise<Client[]> {
     const clients = await prisma.client.findMany()
     return clients.map((c) => this.mapToDomain(c))
   }
 
-  async findById(id: string): Promise<clientEntity | null> {
+  async findById(id: string): Promise<Client | null> {
     const client = await prisma.client.findUnique({ where: { id } })
     return client ? this.mapToDomain(client) : null
   }
 
-  async findByEmail(email: string): Promise<clientEntity | null> {
+  async findByEmail(email: string): Promise<Client | null> {
     const client = await prisma.client.findUnique({ where: { email } })
     return client ? this.mapToDomain(client) : null
   }
 
-  async update(client: clientEntity): Promise<clientEntity> {
+  async update(client: Client): Promise<Client> {
     const updated = await prisma.client.update({
       where: { id: client.id },
       data: {
@@ -57,7 +57,7 @@ export class PrismaClientRepository implements IClientRepository {
     return this.mapToDomain(updated)
   }
 
-  private mapToDomain(prismaClient: any): clientEntity {
-    return clientEntity.fromPrimitives(prismaClient)
+  private mapToDomain(prismaClient: any): Client {
+    return Client.fromPrimitives(prismaClient)
   }
 }
