@@ -15,7 +15,7 @@ async function main() {
 
   const admin = await prisma.client.upsert({
     where: { email: ADMIN_EMAIL },
-    update: {}, // Si existe, no hacemos nada (o podrías actualizar la password si quisieras)
+    update: {},
     create: {
       firstName: 'Admin',
       lastName: 'System',

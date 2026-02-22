@@ -81,46 +81,24 @@ describe('PrismaProductTransactionRepository', () => {
 
   describe('addTransaction', () => {
     it('should execute transaction successfully', async () => {
-      // Mock del objeto transacción que Prisma pasa al callback
-      const mockTx = {
-        financialProduct: {
-          findUniqueOrThrow: vi.fn().mockResolvedValue({
-            currentBalance: 100,
-            type: 'CURRENT_ACCOUNT',
-          }),
-          update: vi.fn(),
-        },
-        productTransaction: {
-          create: vi.fn().mockResolvedValue({
-            id: 'tx1',
-            productId: 'p1',
-            description: 'test',
-            amount: 50,
-            date: new Date(),
-          }),
-        },
-        valueHistory: {
-          create: vi.fn(),
-        },
-      }
-
-      // Simulamos que $transaction ejecuta el callback pasándole nuestro mockTx
-      vi.mocked(prisma.$transaction).mockImplementation(async (cb: any) => {
-        return cb(mockTx)
-      })
-
-      const params = {
+      const date = new Date()
+      const transactionData = {
+        id: 'tx1',
         productId: 'p1',
         description: 'test',
         amount: 50,
-        date: new Date(),
+        date: date,
       }
-      await repo.addTransaction(params)
 
-      expect(mockTx.financialProduct.findUniqueOrThrow).toHaveBeenCalledWith({
-        where: { id: 'p1' },
+      vi.mocked(prisma.productTransaction.create).mockResolvedValue(
+        transactionData as any
+      )
+
+      await repo.addTransaction(transactionData as any)
+
+      expect(prisma.productTransaction.create).toHaveBeenCalledWith({
+        data: transactionData,
       })
-      expect(mockTx.productTransaction.create).toHaveBeenCalled()
     })
   })
 })

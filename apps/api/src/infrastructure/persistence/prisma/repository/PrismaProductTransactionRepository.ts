@@ -27,26 +27,17 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
   ): Promise<IProductTransactionDetail> {
     const { productId, amount, date, description } = transaction
 
-    // Ejecutamos todo dentro de una transacción interactiva de Prisma
-    // para asegurar consistencia ACID ( Transacción )
-    return await prisma.$transaction(async (tx) => {
-      // 1. Obtener el producto para verificar tipo y saldo actual
-      await tx.financialProduct.findUniqueOrThrow({
-        where: { id: productId },
-      })
-
-      const createdTransaction = await tx.productTransaction.create({
-        data: {
-          id: transaction.id,
-          productId,
-          description,
-          amount,
-          date,
-        },
-      })
-
-      return this.mapToDomain(createdTransaction)
+    const createdTransaction = await prisma.productTransaction.create({
+      data: {
+        id: transaction.id,
+        productId,
+        description,
+        amount,
+        date,
+      },
     })
+
+    return this.mapToDomain(createdTransaction)
   }
 
   private mapToDomain(transaction: any): IProductTransactionDetail {

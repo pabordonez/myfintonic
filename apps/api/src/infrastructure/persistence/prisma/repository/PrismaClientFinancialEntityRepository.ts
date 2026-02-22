@@ -93,7 +93,6 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     const data: any = {}
 
     if (entity.balance !== undefined) {
-      // Obtener el valor anterior para el histórico
       const currentEntity = await prisma.clientFinancialEntity.findUnique({
         where: { id: entity.id },
       })

@@ -53,7 +53,7 @@ export class PrismaFinancialEntityRepository implements IFinancialEntityReposito
       throw new Error('Financial Entity not found')
     }
 
-    // Renombramos al borrar para liberar el nombre (Unique Constraint)
+    // Rename (Unique Constraint)
     await prisma.financialEntity.update({
       where: { id },
       data: {

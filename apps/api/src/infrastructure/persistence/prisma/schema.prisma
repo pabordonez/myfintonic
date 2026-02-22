@@ -80,19 +80,19 @@ model ClientFinancialEntity {
   @@index([financialEntityId])
 }
 
-// Modelo principal usando Single Table Inheritance
+//Single Table Inheritance
 model FinancialProduct {
-  id              String        @id // PREFIJO-UUID
+  id              String        @id 
   type            ProductType
   name            String
   financialEntityId String
   financialEntity FinancialEntity @relation(fields: [financialEntityId], references: [id])
   status          ProductStatus @default(ACTIVE)
-  clientId        String        // UUID del cliente
+  clientId        String        
   client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   
-  // Campos específicos (Opcionales dependiendo del tipo)
-  // Cuentas y Depósitos
+  
+  // ACCOUNT AND FIXED_TERM_DEPOSIT
   currentBalance       Decimal?  @db.Decimal(15, 2)
   monthlyInterestRate  Decimal?  @db.Decimal(5, 4)
   initialBalance       Decimal?  @db.Decimal(15, 2)
@@ -101,14 +101,13 @@ model FinancialProduct {
   maturityDate         DateTime?
   interestPaymentFreq  String?
 
-  // Fondos y Acciones
+  // STOCKS AND INVESTMENT_FUNDS
   numberOfUnits        Decimal?  @db.Decimal(15, 6) 
   netAssetValue        Decimal?  @db.Decimal(15, 2)
   numberOfShares       Decimal?  @db.Decimal(15, 2)
   unitPurchasePrice    Decimal?  @db.Decimal(15, 2)
   currentMarketPrice   Decimal?  @db.Decimal(15, 2)
 
-  // Relaciones
   valueHistory         ValueHistory[]
   transactions         ProductTransaction[]
 

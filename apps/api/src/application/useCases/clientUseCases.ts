@@ -37,8 +37,6 @@ export class ClientUseCases {
     return this.clientRepository.findById(id)
   }
 
-  //TODO REFACTORIZAR PARA SACARLO PARTE DE LA
-  // LOGICA A infrastructure PUES TIENE DEPENDENCIAS DE BCRYP
   async changePassword(
     targetUserId: string,
     newPassword: string,

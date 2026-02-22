@@ -1,4 +1,3 @@
-// /Users/pabloordonezmiguel/Downloads/Master/BIGSCHOOL/TALLERES/myfintonic-api/apps/api/src/infrastructure/services/bcryptEncryptionService.ts
 import bcrypt from 'bcrypt'
 import { IEncryptionService } from '@application/interfaces/IEncryptionService'
 

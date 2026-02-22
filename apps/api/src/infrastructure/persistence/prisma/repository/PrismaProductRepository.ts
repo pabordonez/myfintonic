@@ -68,13 +68,12 @@ export class PrismaProductRepository implements IProductRepository {
       data.interestPaymentFreq = p.interestPaymentFrequency
     }
 
-    // 2. Campos especiales (Relaciones y JSON)
+    // 2. (Relaciones y JSON)
     if (p.clientId !== undefined) data.client = { connect: { id: p.clientId } }
 
-    // Generar histórico si cambia el saldo (Cuentas, Fondos)
+    // History (Account, Fixed)
     const newValue = p.currentBalance
     if (newValue !== undefined && newValue !== null) {
-      // Obtener valor anterior para el histórico
       const currentProduct = await prisma.financialProduct.findUnique({
         where: { id },
       })

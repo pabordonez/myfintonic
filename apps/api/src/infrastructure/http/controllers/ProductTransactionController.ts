@@ -16,7 +16,6 @@ export class ProductTransactionController {
         return res.status(401).json({ error: 'Unauthorized' })
       }
 
-      //TODO: Deberia esta validacion hacerla en la capa de dominio, pero como hacerlo con ZOD
       const productTransactionDto: ProductTransactionDto = {
         userId,
         productId,
