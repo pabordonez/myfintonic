@@ -1,6 +1,8 @@
 // Domain Repository Interface
-import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
-import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
+import {
+  IFinancialProduct,
+  FinancialProduct,
+} from '@domain/models/financialProduct'
 
 export interface IProductRepository {
   findAll(filters?: Partial<IFinancialProduct>): Promise<FinancialProduct[]>

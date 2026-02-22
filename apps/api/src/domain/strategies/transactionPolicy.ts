@@ -1,4 +1,4 @@
-import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
+import { FinancialProduct } from '@domain/models/financialProduct'
 
 export interface ITransactionPolicy {
   validate(product: FinancialProduct): void

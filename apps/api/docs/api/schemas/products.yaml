@@ -103,7 +103,7 @@ FixedTermDeposit:
         - initialDate
         - maturityDate
         - annualInterestRate
-        - interestPaymentFrequency
+        - interestPaymentFreq
       properties:
         initialBalance:
           type: number
@@ -115,7 +115,7 @@ FixedTermDeposit:
           format: date-time
         annualInterestRate:
           type: number
-        interestPaymentFrequency:
+        interestPaymentFreq:
           type: string
           enum: [Monthly, Quarterly, Annual, AtMaturity]
 
@@ -203,7 +203,7 @@ FixedTermDepositUpdate:
           format: date-time
         annualInterestRate:
           type: number
-        interestPaymentFrequency:
+        interestPaymentFreq:
           type: string
           enum: [Monthly, Quarterly, Annual, AtMaturity]
 

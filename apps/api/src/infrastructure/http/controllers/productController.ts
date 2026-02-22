@@ -105,29 +105,6 @@ export class ProductController {
   ): Promise<void> => {
     try {
       const updateProductDto: UpdateProductDto = {
-        status: 'ACTIVE',
-        ...req.body,
-        clientId: (req as any).user?.id,
-      }
-
-      await this.productUseCases.updateProduct(
-        req.params.id as string,
-        updateProductDto
-      )
-
-      res.status(204).send()
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  patch = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const updateProductDto: UpdateProductDto = {
         ...req.body,
         clientId: (req as any).user?.id,
       }

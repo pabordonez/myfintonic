@@ -1,5 +1,7 @@
-import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
-import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
+import {
+  IFinancialProduct,
+  FinancialProduct,
+} from '@domain/models/financialProduct'
 import { FinancialProductFactory } from '@domain/factories/financialProductFactory'
 import { IProductRepository } from '@domain/repository/IProductRepository'
 import {

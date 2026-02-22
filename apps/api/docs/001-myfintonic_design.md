@@ -263,13 +263,6 @@ La API seguirá los principios REST, utilizando sustantivos en plural para las c
     - `400 Bad Request`: Datos inválidos.
     - `404 Not Found`: Producto no encontrado.
 
-- **`PATCH /products/{id}`**: Actualiza parcialmente un producto, utilizado específicamente para cambios de estado.
-  - **Body**: `{ "status": "PAUSED" }`
-  - **Respuestas**:
-    - `204 No Content`: Estado actualizado correctamente.
-    - `400 Bad Request`: Transición de estado no permitida.
-    - `404 Not Found`: Producto no encontrado.
-
 - **`DELETE /products/{id}`**: Elimina un producto (o lo marca como `Inactivo`).
   - **Respuestas**:
     - `204 No Content`: Producto eliminado.

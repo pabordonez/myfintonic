@@ -1,8 +1,10 @@
-import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
+import {
+  IFinancialProduct,
+  FinancialProduct,
+} from '@domain/models/financialProduct'
 import { IProductRepository } from '@domain/repository/IProductRepository'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 import { FinancialProductFactory } from '@domain/factories/financialProductFactory'
-import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
 
 export class PrismaProductRepository implements IProductRepository {
   async create(product: FinancialProduct): Promise<FinancialProduct> {

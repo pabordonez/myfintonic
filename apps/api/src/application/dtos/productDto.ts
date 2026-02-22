@@ -14,8 +14,6 @@ export class CreateProductDto {
   valueHistory?: Array<{ date: Date; value: number }>
   transaction?: Array<IProductTransaction>
   currentBalance?: number
-  createdAt?: Date
-  updatedAt?: Date
   transactions?: Array<{ date: Date; description: string; amount: number }>
   monthlyInterestRate?: number
   initialBalance?: number

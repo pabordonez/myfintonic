@@ -1,6 +1,8 @@
-import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
+import {
+  IFinancialProduct,
+  FinancialProduct,
+} from '@domain/models/financialProduct'
 import { ProductType } from '@domain/types'
-import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
 import { CurrentAccount } from '@domain/factories/financialProduct/currentAccount'
 import { SavingsAccount } from '@domain/factories/financialProduct/savingsAccount'
 import { FixedTermDeposit } from '@domain/factories/financialProduct/fixedTermDeposit'

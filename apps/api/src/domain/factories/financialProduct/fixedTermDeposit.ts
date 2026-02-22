@@ -1,4 +1,4 @@
-import { FinancialProduct } from '@domain/factories/financialProduct/financialProduct'
+import { FinancialProduct } from '@domain/models/financialProduct'
 import { InterestPaymentFrequency } from '@domain/types'
 
 export class FixedTermDeposit extends FinancialProduct {
@@ -20,8 +20,7 @@ export class FixedTermDeposit extends FinancialProduct {
       ? new Date(data.maturityDate)
       : new Date()
     this.annualInterestRate = data.annualInterestRate
-    this.interestPaymentFreq =
-      data.interestPaymentFreq || data.interestPaymentFrequency
+    this.interestPaymentFreq = data.interestPaymentFreq
   }
 
   public static create(data: any): FixedTermDeposit {
@@ -37,7 +36,7 @@ export class FixedTermDeposit extends FinancialProduct {
       throw new Error('Missing required field: annualInterestRate')
 
     const validFrequencies = ['Monthly', 'Quarterly', 'Annual', 'AtMaturity']
-    const freq = data.interestPaymentFreq || data.interestPaymentFrequency
+    const freq = data.interestPaymentFreq
     if (!freq) throw new Error('Missing required field: interestPaymentFreq')
     if (!validFrequencies.includes(freq)) {
       throw new Error(

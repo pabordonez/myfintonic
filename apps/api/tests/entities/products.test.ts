@@ -335,7 +335,7 @@ describe('Financial Products API', () => {
         initialDate: new Date().toISOString(),
         maturityDate: new Date(Date.now() + 31536000000).toISOString(), // +1 year
         annualInterestRate: 0.03,
-        interestPaymentFrequency: 'Quarterly',
+        interestPaymentFreq: 'Quarterly',
       }
       const response = await request(app)
         .post('/products')
@@ -394,7 +394,7 @@ describe('Financial Products API', () => {
       expect(response.body).toHaveProperty('currentBalance')
       // Should not have fields from other types
       expect(response.body).not.toHaveProperty('numberOfShares')
-      expect(response.body).not.toHaveProperty('interestPaymentFrequency')
+      expect(response.body).not.toHaveProperty('interestPaymentFreq')
     })
 
     it('should return 404 (Security) if user tries to access another users product', async () => {
@@ -461,42 +461,6 @@ describe('Financial Products API', () => {
     it('should return 400 if updating to a non-existent financialEntity', async () => {
       const response = await request(app)
         .put(`/products/${productId}`)
-        .set('Cookie', [`token=${userToken}`])
-        .send({ financialEntity: 'non-existent-id' })
-
-      expect(response.status).toBe(400)
-      expect(response.body.error).toContain(
-        "Financial Entity with ID 'non-existent-id' not found"
-      )
-    })
-  })
-
-  describe('PATCH /products/:id', () => {
-    it('should return 204 and update status', async () => {
-      const response = await request(app)
-        .patch(`/products/${productId}`)
-        .set('Cookie', [`token=${userToken}`])
-        .send({ status: 'PAUSED' })
-
-      expect(response.status).toBe(204)
-
-      const getResponse = await request(app)
-        .get(`/products/${productId}`)
-        .set('Cookie', [`token=${userToken}`])
-      expect(getResponse.body.status).toBe('PAUSED')
-    })
-
-    it('should return 404 if product not found', async () => {
-      const response = await request(app)
-        .patch('/products/non-existent-id')
-        .set('Cookie', [`token=${userToken}`])
-        .send({ status: 'PAUSED' })
-      expect(response.status).toBe(404)
-    })
-
-    it('should return 400 if patching with non-existent financialEntity', async () => {
-      const response = await request(app)
-        .patch(`/products/${productId}`)
         .set('Cookie', [`token=${userToken}`])
         .send({ financialEntity: 'non-existent-id' })
 
@@ -604,7 +568,7 @@ describe('Financial Products API', () => {
       expect(updateResEnum.body.error).toContain('Validation failed')
     })
 
-    it('FIXED_TERM_DEPOSIT: should fail creation with invalid interestPaymentFrequency', async () => {
+    it('FIXED_TERM_DEPOSIT: should fail creation with invalid interestPaymentFreq', async () => {
       const deposit = {
         type: 'FIXED_TERM_DEPOSIT',
         name: 'Deposit Invalid Enum',

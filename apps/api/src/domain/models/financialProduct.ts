@@ -1,7 +1,18 @@
-// src/domain/models/financialProduct.ts
-import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
 import { ProductStatus, ProductType } from '@domain/types'
 import { ITransactionPolicy } from '@domain/strategies/transactionPolicy'
+
+export interface IFinancialProduct {
+  id?: string
+  type: ProductType
+  name: string
+  financialEntity: string
+  financialEntityName?: string
+  status: ProductStatus
+  clientId: string
+  createdAt: Date
+  updatedAt: Date
+  valueHistory?: Array<{ date: Date; value: number }>
+}
 
 export abstract class FinancialProduct implements IFinancialProduct {
   public id?: string
@@ -60,11 +71,7 @@ export abstract class FinancialProduct implements IFinancialProduct {
       )
     }
 
-    const updatedData = {
-      ...this,
-      ...data,
-      updatedAt: new Date(),
-    }
+    const updatedData = { ...this, ...data, updatedAt: new Date() }
 
     return this.createCopy(updatedData)
   }

@@ -120,17 +120,6 @@ describe('Financial Products Domain Models', () => {
       })
       expect(deposit).toBeInstanceOf(FixedTermDeposit)
     })
-    it('should accept interestPaymentFrequency (legacy field support)', () => {
-      const deposit = FixedTermDeposit.create({
-        type: 'FIXED_TERM_DEPOSIT',
-        initialBalance: 100,
-        initialDate: new Date(),
-        maturityDate: new Date(),
-        annualInterestRate: 0.05,
-        interestPaymentFrequency: 'Monthly',
-      })
-      expect(deposit).toBeInstanceOf(FixedTermDeposit)
-    })
   })
 
   describe('InvestmentFund', () => {

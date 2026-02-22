@@ -29,7 +29,6 @@ export const createProductRouter = (
   router.get('/:id', adminOrOwnership, productController.getById)
   router.get('/:id/history', adminOrOwnership, productController.getHistory)
   router.put('/:id', adminOrOwnership, productController.update)
-  router.patch('/:id', adminOrOwnership, productController.patch)
   router.post(
     '/:id/transactions',
     adminOrOwnership,
