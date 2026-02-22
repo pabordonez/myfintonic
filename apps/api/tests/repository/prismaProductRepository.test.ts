@@ -146,7 +146,7 @@ describe('PrismaProductRepository', () => {
   })
 
   describe('mapToDomain', () => {
-    // Helper para probar el mapeo de diferentes tipos
+    // Helper to test mapping of different types
     const testMapping = async (type: string, extraFields: any) => {
       vi.mocked(prisma.financialProduct.findFirst).mockResolvedValue({
         id: '1',

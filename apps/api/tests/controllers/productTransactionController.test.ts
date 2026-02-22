@@ -3,19 +3,19 @@ import { ProductTransactionController } from '../../src/infrastructure/http/cont
 import { ProductTransactionUseCases } from '../../src/application/useCases/productTransactionUseCases'
 import { Request, Response, NextFunction } from 'express'
 
-// Mock del caso de uso
+// Mock use case
 const mockUseCase = {
   add: vi.fn(),
   getProductTransactions: vi.fn(),
 } as unknown as ProductTransactionUseCases
 
-// Mock de Response de Express
+// Mock Express Response
 const mockRes = {
   status: vi.fn().mockReturnThis(),
   json: vi.fn(),
 } as unknown as Response
 
-// Mock de NextFunction
+// Mock NextFunction
 const next = vi.fn() as unknown as NextFunction
 
 const controller = new ProductTransactionController(mockUseCase)

@@ -15,7 +15,7 @@ describe('Security Middlewares', () => {
       const origin = 'http://evil-site.com'
       const response = await request(app).get('/health').set('Origin', origin)
 
-      // El middleware de cors lanza un error, Express por defecto devuelve 500 con el mensaje
+      // The cors middleware throws an error, Express defaults to 500 with the message
       expect(response.status).toBe(500)
       expect(response.text).toContain('Internal Server Error"')
     })

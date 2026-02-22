@@ -3,7 +3,7 @@ import request from 'supertest'
 import { app } from '../src/app'
 import bcrypt from 'bcrypt'
 
-// Mock de Prisma para evitar tocar la BD real
+// Mock Prisma to avoid touching real DB
 const { mockDb } = vi.hoisted(() => ({ mockDb: [] as any[] }))
 
 vi.mock(
@@ -56,7 +56,7 @@ describe('Auth API', () => {
       expect(response.body.email).toBe(userData.email)
       expect(response.body.role).toBe('USER')
 
-      // Verificar que se guardó en "BD"
+      // Verify it was saved in "DB"
       expect(mockDb).toHaveLength(1)
     })
 

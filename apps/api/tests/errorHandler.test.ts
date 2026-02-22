@@ -16,7 +16,7 @@ describe('errorHandler Middleware', () => {
     status = vi.fn().mockReturnValue({ json })
     res = { status, json } as unknown as Response
     next = vi.fn()
-    // Silenciar console.error para mantener limpios los logs de los tests
+    // Silence console.error to keep test logs clean
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 

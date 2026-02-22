@@ -48,7 +48,7 @@ vi.mock(
                 throw error
               }
 
-              // Resolver nombre basado en el ID simulado
+              // Resolve name based on simulated ID
               let entityName = 'Banco de Pruebas'
               if (connectedId === 'global-bank-id') entityName = 'Global Bank'
 
@@ -170,7 +170,7 @@ describe('Financial Products API', () => {
 
   let productId: string
 
-  // Tokens para pruebas
+  // Tokens for testing
   const userId = '550e8400-e29b-41d4-a716-446655440000'
   const otherUserId = 'other-user-id'
   const userToken = jwt.sign({ id: userId, role: 'USER' }, env.JWT_SECRET)
@@ -509,19 +509,19 @@ describe('Financial Products API', () => {
 
   describe('DELETE /products/:id', () => {
     it('should return 204 and disappear from queries', async () => {
-      // 1. Borrar
+      // 1. Delete
       const response = await request(app)
         .delete(`/products/${productId}`)
         .set('Cookie', [`token=${userToken}`])
       expect(response.status).toBe(204)
 
-      // 2. Verificar que el detalle da 404
+      // 2. Verify detail returns 404
       const getResponse = await request(app)
         .get(`/products/${productId}`)
         .set('Cookie', [`token=${userToken}`])
       expect(getResponse.status).toBe(404)
 
-      // 3. Verificar que no sale en el listado
+      // 3. Verify it does not appear in the list
       const listResponse = await request(app)
         .get('/products')
         .set('Cookie', [`token=${userToken}`])
@@ -531,7 +531,7 @@ describe('Financial Products API', () => {
   })
 
   describe('Type-specific Validation and Filtering (All Types)', () => {
-    // Helper para crear productos rápidamente
+    // Helper to create products quickly
     const createProduct = async (data: any) => {
       const res = await request(app)
         .post('/products')
@@ -551,7 +551,7 @@ describe('Financial Products API', () => {
         monthlyInterestRate: 0.02,
       })
 
-      // 1. Verificar filtrado en GET (solo campos de Savings)
+      // 1. Verify filtering in GET (only Savings fields)
       const getRes = await request(app)
         .get(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
@@ -559,7 +559,7 @@ describe('Financial Products API', () => {
       expect(getRes.body).not.toHaveProperty('numberOfShares') // Campo de Stocks
       expect(getRes.body).toHaveProperty('transactions')
 
-      // 2. Verificar validación en PUT (no permitir campos de otros tipos)
+      // 2. Verify validation in PUT (do not allow fields from other types)
       const updateRes = await request(app)
         .put(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
@@ -588,14 +588,14 @@ describe('Financial Products API', () => {
       expect(getRes.body).toHaveProperty('annualInterestRate')
       expect(getRes.body).toHaveProperty('interestPaymentFreq')
 
-      // Actualizar currentBalance (Ahora permitido para seguimiento de valoración)
+      // Update currentBalance (Now allowed for valuation tracking)
       const updateRes = await request(app)
         .put(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
         .send({ currentBalance: 500 })
       expect(updateRes.status).toBe(204)
 
-      // Intentar actualizar con un valor de enum inválido
+      // Attempt to update with an invalid enum value
       const updateResEnum = await request(app)
         .put(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
@@ -716,7 +716,7 @@ describe('Financial Products API', () => {
         .get(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
       expect(getRes.body.currentBalance).toBe(newBalance)
-      // Verificamos que se haya generado histórico (asumiendo que la lógica de negocio lo implementa)
+      // Verify that history has been generated (assuming business logic implements it)
       expect(getRes.body.valueHistory).toHaveLength(1)
       expect(getRes.body.valueHistory[0].value).toBe(newBalance)
     })

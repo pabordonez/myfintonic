@@ -3,7 +3,7 @@ import { PrismaClientRepository } from '../../src/infrastructure/persistence/pri
 import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
 import { clientEntity } from '../../src/domain/factories/clientEntity'
 
-// Mock de prisma
+// Mock prisma
 vi.mock(
   '../../src/infrastructure/persistence/prisma/repository/prismaClient',
   () => ({

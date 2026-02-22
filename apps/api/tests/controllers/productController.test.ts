@@ -26,7 +26,7 @@ const mockResponse = () => {
   return res
 }
 
-// Mock de NextFunction
+// Mock NextFunction
 const next = vi.fn() as unknown as NextFunction
 
 describe('ProductController', () => {

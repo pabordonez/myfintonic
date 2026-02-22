@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express'
 import { FinancialEntityController } from '../../src/infrastructure/http/controllers/financialEntityController'
 import { FinancialEntityUseCases } from '../../src/application/useCases/financialEntityUseCases'
 
-// Mock de los casos de uso
+// Mock use cases
 const mockUseCases = {
   createEntity: vi.fn(),
   getEntities: vi.fn(),
@@ -14,12 +14,12 @@ const mockUseCases = {
 
 const controller = new FinancialEntityController(mockUseCases)
 
-// Helpers para mocks de Express
+// Helpers for Express mocks
 const mockRequest = (body = {}, params = {}, query = {}) => {
   return { body, params, query } as unknown as Request
 }
 
-// Mock de NextFunction
+// Mock NextFunction
 const next = vi.fn() as unknown as NextFunction
 
 const mockResponse = () => {

@@ -69,7 +69,7 @@ describe('ProductUseCases', () => {
     })
 
     it('should allow updating currentBalance for FIXED_TERM_DEPOSIT', async () => {
-      // Simulamos una entidad real o un mock con el método update
+      // Simulate a real entity or a mock with the update method
       const existingProduct = {
         id: '1',
         type: 'FIXED_TERM_DEPOSIT',
