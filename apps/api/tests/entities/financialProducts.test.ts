@@ -1,11 +1,53 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { FixedTermDeposit } from '../../src/domain/factories/financialProduct/fixedTermDeposit'
 import { InvestmentFund } from '../../src/domain/factories/financialProduct/investmentFund'
 import { SavingsAccount } from '../../src/domain/factories/financialProduct/savingsAccount'
 import { Stocks } from '../../src/domain/factories/financialProduct/stocks'
 import { CurrentAccount } from '../../src/domain/factories/financialProduct/currentAccount'
+import {
+  BankingTransactionPolicy,
+  InvestmentTransactionPolicy,
+} from '../../src/domain/strategies/TransactionPolicy'
 
 describe('Financial Products Domain Models', () => {
+  describe('FinancialProduct Base', () => {
+    it('should validate transaction using policy', () => {
+      const account = CurrentAccount.create({
+        type: 'CURRENT_ACCOUNT',
+        currentBalance: 100,
+        status: 'ACTIVE',
+      } as any)
+      const policy = new BankingTransactionPolicy()
+      const spy = vi.spyOn(policy, 'validate')
+      account.validateTransaction(policy)
+      expect(spy).toHaveBeenCalledWith(account)
+    })
+
+    it('should throw error if product is not active (BankingTransactionPolicy)', () => {
+      const account = CurrentAccount.create({
+        type: 'CURRENT_ACCOUNT',
+        currentBalance: 100,
+        status: 'INACTIVE',
+      } as any)
+      const policy = new BankingTransactionPolicy()
+      expect(() => account.validateTransaction(policy)).toThrow(
+        'Transaction failed: Product is not active'
+      )
+    })
+
+    it('should throw error for investment products (InvestmentTransactionPolicy)', () => {
+      const fund = InvestmentFund.create({
+        type: 'INVESTMENT_FUND',
+        currentBalance: 1000,
+        status: 'ACTIVE',
+      } as any)
+      const policy = new InvestmentTransactionPolicy()
+      expect(() => fund.validateTransaction(policy)).toThrow(
+        'Transactions are not allowed for product type: INVESTMENT_FUND'
+      )
+    })
+  })
+
   describe('FixedTermDeposit', () => {
     it('should throw if type is invalid', () => {
       expect(() => FixedTermDeposit.create({ type: 'INVALID' })).toThrow(
@@ -78,6 +120,17 @@ describe('Financial Products Domain Models', () => {
       })
       expect(deposit).toBeInstanceOf(FixedTermDeposit)
     })
+    it('should accept interestPaymentFreq (legacy field)', () => {
+      const deposit = FixedTermDeposit.create({
+        type: 'FIXED_TERM_DEPOSIT',
+        initialBalance: 100,
+        initialDate: new Date(),
+        maturityDate: new Date(),
+        annualInterestRate: 0.05,
+        interestPaymentFreq: 'Monthly',
+      })
+      expect(deposit).toBeInstanceOf(FixedTermDeposit)
+    })
   })
 
   describe('InvestmentFund', () => {
@@ -97,6 +150,15 @@ describe('Financial Products Domain Models', () => {
         currentBalance: 1000,
       })
       expect(fund).toBeInstanceOf(InvestmentFund)
+    })
+    it('should update correctly (createCopy)', () => {
+      const fund = InvestmentFund.create({
+        type: 'INVESTMENT_FUND',
+        currentBalance: 1000,
+      })
+      const updated = fund.update({ currentBalance: 2000 })
+      expect(updated).toBeInstanceOf(InvestmentFund)
+      expect((updated as InvestmentFund).currentBalance).toBe(2000)
     })
   })
 
@@ -123,6 +185,16 @@ describe('Financial Products Domain Models', () => {
         monthlyInterestRate: 0.01,
       })
       expect(account).toBeInstanceOf(SavingsAccount)
+    })
+    it('should update correctly (createCopy)', () => {
+      const account = SavingsAccount.create({
+        type: 'SAVINGS_ACCOUNT',
+        currentBalance: 100,
+        monthlyInterestRate: 0.01,
+      })
+      const updated = account.update({ currentBalance: 200 })
+      expect(updated).toBeInstanceOf(SavingsAccount)
+      expect((updated as SavingsAccount).currentBalance).toBe(200)
     })
   })
 

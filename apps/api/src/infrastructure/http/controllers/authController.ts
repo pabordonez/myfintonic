@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { AuthUseCases } from '@application/useCases/authUseCases'
 import { env } from '@infrastructure/config/env'
+import { toClientResponse } from '@infrastructure/http/mappers/clientMapper'
 
 export class AuthController {
   constructor(private useCases: AuthUseCases) {}
@@ -17,7 +18,7 @@ export class AuthController {
         path: '/',
       })
 
-      res.status(200).json({ token, user })
+      res.status(200).json({ token, user: toClientResponse(user as any) })
     } catch (error) {
       next(error)
     }

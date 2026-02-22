@@ -14,7 +14,7 @@ export class ClientController {
         registerClientDto,
         randomUUID()
       )
-      res.status(201).json(result)
+      res.status(201).json(toClientResponse(result))
     } catch (error) {
       next(error)
     }
