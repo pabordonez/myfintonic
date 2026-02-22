@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest'
-import { FixedTermDeposit } from '../../src/domain/factories/financialProduct/fixedTermDeposit'
-import { InvestmentFund } from '../../src/domain/factories/financialProduct/investmentFund'
-import { SavingsAccount } from '../../src/domain/factories/financialProduct/savingsAccount'
-import { Stocks } from '../../src/domain/factories/financialProduct/stocks'
-import { CurrentAccount } from '../../src/domain/factories/financialProduct/currentAccount'
+import { FixedTermDeposit } from '../../src/domain/models/financialProduct/fixedTermDeposit'
+import { InvestmentFund } from '../../src/domain/models/financialProduct/investmentFund'
+import { SavingsAccount } from '../../src/domain/models/financialProduct/savingsAccount'
+import { Stocks } from '../../src/domain/models/financialProduct/stocks'
+import { CurrentAccount } from '../../src/domain/models/financialProduct/currentAccount'
 import {
   BankingTransactionPolicy,
   InvestmentTransactionPolicy,

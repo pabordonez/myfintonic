@@ -3,11 +3,11 @@ import {
   FinancialProduct,
 } from '@domain/models/financialProduct'
 import { ProductType } from '@domain/types'
-import { CurrentAccount } from '@domain/factories/financialProduct/currentAccount'
-import { SavingsAccount } from '@domain/factories/financialProduct/savingsAccount'
-import { FixedTermDeposit } from '@domain/factories/financialProduct/fixedTermDeposit'
-import { InvestmentFund } from '@domain/factories/financialProduct/investmentFund'
-import { Stocks } from '@domain/factories/financialProduct/stocks'
+import { CurrentAccount } from '@domain/models/financialProduct/currentAccount'
+import { SavingsAccount } from '@domain/models/financialProduct/savingsAccount'
+import { FixedTermDeposit } from '@domain/models/financialProduct/fixedTermDeposit'
+import { InvestmentFund } from '@domain/models/financialProduct/investmentFund'
+import { Stocks } from '@domain/models/financialProduct/stocks'
 
 export class FinancialProductFactory {
   public static create(
