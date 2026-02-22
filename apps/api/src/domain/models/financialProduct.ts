@@ -1,5 +1,6 @@
 import { ProductStatus, ProductType } from '@domain/types'
 import { ITransactionPolicy } from '@domain/strategies/transactionPolicy'
+import { ValueHistory } from '@domain/models/valueHistory'
 
 export interface IFinancialProduct {
   id?: string
@@ -11,7 +12,7 @@ export interface IFinancialProduct {
   clientId: string
   createdAt: Date
   updatedAt: Date
-  valueHistory?: Array<{ date: Date; value: number }>
+  valueHistory?: ValueHistory[]
 }
 
 export abstract class FinancialProduct implements IFinancialProduct {
@@ -24,7 +25,7 @@ export abstract class FinancialProduct implements IFinancialProduct {
   public clientId!: string
   public createdAt!: Date
   public updatedAt!: Date
-  public valueHistory?: Array<{ date: Date; value: number }>
+  public valueHistory?: ValueHistory[]
 
   protected constructor(data: Partial<IFinancialProduct>) {
     this.id = data.id

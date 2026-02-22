@@ -5,6 +5,7 @@ import {
 import { IProductRepository } from '@domain/repository/IProductRepository'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 import { FinancialProductFactory } from '@domain/factories/financialProductFactory'
+import { ValueHistory } from '@domain/models/valueHistory'
 
 export class PrismaProductRepository implements IProductRepository {
   async create(product: FinancialProduct): Promise<FinancialProduct> {
@@ -217,12 +218,17 @@ export class PrismaProductRepository implements IProductRepository {
       createdAt: prismaProduct.createdAt,
       updatedAt: prismaProduct.updatedAt,
       valueHistory:
-        prismaProduct.valueHistory?.map((h: any) => ({
-          id: h.id,
-          date: h.date,
-          value: Number(h.value),
-          previousValue: h.previousValue ? Number(h.previousValue) : undefined,
-        })) || [],
+        prismaProduct.valueHistory?.map((h: any) =>
+          ValueHistory.fromPrimitives({
+            id: h.id,
+            date: h.date,
+            value: Number(h.value),
+            previousValue: h.previousValue
+              ? Number(h.previousValue)
+              : undefined,
+            productId: h.productId,
+          })
+        ) || [],
     }
 
     // 2. Specific fields

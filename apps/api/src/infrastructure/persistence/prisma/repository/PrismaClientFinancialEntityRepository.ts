@@ -1,6 +1,7 @@
 import { IClientFinancialEntityRepository } from '@domain/repository/IClientFinancialEntityRepository'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 import { ClientFinancialEntity } from '@domain/models/clientFinancialEntity'
+import { ClientFinancialEntityValueHistory } from '@domain/models/clientFinancialEntityValueHistory'
 
 export class PrismaClientFinancialEntityRepository implements IClientFinancialEntityRepository {
   async create(entity: ClientFinancialEntity): Promise<ClientFinancialEntity> {
@@ -189,13 +190,17 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
       createdAt: prismaEntity.createdAt,
       updatedAt: prismaEntity.updatedAt,
       valueHistory:
-        prismaEntity.valueHistory?.map((h: any) => ({
-          id: h.id,
-          date: h.date,
-          value: Number(h.value),
-          previousValue: h.previousValue ? Number(h.previousValue) : undefined,
-          clientFinancialEntityId: h.clientFinancialEntityId,
-        })) || [],
+        prismaEntity.valueHistory?.map((h: any) =>
+          ClientFinancialEntityValueHistory.fromPrimitives({
+            id: h.id,
+            date: h.date,
+            value: Number(h.value),
+            previousValue: h.previousValue
+              ? Number(h.previousValue)
+              : undefined,
+            clientFinancialEntityId: h.clientFinancialEntityId,
+          })
+        ) || [],
     })
   }
 }

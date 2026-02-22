@@ -8,6 +8,7 @@ import { SavingsAccount } from '@domain/models/financialProduct/savingsAccount'
 import { FixedTermDeposit } from '@domain/models/financialProduct/fixedTermDeposit'
 import { InvestmentFund } from '@domain/models/financialProduct/investmentFund'
 import { Stocks } from '@domain/models/financialProduct/stocks'
+import { ValueHistory } from '@domain/models/valueHistory'
 
 export class FinancialProductFactory {
   public static create(
@@ -31,7 +32,9 @@ export class FinancialProductFactory {
       id,
       createdAt: data.createdAt || now,
       updatedAt: data.updatedAt || now,
-      valueHistory: data.valueHistory || [],
+      valueHistory: data.valueHistory
+        ? data.valueHistory.map((v: any) => ValueHistory.fromPrimitives(v))
+        : [],
     }
 
     return FinancialProductFactory.fromPrimitives(fullData as IFinancialProduct)

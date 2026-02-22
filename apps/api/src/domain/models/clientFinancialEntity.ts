@@ -1,4 +1,4 @@
-import { IClientFinancialEntityValueHistory } from '@domain/entities/IClientFinancialEntityHistory'
+import { ClientFinancialEntityValueHistory } from '@domain/models/clientFinancialEntityValueHistory'
 import { IClientDetails } from '@domain/models/client'
 import { IFinancialEntity } from '@domain/models/financialEntity'
 
@@ -12,7 +12,7 @@ export interface IClientFinancialEntity {
   financialEntity?: IFinancialEntity
   createdAt: Date
   updatedAt: Date
-  valueHistory?: IClientFinancialEntityValueHistory[]
+  valueHistory?: ClientFinancialEntityValueHistory[]
 }
 
 export class ClientFinancialEntity implements IClientFinancialEntity {
@@ -25,7 +25,7 @@ export class ClientFinancialEntity implements IClientFinancialEntity {
   public updatedAt: Date
   public client?: IClientDetails
   public financialEntity?: IFinancialEntity
-  public valueHistory?: IClientFinancialEntityValueHistory[]
+  public valueHistory?: ClientFinancialEntityValueHistory[]
 
   private constructor(data: Partial<IClientFinancialEntity>) {
     this.id = data.id!
