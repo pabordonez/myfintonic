@@ -70,5 +70,8 @@
   "prisma": {
     "schema": "src/infrastructure/persistence/prisma/schema.prisma",
     "seed": "tsx src/infrastructure/persistence/prisma/seed-admin.ts"
+  },
+  "overrides": {
+    "minimatch": "^10.2.1"
   }
 }
