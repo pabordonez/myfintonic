@@ -5,7 +5,6 @@ import { ClientFinancialEntity } from '@domain/factories/clientFinancialEntity'
 export class PrismaClientFinancialEntityRepository implements IClientFinancialEntityRepository {
   async create(entity: ClientFinancialEntity): Promise<ClientFinancialEntity> {
     try {
-      // Construimos el objeto data dinámicamente para evitar pasar 'undefined' en relaciones
       const data: any = {
         id: entity.id,
         clientId: entity.clientId,
@@ -43,7 +42,7 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
           throw error
         }
 
-        // 1. Verificar si existe y está ACTIVO
+        // 1. Verify if exist and ACTIVE
         const existingActive = await prisma.clientFinancialEntity.findFirst({
           where: {
             clientId,
@@ -51,9 +50,9 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
           },
         })
 
-        if (existingActive) throw error // Está activo -> Dejar que falle con 409
+        if (existingActive) throw error
 
-        // 2. Si llegamos aquí, existe pero está borrado -> RESTAURAR
+        // 2. If we reach here, it exists but is deleted -> RESTORE
         const updateData: any = {
           deletedAt: null,
         }

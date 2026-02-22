@@ -9,7 +9,7 @@ export const createClientFinancialEntityRoutes = (
 ) => {
   const clientFinancialEntityRouter = Router()
 
-  // 2. Rutas de Administrador (Globales)
+  // Globals
   clientFinancialEntityRouter.get(
     '/clients-financial-entities',
     authenticate,
@@ -17,7 +17,7 @@ export const createClientFinancialEntityRoutes = (
     (req, res, next) => controller.getAllAssociations(req, res, next)
   )
 
-  // 3. Rutas protegidas por propiedad del cliente (/clients/:clientId/...)
+  // (/clients/:clientId/...)
   clientFinancialEntityRouter.post(
     '/clients/:clientId/financial-entities',
     authenticate,

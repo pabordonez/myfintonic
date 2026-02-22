@@ -152,7 +152,7 @@ export class PrismaProductRepository implements IProductRepository {
     })
   }
 
-  // --- Mappers Privados ---
+  // --- Mappers ---
 
   private mapToPrisma(product: IFinancialProduct): any {
     // Entity Domain -> Object (Prisma)
@@ -172,7 +172,6 @@ export class PrismaProductRepository implements IProductRepository {
       id: product.id,
       name: product.name,
       type: product.type as any,
-      // Conectamos la entidad financiera basada en el ID
       financialEntity: {
         connect: { id: product.financialEntity },
       },
@@ -195,11 +194,9 @@ export class PrismaProductRepository implements IProductRepository {
   }
 
   private mapToDomain(prismaProduct: any): FinancialProduct {
-    // Mapeo de Objeto de Base de Datos (Prisma) -> Entidad de Dominio
-    // Aquí reconstruimos el objeto. Si usas clases específicas (CurrentAccount, Stocks),
-    // deberías instanciar la clase correcta según prismaProduct.type.
+    // Mapped  Object DB (Prisma) -> Entity Domain
 
-    // 1. Campos Comunes
+    // 1. Fields
     const base: any = {
       id: prismaProduct.id,
       type: prismaProduct.type,
@@ -226,7 +223,7 @@ export class PrismaProductRepository implements IProductRepository {
         })) || [],
     }
 
-    // 2. Campos Específicos según el tipo
+    // 2. Specific fields
     let specificFields = {}
 
     switch (prismaProduct.type) {
