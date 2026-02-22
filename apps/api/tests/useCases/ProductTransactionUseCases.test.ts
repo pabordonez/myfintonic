@@ -44,20 +44,23 @@ describe('ProductTransactionUseCases', () => {
         financialEntity: 'Bank',
       } as any)
 
-      await useCase.add(request)
+      await useCase.add(request, 'uuid-123')
 
-      expect(mockTransactionRepo.addTransaction).toHaveBeenCalledWith({
-        productId: 'prod-1',
-        description: 'Test',
-        date: request.date,
-        amount: 100,
-      })
+      expect(mockTransactionRepo.addTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'uuid-123',
+          productId: 'prod-1',
+          description: 'Test',
+          date: request.date,
+          amount: 100,
+        })
+      )
     })
 
     it('should throw error if product not found', async () => {
       vi.mocked(mockProductRepo.findById).mockResolvedValue(null)
       await expect(
-        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+        useCase.add({ userId: 'u1', productId: 'p1' } as any, 'uuid')
       ).rejects.toThrow('Product not found')
     })
 
@@ -71,7 +74,7 @@ describe('ProductTransactionUseCases', () => {
         financialEntity: 'Bank',
       } as any)
       await expect(
-        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+        useCase.add({ userId: 'u1', productId: 'p1' } as any, 'uuid')
       ).rejects.toThrow('Unauthorized access to product')
     })
 
@@ -90,7 +93,7 @@ describe('ProductTransactionUseCases', () => {
         financialEntity: 'Bank',
       } as any)
       await expect(
-        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+        useCase.add({ userId: 'u1', productId: 'p1' } as any, 'uuid')
       ).rejects.toThrow('Transactions are not allowed')
     })
 
@@ -105,7 +108,16 @@ describe('ProductTransactionUseCases', () => {
         financialEntity: 'Bank',
       } as any)
       await expect(
-        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+        useCase.add(
+          {
+            userId: 'u1',
+            productId: 'p1',
+            description: 'Test',
+            date: new Date(),
+            amount: 100,
+          } as any,
+          'uuid'
+        )
       ).rejects.toThrow('Transaction failed: Product is not active')
     })
   })

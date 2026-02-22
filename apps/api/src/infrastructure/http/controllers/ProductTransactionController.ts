@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { ProductTransactionUseCases } from '@application/useCases/productTransactionUseCases'
 import { AddTransactionSchema } from '@infrastructure/http/dtos/addTransactionSchema'
 import { ProductTransactionDto } from '@application/dtos/productTransactionDto'
+import { randomUUID } from 'crypto'
 
 export class ProductTransactionController {
   constructor(private readonly useCase: ProductTransactionUseCases) {}
@@ -22,7 +23,7 @@ export class ProductTransactionController {
         ...AddTransactionSchema.parse(req.body),
       }
 
-      await this.useCase.add(productTransactionDto)
+      await this.useCase.add(productTransactionDto, randomUUID())
 
       return res.status(201).json({ message: 'Transaction added successfully' })
     } catch (error: any) {

@@ -41,13 +41,16 @@ describe('ProductTransactionController', () => {
 
       await controller.addTransaction(req, mockRes, next)
 
-      expect(mockUseCase.add).toHaveBeenCalledWith({
-        userId: 'user-1',
-        productId: 'prod-1',
-        description: 'Test Transaction',
-        date: expect.any(Date),
-        amount: 100,
-      })
+      expect(mockUseCase.add).toHaveBeenCalledWith(
+        {
+          userId: 'user-1',
+          productId: 'prod-1',
+          description: 'Test Transaction',
+          date: expect.any(Date),
+          amount: 100,
+        },
+        expect.any(String)
+      )
       expect(mockRes.status).toHaveBeenCalledWith(201)
       expect(mockRes.json).toHaveBeenCalledWith({
         message: 'Transaction added successfully',

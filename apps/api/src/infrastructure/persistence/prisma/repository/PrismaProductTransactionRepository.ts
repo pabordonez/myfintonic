@@ -1,9 +1,7 @@
 import { IProductTransactionRepository } from '@domain/repository/IProductTransactionRepository'
-import {
-  IProductTransaction,
-  IProductTransactionDetail,
-} from '@domain/entities/IProductTransaction'
+import { IProductTransactionDetail } from '@domain/entities/IProductTransaction'
 import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
+import { productTransactionEntity } from '@domain/factories/productTransactionEntity'
 
 export class PrismaProductTransactionRepository implements IProductTransactionRepository {
   async findById(id: string): Promise<IProductTransactionDetail | null> {
@@ -25,9 +23,9 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
   }
 
   async addTransaction(
-    params: IProductTransaction
+    transaction: productTransactionEntity
   ): Promise<IProductTransactionDetail> {
-    const { productId, amount, date, description } = params
+    const { productId, amount, date, description } = transaction
 
     // Ejecutamos todo dentro de una transacción interactiva de Prisma
     // para asegurar consistencia ACID ( Transacción )
@@ -37,8 +35,9 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
         where: { id: productId },
       })
 
-      const transaction = await tx.productTransaction.create({
+      const createdTransaction = await tx.productTransaction.create({
         data: {
+          id: transaction.id,
           productId,
           description,
           amount,
@@ -46,7 +45,7 @@ export class PrismaProductTransactionRepository implements IProductTransactionRe
         },
       })
 
-      return this.mapToDomain(transaction)
+      return this.mapToDomain(createdTransaction)
     })
   }
 
