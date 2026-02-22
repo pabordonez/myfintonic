@@ -7,7 +7,7 @@ export class FixedTermDeposit extends FinancialProduct {
   public initialDate!: Date
   public maturityDate!: Date
   public annualInterestRate!: number
-  public interestPaymentFrequency!: InterestPaymentFrequency
+  public interestPaymentFreq!: InterestPaymentFrequency
 
   private constructor(data: any) {
     super(data)
@@ -20,8 +20,8 @@ export class FixedTermDeposit extends FinancialProduct {
       ? new Date(data.maturityDate)
       : new Date()
     this.annualInterestRate = data.annualInterestRate
-    this.interestPaymentFrequency =
-      data.interestPaymentFrequency || (data as any).interestPaymentFreq
+    this.interestPaymentFreq =
+      data.interestPaymentFreq || data.interestPaymentFrequency
   }
 
   public static create(data: any): FixedTermDeposit {
@@ -37,10 +37,8 @@ export class FixedTermDeposit extends FinancialProduct {
       throw new Error('Missing required field: annualInterestRate')
 
     const validFrequencies = ['Monthly', 'Quarterly', 'Annual', 'AtMaturity']
-    const freq =
-      data.interestPaymentFrequency || (data as any).interestPaymentFreq
-    if (!freq)
-      throw new Error('Missing required field: interestPaymentFrequency')
+    const freq = data.interestPaymentFreq || data.interestPaymentFrequency
+    if (!freq) throw new Error('Missing required field: interestPaymentFreq')
     if (!validFrequencies.includes(freq)) {
       throw new Error(
         `Validation failed: Invalid interestPaymentFrequency. Allowed values: ${validFrequencies.join(', ')}`
@@ -61,7 +59,7 @@ export class FixedTermDeposit extends FinancialProduct {
       'initialDate',
       'maturityDate',
       'annualInterestRate',
-      'interestPaymentFrequency',
+      'interestPaymentFreq',
     ]
   }
 }

@@ -132,8 +132,8 @@ describe('PrismaProductRepository', () => {
       )
     })
 
-    it('should map interestPaymentFrequency correctly', async () => {
-      await repo.update('1', { interestPaymentFrequency: 'Monthly' } as any)
+    it('should map interestPaymentFreq correctly', async () => {
+      await repo.update('1', { interestPaymentFreq: 'Monthly' } as any)
 
       expect(prisma.financialProduct.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -180,7 +180,7 @@ describe('PrismaProductRepository', () => {
         maturityDate: new Date(),
         interestPaymentFreq: 'Monthly',
       })
-      expect(res).toHaveProperty('annualInterestRate', 0.03)
+      expect(res).toHaveProperty('interestPaymentFreq', 'Monthly')
     })
 
     it('should map INVESTMENT_FUND fields', async () => {

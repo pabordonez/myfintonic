@@ -47,6 +47,7 @@ export class PrismaProductRepository implements IProductRepository {
       'numberOfShares',
       'unitPurchasePrice',
       'currentMarketPrice',
+      'interestPaymentFreq',
     ]
 
     directFields.forEach((field) => {
@@ -62,11 +63,6 @@ export class PrismaProductRepository implements IProductRepository {
         }
       }
     })
-
-    // Mapeo manual para campos con nombres diferentes (Dominio vs BD)
-    if (p.interestPaymentFrequency !== undefined) {
-      data.interestPaymentFreq = p.interestPaymentFrequency
-    }
 
     // 2. (Relaciones y JSON)
     if (p.clientId !== undefined) data.client = { connect: { id: p.clientId } }
@@ -159,8 +155,7 @@ export class PrismaProductRepository implements IProductRepository {
   // --- Mappers Privados ---
 
   private mapToPrisma(product: IFinancialProduct): any {
-    // Mapeo de la Entidad de Dominio -> Objeto de Base de Datos (Prisma)
-    // Usamos 'as any' para acceder a propiedades que pueden ser específicas de subclases
+    // Entity Domain -> Object (Prisma)
     const p = product as any
 
     if (!product.id) {
@@ -190,7 +185,7 @@ export class PrismaProductRepository implements IProductRepository {
       initialDate: p.initialDate ? new Date(p.initialDate) : null,
       annualInterestRate: p.annualInterestRate ?? null,
       maturityDate: p.maturityDate ? new Date(p.maturityDate) : null,
-      interestPaymentFreq: p.interestPaymentFrequency ?? null,
+      interestPaymentFreq: p.interestPaymentFreq ?? null,
       numberOfUnits: p.numberOfUnits ?? null,
       netAssetValue: p.netAssetValue ?? null,
       numberOfShares: p.numberOfShares ?? null,
@@ -255,7 +250,7 @@ export class PrismaProductRepository implements IProductRepository {
           initialDate: prismaProduct.initialDate,
           maturityDate: prismaProduct.maturityDate,
           annualInterestRate: prismaProduct.annualInterestRate,
-          interestPaymentFrequency: prismaProduct.interestPaymentFreq,
+          interestPaymentFreq: prismaProduct.interestPaymentFreq,
         }
         break
       case 'INVESTMENT_FUND':

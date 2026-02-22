@@ -22,7 +22,7 @@ export class CreateProductDto {
   initialDate?: Date
   maturityDate?: Date
   annualInterestRate?: number
-  interestPaymentFrequency?: InterestPaymentFrequency
+  interestPaymentFreq?: InterestPaymentFrequency
   numberOfUnits?: number
   netAssetValue?: number
   numberOfShares?: number
@@ -45,7 +45,7 @@ export class UpdateProductDto {
   initialDate?: Date
   maturityDate?: Date
   annualInterestRate?: number
-  interestPaymentFrequency?: InterestPaymentFrequency
+  interestPaymentFreq?: InterestPaymentFrequency
   numberOfUnits?: number
   netAssetValue?: number
   numberOfShares?: number

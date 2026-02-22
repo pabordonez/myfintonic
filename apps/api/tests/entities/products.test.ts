@@ -579,14 +579,14 @@ describe('Financial Products API', () => {
         initialDate: new Date().toISOString(),
         maturityDate: new Date().toISOString(),
         annualInterestRate: 0.05,
-        interestPaymentFrequency: 'Annual',
+        interestPaymentFreq: 'Annual',
       })
 
       const getRes = await request(app)
         .get(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
       expect(getRes.body).toHaveProperty('annualInterestRate')
-      expect(getRes.body).toHaveProperty('interestPaymentFrequency')
+      expect(getRes.body).toHaveProperty('interestPaymentFreq')
 
       // Actualizar currentBalance (Ahora permitido para seguimiento de valoración)
       const updateRes = await request(app)
@@ -599,7 +599,7 @@ describe('Financial Products API', () => {
       const updateResEnum = await request(app)
         .put(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
-        .send({ interestPaymentFrequency: 'END' })
+        .send({ interestPaymentFreq: 'END' })
       expect(updateResEnum.status).toBe(400)
       expect(updateResEnum.body.error).toContain('Validation failed')
     })
@@ -615,7 +615,7 @@ describe('Financial Products API', () => {
         initialDate: new Date().toISOString(),
         maturityDate: new Date().toISOString(),
         annualInterestRate: 0.05,
-        interestPaymentFrequency: 'END',
+        interestPaymentFreq: 'END',
       }
       const response = await request(app)
         .post('/products')

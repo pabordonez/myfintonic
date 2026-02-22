@@ -86,7 +86,7 @@ describe('Financial Products Domain Models', () => {
         })
       ).toThrow('Missing required field: annualInterestRate')
     })
-    it('should throw if interestPaymentFrequency is missing', () => {
+    it('should throw if interestPaymentFreq is missing', () => {
       expect(() =>
         FixedTermDeposit.create({
           type: 'FIXED_TERM_DEPOSIT',
@@ -95,9 +95,9 @@ describe('Financial Products Domain Models', () => {
           maturityDate: new Date(),
           annualInterestRate: 0.05,
         })
-      ).toThrow('Missing required field: interestPaymentFrequency')
+      ).toThrow('Missing required field: interestPaymentFreq')
     })
-    it('should throw if interestPaymentFrequency is invalid', () => {
+    it('should throw if interestPaymentFreq is invalid', () => {
       expect(() =>
         FixedTermDeposit.create({
           type: 'FIXED_TERM_DEPOSIT',
@@ -105,7 +105,7 @@ describe('Financial Products Domain Models', () => {
           initialDate: new Date(),
           maturityDate: new Date(),
           annualInterestRate: 0.05,
-          interestPaymentFrequency: 'INVALID',
+          interestPaymentFreq: 'INVALID',
         })
       ).toThrow('Validation failed: Invalid interestPaymentFrequency')
     })
@@ -116,18 +116,18 @@ describe('Financial Products Domain Models', () => {
         initialDate: new Date(),
         maturityDate: new Date(),
         annualInterestRate: 0.05,
-        interestPaymentFrequency: 'Monthly',
+        interestPaymentFreq: 'Monthly',
       })
       expect(deposit).toBeInstanceOf(FixedTermDeposit)
     })
-    it('should accept interestPaymentFreq (legacy field)', () => {
+    it('should accept interestPaymentFrequency (legacy field support)', () => {
       const deposit = FixedTermDeposit.create({
         type: 'FIXED_TERM_DEPOSIT',
         initialBalance: 100,
         initialDate: new Date(),
         maturityDate: new Date(),
         annualInterestRate: 0.05,
-        interestPaymentFreq: 'Monthly',
+        interestPaymentFrequency: 'Monthly',
       })
       expect(deposit).toBeInstanceOf(FixedTermDeposit)
     })
