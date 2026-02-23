@@ -2,21 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PrismaProductRepository } from '../../src/infrastructure/persistence/prisma/repository/PrismaProductRepository'
 import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
 
-vi.mock(
-  '../../src/infrastructure/persistence/prisma/repository/prismaClient',
-  () => ({
-    default: {
-      financialProduct: {
-        create: vi.fn(),
-        update: vi.fn(),
-        findFirst: vi.fn(),
-        findMany: vi.fn(),
-        delete: vi.fn(),
-        findUnique: vi.fn(),
-      },
+vi.mock('@infrastructure/persistence/prisma/repository/prismaClient', () => ({
+  default: {
+    financialProduct: {
+      create: vi.fn(),
+      update: vi.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      delete: vi.fn(),
+      findUnique: vi.fn(),
     },
-  })
-)
+  },
+}))
 
 const repo = new PrismaProductRepository()
 

@@ -168,7 +168,7 @@ describe('Middlewares', () => {
   describe('productOwnershipMiddleware', () => {
     // Mock prisma directly as the middleware imports it
     vi.mock(
-      '../src/infrastructure/persistence/prisma/repository/prismaClient',
+      '@infrastructure/persistence/prisma/repository/prismaClient',
       () => ({
         default: {
           financialProduct: {

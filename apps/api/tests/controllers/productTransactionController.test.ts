@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ProductTransactionController } from '../../src/infrastructure/http/controllers/ProductTransactionController'
+import { ProductTransactionController } from '../../src/infrastructure/http/controllers/productTransactionController'
 import { ProductTransactionUseCases } from '../../src/application/useCases/productTransactionUseCases'
 import { Request, Response, NextFunction } from 'express'
 

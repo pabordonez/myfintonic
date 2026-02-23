@@ -1,5 +1,4 @@
 import { ProductStatus, ProductType } from '@domain/types'
-import { ITransactionPolicy } from '@domain/strategies/transactionPolicy'
 import { ValueHistory } from '@domain/models/valueHistory'
 
 export interface IFinancialProduct {
@@ -44,8 +43,16 @@ export abstract class FinancialProduct implements IFinancialProduct {
     return this.clientId === userId
   }
 
-  public validateTransaction(policy: ITransactionPolicy): void {
-    policy.validate(this)
+  public validateTransaction(): void {
+    if (this.type === 'SAVINGS_ACCOUNT') {
+      if (this.status !== 'ACTIVE') {
+        throw new Error('Transaction failed: Product is not active')
+      }
+      return
+    }
+    throw new Error(
+      `Transactions are not allowed for product type: ${this.type}`
+    )
   }
 
   public abstract getAllowedUpdateFields(): string[]

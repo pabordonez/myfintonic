@@ -8,153 +8,148 @@ import { env } from '../../src/infrastructure/config/env'
 const { mockDb } = vi.hoisted(() => ({ mockDb: [] as any[] }))
 
 // 2. Mock Prisma client (Infrastructure)
-vi.mock(
-  '../../src/infrastructure/persistence/prisma/repository/prismaClient',
-  async (importOriginal) => {
-    const actual = await importOriginal()
-    return {
-      ...(actual as any),
-      default: {
-        financialProduct: {
-          create: vi.fn().mockImplementation(async ({ data }) => {
-            const newEntry = {
-              id: 'mock-product-id', // Ensure ID exists
-              ...data,
-              // Simulate automatic DB fields
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              valueHistory: [],
-              transactions: [],
+vi.mock('@infrastructure/persistence/prisma/repository/prismaClient', () => {
+  return {
+    default: {
+      financialProduct: {
+        create: vi.fn().mockImplementation(async ({ data }) => {
+          const newEntry = {
+            id: 'mock-product-id', // Ensure ID exists
+            ...data,
+            // Simulate automatic DB fields
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            valueHistory: [],
+            transactions: [],
+          }
+          // Simulate Prisma 'connect' for relations
+          if (data.client?.connect?.id) {
+            newEntry.clientId = data.client.connect.id
+            delete newEntry.client
+          }
+          // Simulate Prisma 'connectOrCreate' for financialEntity relation
+          if (data.financialEntity?.connectOrCreate?.create) {
+            // We store the created entity object so mapToDomain can read .name from it
+            newEntry.financialEntity = {
+              id: 'mock-fe-id',
+              ...data.financialEntity.connectOrCreate.create,
             }
-            // Simulate Prisma 'connect' for relations
-            if (data.client?.connect?.id) {
-              newEntry.clientId = data.client.connect.id
-              delete newEntry.client
-            }
-            // Simulate Prisma 'connectOrCreate' for financialEntity relation
-            if (data.financialEntity?.connectOrCreate?.create) {
-              // We store the created entity object so mapToDomain can read .name from it
-              newEntry.financialEntity = {
-                id: 'mock-fe-id',
-                ...data.financialEntity.connectOrCreate.create,
-              }
-            }
-            // Simulate Prisma 'connect' for financialEntity relation
-            if (data.financialEntity?.connect) {
-              const connectedId = data.financialEntity.connect.id
-              if (connectedId === 'non-existent-id') {
-                const error: any = new Error('Record not found')
-                error.code = 'P2025'
-                throw error
-              }
-
-              // Resolve name based on simulated ID
-              let entityName = 'Banco de Pruebas'
-              if (connectedId === 'global-bank-id') entityName = 'Global Bank'
-
-              newEntry.financialEntityId = connectedId || 'mock-fe-id'
-              newEntry.financialEntity = {
-                id: newEntry.financialEntityId,
-                name: entityName,
-              }
-            }
-            mockDb.push(newEntry)
-            return newEntry
-          }),
-          findMany: vi.fn().mockImplementation(async ({ where }) => {
-            let results = [...mockDb]
-            // Basic implementation of Prisma filters
-            if (where) {
-              if (where.status)
-                results = results.filter((p) => p.status === where.status)
-              if (where.type)
-                results = results.filter((p) => p.type === where.type)
-              // Updated filter logic for relation object
-              if (where.financialEntity?.name) {
-                results = results.filter(
-                  (p) => p.financialEntity?.name === where.financialEntity.name
-                )
-              }
-            }
-            return results
-          }),
-          findFirst: vi.fn().mockImplementation(async ({ where }) => {
-            return mockDb.find((p) => p.id === where.id) || null
-          }),
-          findUnique: vi.fn().mockImplementation(async ({ where }) => {
-            return mockDb.find((p) => p.id === where.id) || null
-          }),
-          update: vi.fn().mockImplementation(async ({ where, data }) => {
-            const index = mockDb.findIndex((p) => p.id === where.id)
-            if (index === -1) throw new Error('Record not found')
-
-            const current = mockDb[index]
-
-            // Handle valueHistory nested write (simulation)
-            const { valueHistory, ...restData } = data
-
-            if (valueHistory?.create) {
-              if (!current.valueHistory) current.valueHistory = []
-              current.valueHistory.push({
-                ...valueHistory.create,
-                date: valueHistory.create.date || new Date(),
-              })
+          }
+          // Simulate Prisma 'connect' for financialEntity relation
+          if (data.financialEntity?.connect) {
+            const connectedId = data.financialEntity.connect.id
+            if (connectedId === 'non-existent-id') {
+              const error: any = new Error('Record not found')
+              error.code = 'P2025'
+              throw error
             }
 
-            const updated = { ...current, ...restData }
+            // Resolve name based on simulated ID
+            let entityName = 'Banco de Pruebas'
+            if (connectedId === 'global-bank-id') entityName = 'Global Bank'
 
-            // Handle relation in update
-            if (data.client?.connect?.id) {
-              updated.clientId = data.client.connect.id
-              delete updated.client
+            newEntry.financialEntityId = connectedId || 'mock-fe-id'
+            newEntry.financialEntity = {
+              id: newEntry.financialEntityId,
+              name: entityName,
+            }
+          }
+          mockDb.push(newEntry)
+          return newEntry
+        }),
+        findMany: vi.fn().mockImplementation(async ({ where }) => {
+          let results = [...mockDb]
+          // Basic implementation of Prisma filters
+          if (where) {
+            if (where.status)
+              results = results.filter((p) => p.status === where.status)
+            if (where.type)
+              results = results.filter((p) => p.type === where.type)
+            // Updated filter logic for relation object
+            if (where.financialEntity?.name) {
+              results = results.filter(
+                (p) => p.financialEntity?.name === where.financialEntity.name
+              )
+            }
+          }
+          return results
+        }),
+        findFirst: vi.fn().mockImplementation(async ({ where }) => {
+          return mockDb.find((p) => p.id === where.id) || null
+        }),
+        findUnique: vi.fn().mockImplementation(async ({ where }) => {
+          return mockDb.find((p) => p.id === where.id) || null
+        }),
+        update: vi.fn().mockImplementation(async ({ where, data }) => {
+          const index = mockDb.findIndex((p) => p.id === where.id)
+          if (index === -1) throw new Error('Record not found')
+
+          const current = mockDb[index]
+
+          // Handle valueHistory nested write (simulation)
+          const { valueHistory, ...restData } = data
+
+          if (valueHistory?.create) {
+            if (!current.valueHistory) current.valueHistory = []
+            current.valueHistory.push({
+              ...valueHistory.create,
+              date: valueHistory.create.date || new Date(),
+            })
+          }
+
+          const updated = { ...current, ...restData }
+
+          // Handle relation in update
+          if (data.client?.connect?.id) {
+            updated.clientId = data.client.connect.id
+            delete updated.client
+          }
+
+          // Handle financialEntity relation in update
+          if (data.financialEntity?.connect) {
+            const connectedId = data.financialEntity.connect.id
+            if (connectedId === 'non-existent-id') {
+              const error: any = new Error('Record not found')
+              error.code = 'P2025'
+              throw error
             }
 
-            // Handle financialEntity relation in update
-            if (data.financialEntity?.connect) {
-              const connectedId = data.financialEntity.connect.id
-              if (connectedId === 'non-existent-id') {
-                const error: any = new Error('Record not found')
-                error.code = 'P2025'
-                throw error
-              }
+            let entityName = 'Banco de Pruebas'
+            if (connectedId === 'global-bank-id') entityName = 'Global Bank'
 
-              let entityName = 'Banco de Pruebas'
-              if (connectedId === 'global-bank-id') entityName = 'Global Bank'
-
-              updated.financialEntity = {
-                id: connectedId,
-                name: entityName,
-              }
+            updated.financialEntity = {
+              id: connectedId,
+              name: entityName,
             }
+          }
 
-            mockDb[index] = updated
-            return updated
-          }),
-          delete: vi.fn().mockImplementation(async ({ where }) => {
-            const index = mockDb.findIndex((p) => p.id === where.id)
-            if (index === -1) throw new Error('Record not found')
-            const deleted = mockDb.splice(index, 1)
-            return deleted[0]
-          }),
-        },
-        // Auxiliary mocks to avoid errors if cleanup methods are called
-        productTransaction: { deleteMany: vi.fn() },
-        valueHistory: { deleteMany: vi.fn() },
-        client: { deleteMany: vi.fn(), create: vi.fn() },
-        financialEntity: {
-          findUnique: vi.fn().mockResolvedValue(null),
-          findFirst: vi.fn().mockResolvedValue(null),
-          create: vi
-            .fn()
-            .mockImplementation(({ data }) =>
-              Promise.resolve({ id: 'mock-fe-id', ...data })
-            ),
-        },
-        $disconnect: vi.fn(),
+          mockDb[index] = updated
+          return updated
+        }),
+        delete: vi.fn().mockImplementation(async ({ where }) => {
+          const index = mockDb.findIndex((p) => p.id === where.id)
+          if (index === -1) throw new Error('Record not found')
+          const deleted = mockDb.splice(index, 1)
+          return deleted[0]
+        }),
       },
-    }
+      // Auxiliary mocks to avoid errors if cleanup methods are called
+      productTransaction: { deleteMany: vi.fn() },
+      valueHistory: { deleteMany: vi.fn() },
+      client: { deleteMany: vi.fn(), create: vi.fn() },
+      financialEntity: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi
+          .fn()
+          .mockImplementation(({ data }) =>
+            Promise.resolve({ id: 'mock-fe-id', ...data })
+          ),
+      },
+      $disconnect: vi.fn(),
+    },
   }
-)
+})
 
 describe('Financial Products API', () => {
   // Base test data

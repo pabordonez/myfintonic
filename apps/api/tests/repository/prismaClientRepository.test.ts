@@ -4,19 +4,16 @@ import prisma from '../../src/infrastructure/persistence/prisma/repository/prism
 import { Client } from '../../src/domain/models/client'
 
 // Mock prisma
-vi.mock(
-  '../../src/infrastructure/persistence/prisma/repository/prismaClient',
-  () => ({
-    default: {
-      client: {
-        create: vi.fn(),
-        findMany: vi.fn(),
-        findUnique: vi.fn(),
-        update: vi.fn(),
-      },
+vi.mock('@infrastructure/persistence/prisma/repository/prismaClient', () => ({
+  default: {
+    client: {
+      create: vi.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
     },
-  })
-)
+  },
+}))
 
 const repository = new PrismaClientRepository()
 

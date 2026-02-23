@@ -7,4 +7,19 @@ describe('FinancialProductFactory', () => {
       FinancialProductFactory.fromPrimitives({ type: 'UNKNOWN' } as any)
     ).toThrow('Unknown product type: UNKNOWN')
   })
+
+  it('should create product with valueHistory', () => {
+    const product = FinancialProductFactory.create(
+      {
+        type: 'CURRENT_ACCOUNT',
+        name: 'P',
+        financialEntity: 'F',
+        status: 'ACTIVE',
+        currentBalance: 100,
+        valueHistory: [{ date: new Date(), value: 100 }],
+      } as any,
+      'uuid'
+    )
+    expect(product.valueHistory).toHaveLength(1)
+  })
 })

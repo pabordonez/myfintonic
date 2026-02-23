@@ -34,7 +34,7 @@ describe('ProductTransactionUseCases', () => {
         amount: 100,
       }
 
-      vi.mocked(mockProductRepo.findById).mockResolvedValue({
+      const mockProduct = {
         id: 'prod-1',
         clientId: 'user-1',
         type: 'CURRENT_ACCOUNT',
@@ -42,7 +42,9 @@ describe('ProductTransactionUseCases', () => {
         currentBalance: 1000,
         name: 'Test Account',
         financialEntity: 'Bank',
-      } as any)
+        validateTransaction: vi.fn(),
+      }
+      vi.mocked(mockProductRepo.findById).mockResolvedValue(mockProduct as any)
 
       await useCase.add(request, 'uuid-123')
 
@@ -55,6 +57,7 @@ describe('ProductTransactionUseCases', () => {
           amount: 100,
         })
       )
+      expect(mockProduct.validateTransaction).toHaveBeenCalled()
     })
 
     it('should throw error if product not found', async () => {
@@ -79,26 +82,28 @@ describe('ProductTransactionUseCases', () => {
     })
 
     it('should throw error if product type is invalid', async () => {
-      vi.mocked(mockProductRepo.findById).mockResolvedValue({
+      const mockProduct = {
         id: 'p1',
         clientId: 'u1',
         type: 'STOCKS',
-        numberOfShares: 10,
-        unitPurchasePrice: 100,
-        currentMarketPrice: 120,
-        initialBalance: 1000,
-        currentBalance: 1200,
         name: 'Tesla',
         status: 'ACTIVE',
         financialEntity: 'Bank',
-      } as any)
+        validateTransaction: vi.fn().mockImplementation(() => {
+          throw new Error(
+            'Transactions are not allowed for product type: STOCKS'
+          )
+        }),
+      }
+      vi.mocked(mockProductRepo.findById).mockResolvedValue(mockProduct as any)
+
       await expect(
         useCase.add({ userId: 'u1', productId: 'p1' } as any, 'uuid')
       ).rejects.toThrow('Transactions are not allowed')
     })
 
     it('should throw error if product is not active', async () => {
-      vi.mocked(mockProductRepo.findById).mockResolvedValue({
+      const mockProduct = {
         id: 'p1',
         clientId: 'u1',
         type: 'CURRENT_ACCOUNT',
@@ -106,7 +111,12 @@ describe('ProductTransactionUseCases', () => {
         currentBalance: 1000,
         name: 'Test Account',
         financialEntity: 'Bank',
-      } as any)
+        validateTransaction: vi.fn().mockImplementation(() => {
+          throw new Error('Transaction failed: Product is not active')
+        }),
+      }
+      vi.mocked(mockProductRepo.findById).mockResolvedValue(mockProduct as any)
+
       await expect(
         useCase.add(
           {

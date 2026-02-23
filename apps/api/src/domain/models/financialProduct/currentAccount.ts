@@ -24,4 +24,10 @@ export class CurrentAccount extends FinancialProduct {
   getAllowedUpdateFields(): string[] {
     return [...this.getCommonUpdateFields(), 'currentBalance', 'transactions']
   }
+
+  public validateTransaction(): void {
+    if (this.status !== 'ACTIVE') {
+      throw new Error('Transaction failed: Product is not active')
+    }
+  }
 }

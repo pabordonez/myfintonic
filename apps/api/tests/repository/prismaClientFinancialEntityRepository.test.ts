@@ -3,21 +3,18 @@ import { PrismaClientFinancialEntityRepository } from '../../src/infrastructure/
 import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
 import { ClientFinancialEntity } from '../../src/domain/models/clientFinancialEntity'
 
-vi.mock(
-  '../../src/infrastructure/persistence/prisma/repository/prismaClient',
-  () => ({
-    default: {
-      clientFinancialEntity: {
-        create: vi.fn(),
-        findFirst: vi.fn(),
-        update: vi.fn(),
-        findUnique: vi.fn(),
-        findMany: vi.fn(),
-        delete: vi.fn(),
-      },
+vi.mock('@infrastructure/persistence/prisma/repository/prismaClient', () => ({
+  default: {
+    clientFinancialEntity: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      delete: vi.fn(),
     },
-  })
-)
+  },
+}))
 
 const repo = new PrismaClientFinancialEntityRepository()
 

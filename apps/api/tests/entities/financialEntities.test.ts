@@ -12,10 +12,8 @@ const { mockCatalog } = vi.hoisted(() => ({
 // 2. Mock Prisma client (Infrastructure)
 vi.mock(
   '../../src/infrastructure/persistence/prisma/repository/prismaClient',
-  async (importOriginal) => {
-    const actual = await importOriginal()
+  () => {
     return {
-      ...(actual as any),
       default: {
         financialEntity: {
           create: vi.fn().mockImplementation(async ({ data }) => {

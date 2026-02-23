@@ -3,26 +3,23 @@ import { PrismaProductTransactionRepository } from '../../src/infrastructure/per
 import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
 
 // Mock Prisma client
-vi.mock(
-  '../../src/infrastructure/persistence/prisma/repository/prismaClient',
-  () => ({
-    default: {
-      productTransaction: {
-        findUnique: vi.fn(),
-        findMany: vi.fn(),
-        create: vi.fn(),
-      },
-      financialProduct: {
-        findUniqueOrThrow: vi.fn(),
-        update: vi.fn(),
-      },
-      valueHistory: {
-        create: vi.fn(),
-      },
-      $transaction: vi.fn(),
+vi.mock('@infrastructure/persistence/prisma/repository/prismaClient', () => ({
+  default: {
+    productTransaction: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
     },
-  })
-)
+    financialProduct: {
+      findUniqueOrThrow: vi.fn(),
+      update: vi.fn(),
+    },
+    valueHistory: {
+      create: vi.fn(),
+    },
+    $transaction: vi.fn(),
+  },
+}))
 
 describe('PrismaProductTransactionRepository', () => {
   let repo: PrismaProductTransactionRepository

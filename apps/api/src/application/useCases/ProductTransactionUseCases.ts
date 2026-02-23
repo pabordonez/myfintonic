@@ -1,6 +1,5 @@
 import { IProductTransactionRepository } from '@domain/repository/IProductTransactionRepository'
 import { IProductRepository } from '@domain/repository/IProductRepository'
-import { ProductType } from '@domain/types'
 import { ProductTransactionDto } from '@application/dtos/productTransactionDto'
 import {
   IProductTransactionDetail,
@@ -30,16 +29,8 @@ export class ProductTransactionUseCases {
       throw new Error('Unauthorized access to product')
     }
 
-    if (product.status !== 'ACTIVE') {
-      throw new Error('Transaction failed: Product is not active')
-    }
-
-    const allowedTypes: ProductType[] = ['CURRENT_ACCOUNT', 'SAVINGS_ACCOUNT']
-    if (!allowedTypes.includes(product.type)) {
-      throw new Error(
-        `Transactions are not allowed for product type: ${product.type}`
-      )
-    }
+    // Delegamos la validación a la entidad rica (Polimorfismo)
+    product.validateTransaction()
 
     const transaction = ProductTransaction.create(
       {
