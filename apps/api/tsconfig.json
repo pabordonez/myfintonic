@@ -12,8 +12,7 @@
     "paths": {
       "@domain/*": ["domain/*"],
       "@application/*": ["application/*"],
-      "@infrastructure/*": ["infrastructure/*"],
-      "@config/*": ["config/*"]
+      "@infrastructure/*": ["infrastructure/*"]
     },
     "noImplicitAny": false,
     "types": ["node"]

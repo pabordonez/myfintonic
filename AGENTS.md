@@ -29,7 +29,6 @@ Las dependencias **solo** pueden apuntar hacia adentro:
   - `@domain/*`
   - `@application/*`
   - `@infrastructure/*`
-  - `@config/*`
 - **Interfaces**: Preferir `interface` sobre `type` para definiciones de entidades.
 
 ### Validación

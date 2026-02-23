@@ -11,10 +11,9 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
-      // Añade el archivo de cliente de prisma a las exclusiones
       exclude: [
         'src/infrastructure/persistence/prisma/repository/prismaClient.ts',
-        'src/infrastructure/persistence/prisma/seed.ts', // Si tienes seeds
+        'src/infrastructure/persistence/prisma/seed.ts', 
         '**/*.d.ts',
         '**/node_modules/**',
         '**/dist/**',
@@ -25,8 +24,7 @@ export default defineConfig({
     alias: {
       '@domain': path.resolve(__dirname, './src/domain'),
       '@application': path.resolve(__dirname, './src/application'),
-      '@infrastructure': path.resolve(__dirname, './src/infrastructure'),
-      '@config': path.resolve(__dirname, './src/config'),
+      '@infrastructure': path.resolve(__dirname, './src/infrastructure')
     },
   },
 })
