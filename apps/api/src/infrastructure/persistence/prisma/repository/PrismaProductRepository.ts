@@ -7,6 +7,22 @@ import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 import { FinancialProductFactory } from '@domain/factories/financialProductFactory'
 import { ValueHistory } from '@domain/models/valueHistory'
 
+// Definimos una interfaz extendida para manejar los campos específicos de todos los subtipos
+// dentro del repositorio, ya que Partial<IFinancialProduct> solo ve los campos base.
+interface ExtendedProductInput extends Partial<IFinancialProduct> {
+  currentBalance?: number
+  monthlyInterestRate?: number
+  annualInterestRate?: number
+  initialDate?: Date | string
+  maturityDate?: Date | string
+  numberOfUnits?: number
+  netAssetValue?: number
+  numberOfShares?: number
+  unitPurchasePrice?: number
+  currentMarketPrice?: number
+  interestPaymentFreq?: string
+}
+
 export class PrismaProductRepository implements IProductRepository {
   async create(product: FinancialProduct): Promise<FinancialProduct> {
     const data = this.mapToPrisma(product)
@@ -32,65 +48,29 @@ export class PrismaProductRepository implements IProductRepository {
   }
 
   async update(id: string, product: Partial<IFinancialProduct>): Promise<void> {
-    const p = product as any
-    const data: any = {}
+    const p = product as ExtendedProductInput
+    const data = this.mapToPrismaUpdate(p)
 
-    // 1. Campos directos (1:1)
-    const directFields = [
-      'name',
-      'type',
-      'status',
-      'currentBalance',
-      'monthlyInterestRate',
-      'annualInterestRate',
-      'initialDate',
-      'maturityDate',
-      'numberOfUnits',
-      'netAssetValue',
-      'numberOfShares',
-      'unitPurchasePrice',
-      'currentMarketPrice',
-      'interestPaymentFreq',
-    ]
-
-    directFields.forEach((field) => {
-      if (p[field] !== undefined) {
-        if (
-          (field === 'initialDate' || field === 'maturityDate') &&
-          typeof p[field] === 'string'
-        ) {
-          const date = new Date(p[field])
-          if (!isNaN(date.getTime())) data[field] = date
-        } else {
-          data[field] = p[field]
-        }
-      }
-    })
-
-    // 2. (Relaciones y JSON)
-    if (p.clientId !== undefined) data.client = { connect: { id: p.clientId } }
-
-    // History (Account, Fixed)
+    // 2. Lógica de Historial (Business Rule en Infra - Deuda técnica aceptada por ahora)
+    // Idealmente esto debería venir resuelto desde el Dominio, no calculado aquí.
     const newValue = p.currentBalance
     if (newValue !== undefined && newValue !== null) {
       const currentProduct = await prisma.financialProduct.findUnique({
         where: { id },
+        select: { currentBalance: true },
       })
       const previousValue = currentProduct?.currentBalance
+        ? Number(currentProduct.currentBalance)
+        : null
 
-      data.valueHistory = {
-        create: {
-          date: new Date(),
-          value: newValue,
-          previousValue: previousValue ?? null,
-        },
-      }
-    }
-
-    // Manejo de la relación con FinancialEntity en update
-    if (p.financialEntity !== undefined) {
-      data.financialEntity = {
-        connect: { id: p.financialEntity },
+      if (previousValue !== newValue) {
+        data.valueHistory = {
+          create: {
+            date: new Date(),
+            value: newValue,
+            previousValue: previousValue ?? null,
+          },
+        }
       }
     }
 
@@ -102,7 +82,7 @@ export class PrismaProductRepository implements IProductRepository {
     } catch (error: any) {
       if (error.code === 'P2025') {
         throw new Error(
-          `Financial Entity with ID '${p.financialEntity}' not found`
+          `Financial Entity with ID '${product.financialEntity}' not found`
         )
       }
       throw error
@@ -156,6 +136,54 @@ export class PrismaProductRepository implements IProductRepository {
   }
 
   // --- Mappers ---
+
+  private mapToPrismaUpdate(product: ExtendedProductInput): any {
+    const data: any = {}
+
+    // Mapeo explícito campo a campo.
+    // Si añades un campo al dominio, TypeScript no se quejará aquí (porque es Partial)
+    if (product.name !== undefined) data.name = product.name
+    if (product.type !== undefined) data.type = product.type
+    if (product.status !== undefined) data.status = product.status
+    if (product.currentBalance !== undefined)
+      data.currentBalance = product.currentBalance
+    if (product.monthlyInterestRate !== undefined)
+      data.monthlyInterestRate = product.monthlyInterestRate
+    if (product.annualInterestRate !== undefined)
+      data.annualInterestRate = product.annualInterestRate
+    if (product.initialDate !== undefined) {
+      data.initialDate =
+        typeof product.initialDate === 'string'
+          ? new Date(product.initialDate)
+          : product.initialDate
+    }
+    if (product.maturityDate !== undefined) {
+      data.maturityDate =
+        typeof product.maturityDate === 'string'
+          ? new Date(product.maturityDate)
+          : product.maturityDate
+    }
+    if (product.numberOfUnits !== undefined)
+      data.numberOfUnits = product.numberOfUnits
+    if (product.netAssetValue !== undefined)
+      data.netAssetValue = product.netAssetValue
+    if (product.numberOfShares !== undefined)
+      data.numberOfShares = product.numberOfShares
+    if (product.unitPurchasePrice !== undefined)
+      data.unitPurchasePrice = product.unitPurchasePrice
+    if (product.currentMarketPrice !== undefined)
+      data.currentMarketPrice = product.currentMarketPrice
+    if (product.interestPaymentFreq !== undefined)
+      data.interestPaymentFreq = product.interestPaymentFreq
+
+    if (product.clientId !== undefined) {
+      data.client = { connect: { id: product.clientId } }
+    }
+    if (product.financialEntity !== undefined) {
+      data.financialEntity = { connect: { id: product.financialEntity } }
+    }
+    return data
+  }
 
   private mapToPrisma(product: IFinancialProduct): any {
     // Entity Domain -> Object (Prisma)
