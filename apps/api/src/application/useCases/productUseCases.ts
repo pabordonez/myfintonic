@@ -54,9 +54,23 @@ export class ProductUseCases {
         ? existingProduct
         : FinancialProductFactory.fromPrimitives(existingProduct)
 
-    const updatedProduct = productEntity.update(productData)
+    const currentBalance = (existingProduct as any).currentBalance
 
-    await this.productRepository.update(id, updatedProduct)
+    productEntity.update(productData)
+
+    const updatePayload: any = { ...productData }
+
+    const newBalance = productData.currentBalance
+
+    if (newBalance !== undefined && newBalance !== currentBalance) {
+      updatePayload.valueHistoryEntry = {
+        date: new Date(),
+        value: newBalance,
+        previousValue: currentBalance ?? null,
+      }
+    }
+
+    await this.productRepository.update(id, updatePayload)
   }
 
   async deleteProduct(id: string): Promise<void> {

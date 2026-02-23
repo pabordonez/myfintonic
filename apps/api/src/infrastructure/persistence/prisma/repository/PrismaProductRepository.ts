@@ -37,29 +37,6 @@ export class PrismaProductRepository implements IProductRepository {
     const p = product as PrismaProductUpdateInput
     const data = PrismaProductMapper.toPrismaUpdate(p)
 
-    // 2. Lógica de Historial (Business Rule en Infra - Deuda técnica aceptada por ahora)
-    // Idealmente esto debería venir resuelto desde el Dominio, no calculado aquí.
-    const newValue = p.currentBalance
-    if (newValue !== undefined && newValue !== null) {
-      const currentProduct = await prisma.financialProduct.findUnique({
-        where: { id },
-        select: { currentBalance: true },
-      })
-      const previousValue = currentProduct?.currentBalance
-        ? Number(currentProduct.currentBalance)
-        : null
-
-      if (previousValue !== newValue) {
-        data.valueHistory = {
-          create: {
-            date: new Date(),
-            value: newValue,
-            previousValue: previousValue ?? null,
-          },
-        }
-      }
-    }
-
     try {
       await prisma.financialProduct.update({
         where: { id },

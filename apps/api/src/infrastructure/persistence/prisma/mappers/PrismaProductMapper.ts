@@ -17,6 +17,12 @@ export interface PrismaProductUpdateInput extends Partial<IFinancialProduct> {
   unitPurchasePrice?: number
   currentMarketPrice?: number
   interestPaymentFreq?: string
+  // Campo auxiliar para indicar explícitamente que se debe crear un historial
+  valueHistoryEntry?: {
+    date: Date
+    value: number
+    previousValue: number | null
+  }
 }
 
 export class PrismaProductMapper {
@@ -62,6 +68,16 @@ export class PrismaProductMapper {
     }
     if (product.financialEntity !== undefined) {
       data.financialEntity = { connect: { id: product.financialEntity } }
+    }
+
+    if (product.valueHistoryEntry) {
+      data.valueHistory = {
+        create: {
+          date: product.valueHistoryEntry.date,
+          value: product.valueHistoryEntry.value,
+          previousValue: product.valueHistoryEntry.previousValue,
+        },
+      }
     }
     return data
   }

@@ -82,11 +82,15 @@ describe('PrismaProductRepository', () => {
     })
 
     it('should create valueHistory if currentBalance changes', async () => {
-      vi.mocked(prisma.financialProduct.findUnique).mockResolvedValue({
-        currentBalance: 100,
-      } as any)
       vi.mocked(prisma.financialProduct.update).mockResolvedValue({} as any)
-      await repo.update('1', { currentBalance: 200 })
+      await repo.update('1', {
+        currentBalance: 200,
+        valueHistoryEntry: {
+          date: new Date('2023-01-01'),
+          value: 200,
+          previousValue: 100,
+        },
+      } as any)
 
       expect(prisma.financialProduct.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -95,6 +99,7 @@ describe('PrismaProductRepository', () => {
               create: expect.objectContaining({
                 value: 200,
                 previousValue: 100,
+                date: new Date('2023-01-01'),
               }),
             },
           }),
@@ -103,15 +108,16 @@ describe('PrismaProductRepository', () => {
     })
 
     it('should create valueHistory when updating currentBalance for FIXED_TERM_DEPOSIT', async () => {
-      vi.mocked(prisma.financialProduct.findUnique).mockResolvedValue({
-        id: '1',
-        type: 'FIXED_TERM_DEPOSIT',
-        currentBalance: 1000,
-        initialBalance: 1000,
-      } as any)
       vi.mocked(prisma.financialProduct.update).mockResolvedValue({} as any)
 
-      await repo.update('1', { currentBalance: 1050 })
+      await repo.update('1', {
+        currentBalance: 1050,
+        valueHistoryEntry: {
+          date: new Date(),
+          value: 1050,
+          previousValue: 1000,
+        },
+      } as any)
 
       expect(prisma.financialProduct.update).toHaveBeenCalledWith(
         expect.objectContaining({

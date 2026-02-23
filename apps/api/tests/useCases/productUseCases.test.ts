@@ -61,10 +61,7 @@ describe('ProductUseCases', () => {
         .mockReturnValue(mockProduct as any)
 
       await useCases.updateProduct('1', {})
-      expect(mockRepo.update).toHaveBeenCalledWith(
-        '1',
-        expect.objectContaining({ type: 'T' })
-      )
+      expect(mockRepo.update).toHaveBeenCalledWith('1', {})
       fromPrimitivesSpy.mockRestore()
     })
 
@@ -88,9 +85,17 @@ describe('ProductUseCases', () => {
       expect(existingProduct.update).toHaveBeenCalledWith({
         currentBalance: 1050,
       })
-      expect(mockRepo.update).toHaveBeenCalledWith('1', {
-        currentBalance: 1050,
-      })
+      expect(mockRepo.update).toHaveBeenCalledWith(
+        '1',
+        expect.objectContaining({
+          currentBalance: 1050,
+          valueHistoryEntry: expect.objectContaining({
+            value: 1050,
+            previousValue: 1000,
+            date: expect.any(Date),
+          }),
+        })
+      )
 
       fromPrimitivesSpy.mockRestore()
     })
