@@ -1,7 +1,7 @@
 import cors from 'cors'
 import { env } from '@infrastructure/config/env'
 
-// Aseguramos que sea un array para coincidencia exacta, no de subcadenas
+// Ensure it is an array for exact match, not substrings
 const allowedOrigins = (
   Array.isArray(env.CORS_ORIGIN)
     ? env.CORS_ORIGIN
@@ -10,9 +10,13 @@ const allowedOrigins = (
 
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
-    // Permitir peticiones sin origen (como curl, Postman o server-to-server)
+    // Allow requests with no origin (like curl, Postman or server-to-server) only in development
     if (!origin) {
-      return callback(null, true)
+      if (env.NODE_ENV !== 'production') {
+        return callback(null, true)
+      }
+      // In production, block requests without origin
+      return callback(new Error('Not allowed by CORS'))
     }
 
     if (allowedOrigins.includes(origin)) {

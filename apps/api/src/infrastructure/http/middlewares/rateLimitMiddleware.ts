@@ -11,7 +11,7 @@ export const rateLimitMiddleware = rateLimit({
   },
 
   skip: () => env.NODE_ENV === 'test',
-  // En producción, si estamos detrás de un proxy (Nginx, Cloudflare), Express necesita confiar en él
-  // para leer la IP real. Esto se configura en app.set('trust proxy', 1) en app.ts,
-  // pero express-rate-limit lo usa automáticamente si Express está configurado.
+  // In production, if we are behind a proxy (Nginx, Cloudflare), Express needs to trust it
+  // to read the real IP. This is configured via app.set('trust proxy', 1) in app.ts,
+  // but express-rate-limit uses it automatically if Express is configured.
 })

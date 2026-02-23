@@ -18,7 +18,6 @@ export class FinancialEntity implements IFinancialEntity {
     this.updatedAt = data.updatedAt
   }
 
-  // Factory para crear nuevas entidades (con validación)
   public static create(name: string, id: string): FinancialEntity {
     if (!name || name.trim().length === 0) {
       throw new Error('Financial Entity name is required')

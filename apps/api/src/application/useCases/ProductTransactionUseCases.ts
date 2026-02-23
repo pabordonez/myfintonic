@@ -29,7 +29,6 @@ export class ProductTransactionUseCases {
       throw new Error('Unauthorized access to product')
     }
 
-    // Delegamos la validación a la entidad rica (Polimorfismo)
     product.validateTransaction()
 
     const transaction = ProductTransaction.create(
