@@ -1,10 +1,10 @@
 import helmet from 'helmet'
 
 /**
- * Middleware de seguridad utilizando Helmet.
- * Configura cabeceras HTTP seguras, incluyendo Content Security Policy (CSP).
+ * Helmet Middleware.
+ * Content Security Policy (CSP).
  *
- * Referencia OWASP:
+ * OWASP Reference:
  * - Content Security Policy (CSP)
  * - HTTP Strict Transport Security (HSTS)
  * - X-Frame-Options
@@ -14,25 +14,25 @@ export const securityHeaders = helmet({
   contentSecurityPolicy: {
     useDefaults: true,
     directives: {
-      // Por defecto, solo permitir recursos del mismo origen
+      // Default: only allow resources from the same origin
       defaultSrc: ["'self'"],
-      // Scripts: Solo del mismo origen. Bloquea inline scripts y eval().
+      // Scripts: Only from the same origin. Blocks inline scripts and eval().
       scriptSrc: ["'self'"],
-      // Estilos: Permitir 'unsafe-inline' es necesario a veces para librerías UI, aunque idealmente se evitaría.
+      // Styles: Allowing 'unsafe-inline' is sometimes necessary for UI libraries, although ideally it should be avoided.
       styleSrc: ["'self'", "'unsafe-inline'"],
-      // Imágenes: Mismo origen y data URIs (base64)
+      // Images: Same origin and data URIs (base64)
       imgSrc: ["'self'", 'data:', 'https:'],
-      // Conexiones (AJAX/Fetch): Solo al mismo origen
+      // Connections (AJAX/Fetch): Only to the same origin
       connectSrc: ["'self'"],
-      // Iframe: No permitir que este sitio sea embebido (Clickjacking protection)
+      // Iframe: Do not allow this site to be embedded (Clickjacking protection)
       frameAncestors: ["'none'"],
-      // Objetos (Flash, etc.): Bloqueados totalmente
+      // Objects (Flash, etc.): Totally blocked
       objectSrc: ["'none'"],
     },
   },
-  // Permitir peticiones desde otros orígenes (necesario para CORS con frontend separado)
+  // Allow requests from other origins (necessary for CORS with separate frontend)
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  // HSTS: Forzar conexiones seguras (1 año)
+  // HSTS: Force secure connections (1 year)
   hsts:
     process.env.NODE_ENV === 'production'
       ? {
@@ -41,12 +41,12 @@ export const securityHeaders = helmet({
           preload: true,
         }
       : false,
-  // Ocultar la cabecera X-Powered-By: Express para no revelar tecnología del servidor
+  // Hide X-Powered-By header: Express to avoid revealing server technology
   hidePoweredBy: true,
-  // Evitar sniffing de tipo de contenido (MIME types)
+  // Prevent content type sniffing (MIME types)
   noSniff: true,
-  // Protección XSS básica para navegadores antiguos
+  // Basic XSS protection for older browsers
   xssFilter: true,
-  // Evitar descarga de archivos abiertos en el sitio (IE8+)
+  // Prevent download of open files on the site (IE8+)
   ieNoOpen: true,
 })

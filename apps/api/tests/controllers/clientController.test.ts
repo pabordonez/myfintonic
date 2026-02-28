@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ClientController } from '../../src/infrastructure/http/controllers/clientController'
 import { ClientUseCases } from '../../src/application/useCases/clientUseCases'
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 
 describe('ClientController', () => {
   let controller: ClientController
@@ -10,6 +10,7 @@ describe('ClientController', () => {
   let res: Partial<Response>
   let json: any
   let status: any
+  let next: NextFunction
 
   beforeEach(() => {
     useCases = {
@@ -23,30 +24,31 @@ describe('ClientController', () => {
     json = vi.fn()
     status = vi.fn().mockReturnValue({ json, send: vi.fn() })
     res = { status, json } as unknown as Response
+    next = vi.fn() as unknown as NextFunction
   })
 
   describe('register', () => {
-    it('should return 409 if email exists', async () => {
+    it('should call next with error if email exists', async () => {
       req = { body: {} } as any
-      vi.mocked(useCases.register).mockRejectedValue(
-        new Error('Email already in use')
-      )
-      await controller.register(req as Request, res as Response)
-      expect(status).toHaveBeenCalledWith(409)
+      const error = new Error('Email already in use')
+      vi.mocked(useCases.register).mockRejectedValue(error)
+      await controller.register(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 400 on other errors', async () => {
+    it('should call next with error on other errors', async () => {
       req = { body: {} } as any
-      vi.mocked(useCases.register).mockRejectedValue(new Error('Boom'))
-      await controller.register(req as Request, res as Response)
-      expect(status).toHaveBeenCalledWith(400)
+      const error = new Error('Boom')
+      vi.mocked(useCases.register).mockRejectedValue(error)
+      await controller.register(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
   describe('getAll', () => {
     it('should return 403 if user is not ADMIN', async () => {
       req = { user: { role: 'USER' } } as any
-      await controller.getAll(req as Request, res as Response)
+      await controller.getAll(req as Request, res as Response, next)
       expect(status).toHaveBeenCalledWith(403)
     })
   })
@@ -54,7 +56,7 @@ describe('ClientController', () => {
   describe('getById', () => {
     it('should return 403 if user accesses another profile', async () => {
       req = { user: { role: 'USER', id: 'u1' }, params: { id: 'u2' } } as any
-      await controller.getById(req as Request, res as Response)
+      await controller.getById(req as Request, res as Response, next)
       expect(status).toHaveBeenCalledWith(403)
     })
 
@@ -64,7 +66,7 @@ describe('ClientController', () => {
         params: { id: 'u1' },
       } as any
       vi.mocked(useCases.getClientById).mockResolvedValue(null)
-      await controller.getById(req as Request, res as Response)
+      await controller.getById(req as Request, res as Response, next)
       expect(status).toHaveBeenCalledWith(404)
     })
   })
@@ -72,7 +74,7 @@ describe('ClientController', () => {
   describe('update', () => {
     it('should return 403 if user updates another profile', async () => {
       req = { user: { role: 'USER', id: 'u1' }, params: { id: 'u2' } } as any
-      await controller.update(req as Request, res as Response)
+      await controller.update(req as Request, res as Response, next)
       expect(status).toHaveBeenCalledWith(403)
     })
   })
@@ -80,60 +82,56 @@ describe('ClientController', () => {
   describe('changePassword', () => {
     it('should return 400 if new password missing', async () => {
       req = { params: { id: 'u1' }, body: {}, user: { id: 'u1' } } as any
-      await controller.changePassword(req as Request, res as Response)
+      await controller.changePassword(req as Request, res as Response, next)
       expect(status).toHaveBeenCalledWith(400)
     })
 
-    it('should handle Forbidden error', async () => {
+    it('should call next with error on Forbidden error', async () => {
       req = {
         params: { id: 'u1' },
         body: { newPassword: '123' },
         user: { id: 'u1' },
       } as any
-      vi.mocked(useCases.changePassword).mockRejectedValue(
-        new Error('Forbidden access')
-      )
-      await controller.changePassword(req as Request, res as Response)
-      expect(status).toHaveBeenCalledWith(403)
+      const error = new Error('Forbidden access')
+      vi.mocked(useCases.changePassword).mockRejectedValue(error)
+      await controller.changePassword(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should handle Invalid/Required error', async () => {
+    it('should call next with error on Invalid/Required error', async () => {
       req = {
         params: { id: 'u1' },
         body: { newPassword: '123' },
         user: { id: 'u1' },
       } as any
-      vi.mocked(useCases.changePassword).mockRejectedValue(
-        new Error('Invalid password')
-      )
-      await controller.changePassword(req as Request, res as Response)
-      expect(status).toHaveBeenCalledWith(400)
+      const error = new Error('Invalid password')
+      vi.mocked(useCases.changePassword).mockRejectedValue(error)
+      await controller.changePassword(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should handle Not Found error', async () => {
+    it('should call next with error on Not Found error', async () => {
       req = {
         params: { id: 'u1' },
         body: { newPassword: '123' },
         user: { id: 'u1' },
       } as any
-      vi.mocked(useCases.changePassword).mockRejectedValue(
-        new Error('User not found')
-      )
-      await controller.changePassword(req as Request, res as Response)
-      expect(status).toHaveBeenCalledWith(404)
+      const error = new Error('User not found')
+      vi.mocked(useCases.changePassword).mockRejectedValue(error)
+      await controller.changePassword(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should handle unexpected error', async () => {
+    it('should call next with error on unexpected error', async () => {
       req = {
         params: { id: 'u1' },
         body: { newPassword: '123' },
         user: { id: 'u1' },
       } as any
-      vi.mocked(useCases.changePassword).mockRejectedValue(new Error('Boom'))
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-      await controller.changePassword(req as Request, res as Response)
-      expect(status).toHaveBeenCalledWith(500)
-      consoleSpy.mockRestore()
+      const error = new Error('Boom')
+      vi.mocked(useCases.changePassword).mockRejectedValue(error)
+      await controller.changePassword(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 })

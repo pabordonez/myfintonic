@@ -1,10 +1,13 @@
 // Domain Repository Interface
-import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
+import {
+  IFinancialProduct,
+  FinancialProduct,
+} from '@domain/models/financialProduct'
 
 export interface IProductRepository {
-  findAll(filters?: Partial<IFinancialProduct>): Promise<IFinancialProduct[]>
-  findById(id: string): Promise<IFinancialProduct | null>
-  create(product: IFinancialProduct): Promise<IFinancialProduct>
+  findAll(filters?: Partial<IFinancialProduct>): Promise<FinancialProduct[]>
+  findById(id: string): Promise<FinancialProduct | null>
+  create(product: IFinancialProduct): Promise<FinancialProduct>
   update(id: string, product: Partial<IFinancialProduct>): Promise<void>
   delete(id: string): Promise<void>
 }

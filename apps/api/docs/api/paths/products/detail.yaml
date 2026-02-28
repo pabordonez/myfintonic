@@ -47,35 +47,6 @@ put:
       description: Datos de entrada inválidos.
     '404':
       description: Producto no encontrado.
-patch:
-  summary: Actualizar estado (parcial)
-  operationId: patchProductStatus
-  tags:
-    - Financial Products
-  parameters:
-    - name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-  requestBody:
-    required: true
-    content:
-      application/json:
-        schema:
-          type: object
-          properties:
-            status:
-              type: string
-              enum: [ACTIVE, INACTIVE, PAUSED, EXPIRED]
-  responses:
-    '204':
-      description: Estado actualizado correctamente.
-    '400':
-      description: Transición de estado no permitida.
-    '404':
-      description: Producto no encontrado.
 delete:
   summary: Eliminar producto
   operationId: deleteProduct

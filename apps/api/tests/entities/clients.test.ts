@@ -2,36 +2,39 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
 import { app } from '../../src/app'
 import jwt from 'jsonwebtoken'
-import { env } from '../../src/config/env'
+import { env } from '../../src/infrastructure/config/env'
 import bcrypt from 'bcrypt'
 
 // Mock Prisma
 const { mockClientDb } = vi.hoisted(() => ({ mockClientDb: [] as any[] }))
 
-vi.mock('../../src/infrastructure/persistence/prisma/client', async () => {
-  return {
-    default: {
-      client: {
-        findUnique: vi.fn().mockImplementation(({ where }) => {
-          return Promise.resolve(
-            mockClientDb.find((c) => c.id === where.id) || null
-          )
-        }),
-        findMany: vi.fn().mockImplementation(() => {
-          return Promise.resolve(mockClientDb)
-        }),
-        update: vi.fn().mockImplementation(({ where, data }) => {
-          const index = mockClientDb.findIndex((c) => c.id === where.id)
-          if (index !== -1) {
-            mockClientDb[index] = { ...mockClientDb[index], ...data }
-            return Promise.resolve(mockClientDb[index])
-          }
-          return Promise.reject(new Error('Record to update not found.'))
-        }),
+vi.mock(
+  '../../src/infrastructure/persistence/prisma/repository/prismaClient',
+  async () => {
+    return {
+      default: {
+        client: {
+          findUnique: vi.fn().mockImplementation(({ where }) => {
+            return Promise.resolve(
+              mockClientDb.find((c) => c.id === where.id) || null
+            )
+          }),
+          findMany: vi.fn().mockImplementation(() => {
+            return Promise.resolve(mockClientDb)
+          }),
+          update: vi.fn().mockImplementation(({ where, data }) => {
+            const index = mockClientDb.findIndex((c) => c.id === where.id)
+            if (index !== -1) {
+              mockClientDb[index] = { ...mockClientDb[index], ...data }
+              return Promise.resolve(mockClientDb[index])
+            }
+            return Promise.reject(new Error('Record to update not found.'))
+          }),
+        },
       },
-    },
+    }
   }
-})
+)
 
 describe('Client API', () => {
   const adminToken = jwt.sign({ id: 'admin-id', role: 'ADMIN' }, env.JWT_SECRET)

@@ -1,12 +1,12 @@
 import {
-  IProductTransaction,
   IProductTransactionDetail,
-} from '@domain/entities/IProductTransaction'
+  ProductTransaction,
+} from '@domain/models/productTransaction'
 
 export interface IProductTransactionRepository {
   findById(id: string): Promise<IProductTransactionDetail | null>
   findAllByProductId(productId: string): Promise<IProductTransactionDetail[]>
   addTransaction(
-    params: IProductTransaction
+    transaction: ProductTransaction
   ): Promise<IProductTransactionDetail>
 }

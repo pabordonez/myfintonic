@@ -1,5 +1,6 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
+import hpp from 'hpp'
 import { createProductRouter } from '@infrastructure/http/routes/productRoutes'
 import { createAuthRoutes } from '@infrastructure/http/routes/authRoutes'
 import { createClientFinancialEntityRoutes } from '@infrastructure/http/routes/clientFinancialEntityRoutes'
@@ -23,12 +24,14 @@ import {
   loginRateLimiter,
   productsRateLimiter,
 } from '@infrastructure/http/middlewares/rateLimiters'
+import { errorHandler } from '@infrastructure/http/middlewares/errorHandler'
 
 export const app = express()
 
 app.set('trust proxy', 1)
 
 app.use(securityHeaders)
+app.use(hpp())
 
 app.use(corsMiddleware)
 app.use(rateLimitMiddleware)
@@ -54,3 +57,5 @@ app.use(
 )
 app.use('/clients', createClientRoutes(clientController))
 app.use('/', createClientFinancialEntityRoutes(clientFinancialEntityController))
+
+app.use(errorHandler)

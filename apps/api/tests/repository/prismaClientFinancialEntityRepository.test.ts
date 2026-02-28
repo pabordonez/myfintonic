@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { PrismaClientFinancialEntityRepository } from '../../src/infrastructure/persistence/prisma/PrismaClientFinancialEntityRepository'
-import prisma from '../../src/infrastructure/persistence/prisma/client'
+import { PrismaClientFinancialEntityRepository } from '../../src/infrastructure/persistence/prisma/repository/PrismaClientFinancialEntityRepository'
+import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
+import { ClientFinancialEntity } from '../../src/domain/models/clientFinancialEntity'
 
-vi.mock('../../src/infrastructure/persistence/prisma/client', () => ({
+vi.mock('@infrastructure/persistence/prisma/repository/prismaClient', () => ({
   default: {
     clientFinancialEntity: {
       create: vi.fn(),
@@ -33,11 +34,13 @@ describe('PrismaClientFinancialEntityRepository', () => {
         valueHistory: [],
       } as any)
 
-      await repo.create({
-        clientId: 'c1',
-        financialEntityId: 'f1',
-        balance: 100,
-      })
+      await repo.create(
+        ClientFinancialEntity.fromPrimitives({
+          clientId: 'c1',
+          financialEntityId: 'f1',
+          balance: 100,
+        } as any)
+      )
       expect(prisma.clientFinancialEntity.create).toHaveBeenCalled()
     })
 
@@ -58,11 +61,13 @@ describe('PrismaClientFinancialEntityRepository', () => {
         valueHistory: [],
       } as any)
 
-      await repo.create({
-        clientId: 'c1',
-        financialEntityId: 'f1',
-        balance: 100,
-      })
+      await repo.create(
+        ClientFinancialEntity.fromPrimitives({
+          clientId: 'c1',
+          financialEntityId: 'f1',
+          balance: 100,
+        } as any)
+      )
 
       expect(prisma.clientFinancialEntity.findFirst).toHaveBeenCalled()
       expect(prisma.clientFinancialEntity.update).toHaveBeenCalled()
@@ -79,7 +84,13 @@ describe('PrismaClientFinancialEntityRepository', () => {
       } as any)
 
       await expect(
-        repo.create({ clientId: 'c1', financialEntityId: 'f1', balance: 100 })
+        repo.create(
+          ClientFinancialEntity.fromPrimitives({
+            clientId: 'c1',
+            financialEntityId: 'f1',
+            balance: 100,
+          } as any)
+        )
       ).rejects.toThrow('Unique constraint')
     })
 
@@ -94,11 +105,13 @@ describe('PrismaClientFinancialEntityRepository', () => {
         valueHistory: [],
       } as any)
 
-      await repo.create({
-        clientId: 'c1',
-        financialEntityId: 'f1',
-        balance: 100,
-      } as any)
+      await repo.create(
+        ClientFinancialEntity.fromPrimitives({
+          clientId: 'c1',
+          financialEntityId: 'f1',
+          balance: 100,
+        } as any)
+      )
 
       expect(prisma.clientFinancialEntity.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -119,17 +132,19 @@ describe('PrismaClientFinancialEntityRepository', () => {
         valueHistory: [],
       } as any)
 
-      await repo.create({
-        clientId: 'c1',
-        financialEntityId: 'f1',
-        balance: undefined,
-      } as any)
+      await repo.create(
+        ClientFinancialEntity.fromPrimitives({
+          clientId: 'c1',
+          financialEntityId: 'f1',
+          balance: undefined,
+        } as any)
+      )
 
       expect(prisma.clientFinancialEntity.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            balance: null,
-            initialBalance: null,
+            balance: 0,
+            initialBalance: 0,
           }),
         })
       )
@@ -140,7 +155,13 @@ describe('PrismaClientFinancialEntityRepository', () => {
       vi.mocked(prisma.clientFinancialEntity.create).mockRejectedValue(error)
 
       await expect(
-        repo.create({ clientId: 'c1', financialEntityId: 'f1', balance: 100 })
+        repo.create(
+          ClientFinancialEntity.fromPrimitives({
+            clientId: 'c1',
+            financialEntityId: 'f1',
+            balance: 100,
+          } as any)
+        )
       ).rejects.toThrow('DB Error')
     })
   })
@@ -154,7 +175,14 @@ describe('PrismaClientFinancialEntityRepository', () => {
         id: '1',
       } as any)
 
-      await repo.update('1', { balance: 100 })
+      await repo.update(
+        ClientFinancialEntity.fromPrimitives({
+          id: '1',
+          balance: 100,
+          clientId: 'c1',
+          financialEntityId: 'f1',
+        } as any)
+      )
 
       expect(prisma.clientFinancialEntity.update).toHaveBeenCalledWith(
         expect.objectContaining({

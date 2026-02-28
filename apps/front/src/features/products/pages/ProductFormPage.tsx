@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { productService } from '../services/product.service'
 import {
   ValueHistoryList,
@@ -8,6 +10,34 @@ import {
 } from '../../financial-entities/components/ValueHistoryList'
 import { ProductTransactionButton } from '../components/ProductTransactionButton'
 import { financialEntityService } from '../../financial-entities/services/financialEntity.service'
+import { useAuth } from '@/hooks/useAuth'
+
+// Helper para convertir strings vacíos a undefined y números
+const optionalNumber = z.preprocess(
+  (val) =>
+    val === '' || val === null || val === undefined ? undefined : Number(val),
+  z.number().optional()
+)
+
+const productSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido'),
+  type: z.string().min(1, 'El tipo es requerido'),
+  financialEntity: z.string().min(1, 'La entidad es requerida'),
+  status: z.string().optional(),
+  currentBalance: optionalNumber,
+  initialBalance: optionalNumber,
+  initialDate: z.string().optional(),
+  maturityDate: z.string().optional(),
+  annualInterestRate: optionalNumber,
+  monthlyInterestRate: optionalNumber,
+  interestPaymentFrequency: z.string().optional(),
+  numberOfShares: optionalNumber,
+  numberOfUnits: optionalNumber,
+  netAssetValue: optionalNumber,
+  unitPurchasePrice: optionalNumber,
+  currentMarketPrice: optionalNumber,
+  // clientId y id se excluyen deliberadamente para evitar Mass Assignment
+})
 
 export const ProductFormPage = () => {
   const { id } = useParams()
@@ -24,7 +54,14 @@ export const ProductFormPage = () => {
   const [success, setSuccess] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const { register, handleSubmit, watch, reset } = useForm()
+  const { user } = useAuth()
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(productSchema) })
   const selectedType = watch('type')
 
   useEffect(() => {
@@ -32,8 +69,7 @@ export const ProductFormPage = () => {
       setLoading(true)
       try {
         // Cargar catálogo de entidades
-        const userStr = localStorage.getItem('user')
-        if (!userStr) throw new Error('User not found')
+        if (!user) throw new Error('User not found')
         const entitiesData = await financialEntityService.getAll()
         setEntities(entitiesData)
 
@@ -44,18 +80,17 @@ export const ProductFormPage = () => {
           reset({
             name: product.name,
             type: product.type,
-            financialEntity:
-              product.financialEntityId || product.financialEntity,
+            financialEntity: product.financialEntityId,
             status: product.status,
             //TODO MEJORAR ESTO
             currentBalance: product.currentBalance ?? product.initialBalance,
             initialBalance: product.initialBalance,
             //------
             initialDate: product.initialDate
-              ? product.initialDate.split('T')[0]
+              ? new Date(product.initialDate).toISOString().split('T')[0]
               : '',
             maturityDate: product.maturityDate
-              ? product.maturityDate.split('T')[0]
+              ? new Date(product.maturityDate).toISOString().split('T')[0]
               : '',
             annualInterestRate: product.annualInterestRate,
             monthlyInterestRate: product.monthlyInterestRate,
@@ -85,58 +120,24 @@ export const ProductFormPage = () => {
       }
     }
     loadData()
-  }, [id, isEditMode, reset, refreshKey])
+  }, [id, isEditMode, reset, refreshKey, user])
 
   const onSubmit = async (data: any) => {
     try {
       setSuccess(null)
       setError(null)
-      // Preparar datos (conversión de tipos y limpieza) para ambos modos (Create/Update)
-      const preparedData = { ...data }
-
-      const numericFields = [
-        'annualInterestRate',
-        'monthlyInterestRate',
-        'numberOfShares',
-        'numberOfUnits',
-        'netAssetValue',
-        'unitPurchasePrice',
-        'currentMarketPrice',
-        'currentBalance',
-        'initialBalance',
-      ]
-      numericFields.forEach((field) => {
-        if (preparedData[field] !== undefined && preparedData[field] !== '') {
-          preparedData[field] = Number(preparedData[field])
-        }
-      })
-
-      Object.keys(preparedData).forEach((key) => {
-        if (preparedData[key] === '') delete preparedData[key]
-      })
+      // Los datos ya vienen tipados y limpios gracias a Zod
+      const preparedData = data
 
       if (isEditMode) {
         const typeToUse = data.type || selectedType
 
         // Copiamos y eliminamos campos que no se deben enviar en el update
         const updateData = { ...preparedData }
-        const balanceValue = updateData.currentBalance
-
-        delete updateData.clientId
         delete updateData.type
-        delete updateData.id
-        delete updateData.currentBalance
 
-        // Re-assign balance to the correct field based on type
-        // FIXED_TERM_DEPOSIT now supports currentBalance updates for valuation tracking
-        // Only update initialBalance if it's a correction logic, but standard flow is updating current value.
-        // For now, we treat it like other variable products in edit mode.
-        {
-          updateData.currentBalance = balanceValue
-          // Fix: Backend validation fails if initialBalance is sent for INVESTMENT_FUND updates
-          if (typeToUse === 'INVESTMENT_FUND') {
-            delete updateData.initialBalance
-          }
+        if (typeToUse === 'INVESTMENT_FUND') {
+          delete updateData.initialBalance
         }
 
         await productService.update(id as string, updateData)
@@ -214,6 +215,11 @@ export const ProductFormPage = () => {
             {...register('name')}
             className="mt-1 block w-full border rounded p-2"
           />
+          {errors.name && (
+            <p className="text-red-500 text-xs">
+              {errors.name.message as string}
+            </p>
+          )}
         </div>
 
         <div>
@@ -223,8 +229,12 @@ export const ProductFormPage = () => {
           <select
             id="type"
             {...register('type')}
-            disabled={isEditMode}
-            className="mt-1 block w-full border rounded p-2 bg-white disabled:bg-gray-100"
+            aria-disabled={isEditMode}
+            tabIndex={isEditMode ? -1 : undefined}
+            style={{ pointerEvents: isEditMode ? 'none' : 'auto' }}
+            className={`mt-1 block w-full border rounded p-2 ${
+              isEditMode ? 'bg-gray-100' : 'bg-white'
+            }`}
           >
             <option value="">Seleccione tipo</option>
             <option value="CURRENT_ACCOUNT">Cuenta Corriente</option>
@@ -279,6 +289,11 @@ export const ProductFormPage = () => {
               </option>
             ))}
           </select>
+          {errors.financialEntity && (
+            <p className="text-red-500 text-xs">
+              {errors.financialEntity.message as string}
+            </p>
+          )}
         </div>
 
         {/* Campos dinámicos simplificados para el ejemplo */}

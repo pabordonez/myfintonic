@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { ProductController } from '@infrastructure/http/controllers/productController'
-import { ProductTransactionController } from '@infrastructure/http/controllers/ProductTransactionController'
+import { ProductTransactionController } from '@infrastructure/http/controllers/productTransactionController'
 import { authenticate } from '@infrastructure/http/middlewares/authenticate'
 import { productOwnershipMiddleware } from '@infrastructure/http/middlewares/ownershipMiddleware'
 
@@ -29,7 +29,6 @@ export const createProductRouter = (
   router.get('/:id', adminOrOwnership, productController.getById)
   router.get('/:id/history', adminOrOwnership, productController.getHistory)
   router.put('/:id', adminOrOwnership, productController.update)
-  router.patch('/:id', adminOrOwnership, productController.patch)
   router.post(
     '/:id/transactions',
     adminOrOwnership,

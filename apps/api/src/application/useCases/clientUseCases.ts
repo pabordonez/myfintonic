@@ -1,14 +1,24 @@
 import { IClientRepository } from '@domain/repository/IClientRepository'
 import { RegisterClientDto, UpdateClientDto } from '@application/dtos/clientDto'
-import bcrypt from 'bcrypt'
+import { IEncryptionService } from '@application/interfaces/IEncryptionService'
+import { Client } from '@domain/models/client'
 
 export class ClientUseCases {
-  constructor(private clientRepository: IClientRepository) {}
+  constructor(
+    private clientRepository: IClientRepository,
+    private encryptionService: IEncryptionService
+  ) {}
 
-  async register(data: RegisterClientDto) {
-    const hashedPassword = await bcrypt.hash(data.password, 10)
-    const clientData = { ...data, password: hashedPassword }
-    return this.clientRepository.create(clientData)
+  async register(data: RegisterClientDto, uuid: string) {
+    const hashedPassword = await this.encryptionService.hash(data.password)
+    const client = Client.create(
+      {
+        ...data,
+        password: hashedPassword,
+      },
+      uuid
+    )
+    return this.clientRepository.create(client)
   }
 
   async getClients() {
@@ -16,8 +26,11 @@ export class ClientUseCases {
   }
 
   async updateClient(id: string, data: UpdateClientDto) {
-    // Aquí podrían ir validaciones de negocio adicionales antes de guardar
-    return this.clientRepository.update(id, data)
+    const client = await this.clientRepository.findById(id)
+    if (!client) throw new Error('Client not found')
+
+    client.update(data)
+    return this.clientRepository.update(client)
   }
 
   async getClientById(id: string) {
@@ -45,19 +58,24 @@ export class ClientUseCases {
       const user = await this.clientRepository.findById(targetUserId)
       if (!user) throw new Error('User not found')
 
-      const isValid = await bcrypt.compare(currentPassword, user.password)
+      const isValid = await this.encryptionService.compare(
+        currentPassword,
+        user.password
+      )
       if (!isValid) {
         throw new Error('Invalid current password')
       }
     }
 
     // 3. Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    const hashedPassword = await this.encryptionService.hash(newPassword)
 
     // 4. Update
     // Assuming update method accepts Partial<Client> or similar
-    await this.clientRepository.update(targetUserId, {
-      password: hashedPassword,
-    })
+    const clientToUpdate = await this.clientRepository.findById(targetUserId)
+    if (clientToUpdate) {
+      clientToUpdate.update({ password: hashedPassword })
+      await this.clientRepository.update(clientToUpdate)
+    }
   }
 }

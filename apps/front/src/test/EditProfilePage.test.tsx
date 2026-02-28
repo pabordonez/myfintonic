@@ -30,7 +30,6 @@ describe('EditProfilePage', () => {
         lastName: 'Doe',
         email: 'john@test.com',
       },
-      token: 'token',
       refreshUser: mockRefreshUser,
     })
   })
@@ -113,7 +112,6 @@ describe('EditProfilePage', () => {
   it('redirects to login if user is missing', async () => {
     ;(useAuth as any).mockReturnValue({
       user: null,
-      token: null, // Aseguramos que ambos sean null
       refreshUser: mockRefreshUser,
     })
 
@@ -125,31 +123,6 @@ describe('EditProfilePage', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-    })
-  })
-
-  it('does not submit if token is missing', async () => {
-    ;(useAuth as any).mockReturnValue({
-      user: {
-        id: '1',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@test.com',
-      },
-      token: null,
-      refreshUser: mockRefreshUser,
-    })
-
-    render(
-      <BrowserRouter>
-        <EditProfilePage />
-      </BrowserRouter>
-    )
-
-    fireEvent.click(screen.getByText('Guardar Cambios'))
-
-    await waitFor(() => {
-      expect(updateClientProfile).not.toHaveBeenCalled()
     })
   })
 

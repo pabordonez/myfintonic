@@ -1,87 +1,94 @@
 import { renderHook, act } from '@testing-library/react'
 import { useAuth } from '../hooks/useAuth'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import axios from 'axios'
+import { MemoryRouter } from 'react-router-dom'
 
+// Mock de useNavigate
 const { mockNavigate } = vi.hoisted(() => {
   return { mockNavigate: vi.fn() }
 })
 
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
-}))
-
-// Mock axios with a factory to handle instances created via axios.create()
-vi.mock('axios', () => {
-  const mockAxios = {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
-    patch: vi.fn(),
-    create: vi.fn().mockReturnThis(),
-    defaults: { headers: { common: {} } },
-    isAxiosError: vi.fn(),
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
   }
-  return { default: mockAxios }
 })
 
 describe('useAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
-    global.fetch = vi.fn()
   })
 
   it('should initialize with user from localStorage', () => {
-    const user = { id: '1', name: 'Test' }
+    const user = {
+      id: '1',
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@test.com',
+      role: 'USER',
+    }
     localStorage.setItem('user', JSON.stringify(user))
-    localStorage.setItem('token', 'token')
 
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: MemoryRouter,
+    })
 
     expect(result.current.user).toEqual(user)
-    expect(result.current.token).toBe('token')
+    // Eliminamos la aserción del token ya que ya no se expone
   })
 
-  it('refreshUser should update user state on success', async () => {
-    const user = { id: '1' }
-    localStorage.setItem('token', 'token')
-    localStorage.setItem('user', JSON.stringify({ id: '1' }))
-
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => user,
+  it('should initialize with null if no user in localStorage', () => {
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: MemoryRouter,
     })
-    global.fetch = mockFetch
 
-    // Mock axios as well in case useAuth uses it
-    vi.mocked(axios.get).mockResolvedValue({ data: user })
+    expect(result.current.user).toBeNull()
+  })
 
-    const { result } = renderHook(() => useAuth())
+  it('should logout correctly', () => {
+    const user = {
+      id: '1',
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@test.com',
+      role: 'USER',
+    }
+    localStorage.setItem('user', JSON.stringify(user))
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: MemoryRouter,
+    })
+
+    act(() => {
+      result.current.logout()
+    })
+
+    expect(localStorage.getItem('user')).toBeNull()
+    expect(result.current.user).toBeNull()
+    expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
+  })
+
+  it('should refresh user from localStorage', async () => {
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: MemoryRouter,
+    })
+
+    const newUser = {
+      id: '2',
+      firstName: 'New',
+      lastName: 'User',
+      email: 'new@test.com',
+      role: 'USER',
+    }
+    localStorage.setItem('user', JSON.stringify(newUser))
 
     await act(async () => {
       await result.current.refreshUser()
     })
 
-    expect(result.current.user).toEqual(user)
-    expect(localStorage.getItem('user')).toBe(JSON.stringify(user))
-  })
-
-  it('refreshUser should handle error gracefully', async () => {
-    localStorage.setItem('token', 'token')
-    localStorage.setItem('user', JSON.stringify({ id: '1' }))
-
-    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
-    vi.mocked(axios.get).mockRejectedValue(new Error('Network error'))
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    const { result } = renderHook(() => useAuth())
-
-    await act(async () => {
-      await result.current.refreshUser()
-    })
-
-    consoleSpy.mockRestore()
+    expect(result.current.user).toEqual(newUser)
   })
 })

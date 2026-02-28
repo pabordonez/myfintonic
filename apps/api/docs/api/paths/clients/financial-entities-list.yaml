@@ -54,10 +54,13 @@ post:
             financialEntityId:
               type: string
               format: uuid
+            balance:
+              type: number
             initialBalance:
               type: number
           required:
             - financialEntityId
+            - balance
   responses:
     '201':
       description: Vinculación creada exitosamente.

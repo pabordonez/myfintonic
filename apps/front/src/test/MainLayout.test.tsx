@@ -23,7 +23,13 @@ describe('MainLayout', () => {
   it('renders navigation tabs correctly for USER role', () => {
     localStorage.setItem(
       'user',
-      JSON.stringify({ role: 'USER', firstName: 'Test' })
+      JSON.stringify({
+        id: '1',
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@test.com',
+        role: 'USER',
+      })
     )
 
     render(
@@ -41,7 +47,13 @@ describe('MainLayout', () => {
   it('renders navigation tabs correctly for ADMIN role', () => {
     localStorage.setItem(
       'user',
-      JSON.stringify({ role: 'ADMIN', firstName: 'Admin' })
+      JSON.stringify({
+        id: '2',
+        firstName: 'Admin',
+        lastName: 'User',
+        email: 'admin@test.com',
+        role: 'ADMIN',
+      })
     )
 
     render(
@@ -59,7 +71,13 @@ describe('MainLayout', () => {
   it('handles logout correctly', () => {
     localStorage.setItem(
       'user',
-      JSON.stringify({ role: 'USER', firstName: 'Test' })
+      JSON.stringify({
+        id: '1',
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@test.com',
+        role: 'USER',
+      })
     )
     render(
       <MemoryRouter>

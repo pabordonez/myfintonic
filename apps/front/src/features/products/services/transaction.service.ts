@@ -1,18 +1,12 @@
-import axios from 'axios'
+import { api } from '../../../config/api'
 import {
   CreateTransactionPayload,
   ProductWithTransactions,
 } from '../types/transaction.types'
-import { API_URL } from '../../../config/api'
-
-const axiosConfig = { withCredentials: true }
 
 export const transactionService = {
   getProductDetails: async (id: string): Promise<ProductWithTransactions> => {
-    const response = await axios.get<ProductWithTransactions>(
-      `${API_URL}/products/${id}`,
-      axiosConfig
-    )
+    const response = await api.get<ProductWithTransactions>(`/products/${id}`)
     return response.data
   },
 
@@ -20,10 +14,6 @@ export const transactionService = {
     productId: string,
     payload: CreateTransactionPayload
   ): Promise<void> => {
-    await axios.post(
-      `${API_URL}/products/${productId}/transactions`,
-      payload,
-      axiosConfig
-    )
+    await api.post(`/products/${productId}/transactions`, payload)
   },
 }

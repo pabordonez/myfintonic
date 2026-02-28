@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { FinancialEntityController } from '../../src/infrastructure/http/controllers/financialEntityController'
 import { FinancialEntityUseCases } from '../../src/application/useCases/financialEntityUseCases'
 
-// Mock de los casos de uso
+// Mock use cases
 const mockUseCases = {
   createEntity: vi.fn(),
   getEntities: vi.fn(),
@@ -14,10 +14,13 @@ const mockUseCases = {
 
 const controller = new FinancialEntityController(mockUseCases)
 
-// Helpers para mocks de Express
+// Helpers for Express mocks
 const mockRequest = (body = {}, params = {}, query = {}) => {
   return { body, params, query } as unknown as Request
 }
+
+// Mock NextFunction
+const next = vi.fn() as unknown as NextFunction
 
 const mockResponse = () => {
   const res = {} as Response
@@ -33,31 +36,27 @@ describe('FinancialEntityController', () => {
   })
 
   describe('create', () => {
-    it('should return 500 if use case fails', async () => {
-      vi.mocked(mockUseCases.createEntity).mockRejectedValue(
-        new Error('DB Error')
-      )
+    it('should call next with error if use case fails', async () => {
+      const error = new Error('DB Error')
+      vi.mocked(mockUseCases.createEntity).mockRejectedValue(error)
       const req = mockRequest({ name: 'Bank' })
       const res = mockResponse()
 
-      await controller.create(req, res)
-
-      expect(res.status).toHaveBeenCalledWith(500)
-      expect(res.json).toHaveBeenCalledWith({ error: 'Internal Server Error' })
+      await controller.create(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
   describe('getAll', () => {
-    it('should return 500 if use case fails', async () => {
-      vi.mocked(mockUseCases.getEntities).mockRejectedValue(
-        new Error('DB Error')
-      )
+    it('should call next with error if use case fails', async () => {
+      const error = new Error('DB Error')
+      vi.mocked(mockUseCases.getEntities).mockRejectedValue(error)
       const req = mockRequest()
       const res = mockResponse()
 
-      await controller.getAll(req, res)
+      await controller.getAll(req, res, next)
 
-      expect(res.status).toHaveBeenCalledWith(500)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
@@ -67,93 +66,64 @@ describe('FinancialEntityController', () => {
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
 
-      await controller.getById(req, res)
+      await controller.getById(req, res, next)
 
       expect(res.status).toHaveBeenCalledWith(404)
       expect(res.json).toHaveBeenCalledWith({ error: 'Entity not found' })
     })
 
-    it('should return 500 if use case fails', async () => {
-      vi.mocked(mockUseCases.getEntityById).mockRejectedValue(
-        new Error('DB Error')
-      )
+    it('should call next with error if use case fails', async () => {
+      const error = new Error('DB Error')
+      vi.mocked(mockUseCases.getEntityById).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
 
-      await controller.getById(req, res)
-
-      expect(res.status).toHaveBeenCalledWith(500)
+      await controller.getById(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
   describe('update', () => {
-    it('should return 404 if entity not found error is thrown', async () => {
-      vi.mocked(mockUseCases.updateEntity).mockRejectedValue(
-        new Error('Financial Entity not found')
-      )
+    it('should call next with error if entity not found error is thrown', async () => {
+      const error = new Error('Financial Entity not found')
+      vi.mocked(mockUseCases.updateEntity).mockRejectedValue(error)
       const req = mockRequest({ name: 'New Name' }, { id: '1' })
       const res = mockResponse()
 
-      await controller.update(req, res)
-
-      expect(res.status).toHaveBeenCalledWith(404)
-      expect(res.json).toHaveBeenCalledWith({
-        error: 'Financial Entity not found',
-      })
+      await controller.update(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 400 for other errors', async () => {
-      vi.mocked(mockUseCases.updateEntity).mockRejectedValue(
-        new Error('Validation Error')
-      )
+    it('should call next with error for other errors', async () => {
+      const error = new Error('Validation Error')
+      vi.mocked(mockUseCases.updateEntity).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
 
-      await controller.update(req, res)
-
-      expect(res.status).toHaveBeenCalledWith(400)
+      await controller.update(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
   describe('delete', () => {
-    it('should return 500 for generic errors', async () => {
-      // El caso 404 ya suele estar cubierto, cubrimos el 500
-      vi.mocked(mockUseCases.deleteEntity).mockRejectedValue(
-        new Error('DB Error')
-      )
+    it('should call next with error for generic errors', async () => {
+      const error = new Error('DB Error')
+      vi.mocked(mockUseCases.deleteEntity).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
 
-      await controller.delete(req, res)
-
-      expect(res.status).toHaveBeenCalledWith(500)
+      await controller.delete(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 404 if entity not found', async () => {
-      vi.mocked(mockUseCases.deleteEntity).mockRejectedValue(
-        new Error('Financial Entity not found')
-      )
+    it('should call next with error if entity not found', async () => {
+      const error = new Error('Financial Entity not found')
+      vi.mocked(mockUseCases.deleteEntity).mockRejectedValue(error)
       const req = mockRequest({}, { id: '1' })
       const res = mockResponse()
 
-      await controller.delete(req, res)
-
-      expect(res.status).toHaveBeenCalledWith(404)
-      expect(res.json).toHaveBeenCalledWith({
-        error: 'Financial Entity not found',
-      })
-    })
-
-    it('should return 500 for generic errors', async () => {
-      vi.mocked(mockUseCases.deleteEntity).mockRejectedValue(
-        new Error('DB Error')
-      )
-      const req = mockRequest({}, { id: '1' })
-      const res = mockResponse()
-
-      await controller.delete(req, res)
-
-      expect(res.status).toHaveBeenCalledWith(500)
+      await controller.delete(req, res, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 })

@@ -64,7 +64,6 @@ CREATE TABLE `FinancialProduct` (
     `numberOfShares` DECIMAL(15, 2) NULL,
     `unitPurchasePrice` DECIMAL(15, 2) NULL,
     `currentMarketPrice` DECIMAL(15, 2) NULL,
-    `fees` JSON NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `deletedAt` DATETIME(3) NULL,

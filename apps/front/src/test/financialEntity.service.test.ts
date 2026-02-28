@@ -1,9 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { financialEntityService } from '../features/financial-entities/services/financialEntity.service'
-import axios from 'axios'
-import { API_URL } from '../config/api'
+import { api } from '../config/api'
 
-vi.mock('axios')
+vi.mock('../config/api', () => ({
+  api: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
+  },
+  API_URL: 'http://localhost:3000',
+}))
 
 describe('financialEntityService', () => {
   beforeEach(() => {
@@ -12,66 +23,49 @@ describe('financialEntityService', () => {
 
   it('getAll calls axios.get with credentials', async () => {
     const mockData = [{ id: '1', name: 'Bank' }]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockData })
+    vi.mocked(api.get).mockResolvedValue({ data: mockData })
 
     const result = await financialEntityService.getAll()
 
-    expect(axios.get).toHaveBeenCalledWith(
-      `${API_URL}/financial-entities`,
-      expect.objectContaining({ withCredentials: true })
-    )
+    expect(api.get).toHaveBeenCalledWith('/financial-entities')
     expect(result).toEqual(mockData)
   })
 
   it('getById calls axios.get with credentials', async () => {
     const mockData = { id: '1', name: 'Bank' }
-    vi.mocked(axios.get).mockResolvedValue({ data: mockData })
+    vi.mocked(api.get).mockResolvedValue({ data: mockData })
 
     const result = await financialEntityService.getById('1')
 
-    expect(axios.get).toHaveBeenCalledWith(
-      `${API_URL}/financial-entities/1`,
-      expect.objectContaining({ withCredentials: true })
-    )
+    expect(api.get).toHaveBeenCalledWith('/financial-entities/1')
     expect(result).toEqual(mockData)
   })
 
   it('create calls axios.post with credentials', async () => {
     const mockData = { id: '1', name: 'Bank' }
     const payload = { name: 'Bank' }
-    vi.mocked(axios.post).mockResolvedValue({ data: mockData })
+    vi.mocked(api.post).mockResolvedValue({ data: mockData })
 
     const result = await financialEntityService.create(payload)
 
-    expect(axios.post).toHaveBeenCalledWith(
-      `${API_URL}/financial-entities`,
-      payload,
-      expect.objectContaining({ withCredentials: true })
-    )
+    expect(api.post).toHaveBeenCalledWith('/financial-entities', payload)
     expect(result).toEqual(mockData)
   })
 
   it('update calls axios.put with credentials', async () => {
-    vi.mocked(axios.put).mockResolvedValue({ data: {} })
+    vi.mocked(api.put).mockResolvedValue({ data: {} })
     const payload = { name: 'Updated Bank' }
 
     await financialEntityService.update('1', payload)
 
-    expect(axios.put).toHaveBeenCalledWith(
-      `${API_URL}/financial-entities/1`,
-      payload,
-      expect.objectContaining({ withCredentials: true })
-    )
+    expect(api.put).toHaveBeenCalledWith('/financial-entities/1', payload)
   })
 
   it('delete calls axios.delete with credentials', async () => {
-    vi.mocked(axios.delete).mockResolvedValue({ data: {} })
+    vi.mocked(api.delete).mockResolvedValue({ data: {} })
 
     await financialEntityService.delete('1')
 
-    expect(axios.delete).toHaveBeenCalledWith(
-      `${API_URL}/financial-entities/1`,
-      expect.objectContaining({ withCredentials: true })
-    )
+    expect(api.delete).toHaveBeenCalledWith('/financial-entities/1')
   })
 })

@@ -1,10 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { RegisterPage } from '../features/auth/pages/RegisterPage'
 import { BrowserRouter } from 'react-router-dom'
-import axios from 'axios'
+import { api } from '../config/api'
 
-vi.mock('axios')
+vi.mock('../config/api', () => ({
+  api: {
+    post: vi.fn(),
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
+  },
+}))
+
 const mockNavigate = vi.fn()
 
 vi.mock('react-router-dom', async () => {
@@ -16,6 +25,11 @@ vi.mock('react-router-dom', async () => {
 describe('RegisterPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
   })
 
   it('renders register form elements', () => {
@@ -36,8 +50,12 @@ describe('RegisterPage', () => {
   })
 
   it('submits registration form successfully', async () => {
-    vi.mocked(axios.post).mockResolvedValue({})
-    vi.spyOn(window, 'alert').mockImplementation(() => {})
+    // Guardamos la implementación original para usarla con delay 0
+    const originalSetTimeout = global.setTimeout
+    vi.spyOn(global, 'setTimeout').mockImplementation((fn: any) => {
+      return originalSetTimeout(fn, 0)
+    })
+    vi.mocked(api.post).mockResolvedValue({})
 
     const { container } = render(
       <BrowserRouter>
@@ -60,17 +78,20 @@ describe('RegisterPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Registrarse/i }))
 
+    // 1. Esperamos a que aparezca el mensaje de éxito. Esto confirma que la llamada a la API fue exitosa.
+    await screen.findByText('Registro exitoso. Redirigiendo al login...')
+
+    // 2. Verificamos que la API fue llamada correctamente.
+    expect(api.post).toHaveBeenCalledWith('/auth/register', expect.any(Object))
+
+    // 3. Verificamos que la navegación ocurrió (usamos waitFor porque setTimeout(0) es asíncrono)
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        expect.stringContaining('/auth/register'),
-        expect.any(Object)
-      )
       expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
     })
   })
 
   it('displays error on registration failure', async () => {
-    vi.mocked(axios.post).mockRejectedValue(new Error('Registration failed'))
+    vi.mocked(api.post).mockRejectedValue(new Error('Registration failed'))
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     const { container } = render(

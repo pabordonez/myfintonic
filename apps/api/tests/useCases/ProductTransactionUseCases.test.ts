@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ProductTransactionUseCases } from '../../src/application/useCases/ProductTransactionUseCases'
+import { ProductTransactionUseCases } from '../../src/application/useCases/productTransactionUseCases'
 import { IProductTransactionRepository } from '../../src/domain/repository/IProductTransactionRepository'
 import { IProductRepository } from '../../src/domain/repository/IProductRepository'
 
@@ -34,26 +34,36 @@ describe('ProductTransactionUseCases', () => {
         amount: 100,
       }
 
-      vi.mocked(mockProductRepo.findById).mockResolvedValue({
+      const mockProduct = {
         id: 'prod-1',
         clientId: 'user-1',
         type: 'CURRENT_ACCOUNT',
-      } as any)
+        status: 'ACTIVE',
+        currentBalance: 1000,
+        name: 'Test Account',
+        financialEntity: 'Bank',
+        validateTransaction: vi.fn(),
+      }
+      vi.mocked(mockProductRepo.findById).mockResolvedValue(mockProduct as any)
 
-      await useCase.add(request)
+      await useCase.add(request, 'uuid-123')
 
-      expect(mockTransactionRepo.addTransaction).toHaveBeenCalledWith({
-        productId: 'prod-1',
-        description: 'Test',
-        date: request.date,
-        amount: 100,
-      })
+      expect(mockTransactionRepo.addTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'uuid-123',
+          productId: 'prod-1',
+          description: 'Test',
+          date: request.date,
+          amount: 100,
+        })
+      )
+      expect(mockProduct.validateTransaction).toHaveBeenCalled()
     })
 
     it('should throw error if product not found', async () => {
       vi.mocked(mockProductRepo.findById).mockResolvedValue(null)
       await expect(
-        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+        useCase.add({ userId: 'u1', productId: 'p1' } as any, 'uuid')
       ).rejects.toThrow('Product not found')
     })
 
@@ -62,21 +72,63 @@ describe('ProductTransactionUseCases', () => {
         id: 'p1',
         clientId: 'other-user',
         type: 'CURRENT_ACCOUNT',
+        currentBalance: 500,
+        name: 'Test Account',
+        financialEntity: 'Bank',
       } as any)
       await expect(
-        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+        useCase.add({ userId: 'u1', productId: 'p1' } as any, 'uuid')
       ).rejects.toThrow('Unauthorized access to product')
     })
 
     it('should throw error if product type is invalid', async () => {
-      vi.mocked(mockProductRepo.findById).mockResolvedValue({
+      const mockProduct = {
         id: 'p1',
         clientId: 'u1',
         type: 'STOCKS',
-      } as any)
+        name: 'Tesla',
+        status: 'ACTIVE',
+        financialEntity: 'Bank',
+        validateTransaction: vi.fn().mockImplementation(() => {
+          throw new Error(
+            'Transactions are not allowed for product type: STOCKS'
+          )
+        }),
+      }
+      vi.mocked(mockProductRepo.findById).mockResolvedValue(mockProduct as any)
+
       await expect(
-        useCase.add({ userId: 'u1', productId: 'p1' } as any)
+        useCase.add({ userId: 'u1', productId: 'p1' } as any, 'uuid')
       ).rejects.toThrow('Transactions are not allowed')
+    })
+
+    it('should throw error if product is not active', async () => {
+      const mockProduct = {
+        id: 'p1',
+        clientId: 'u1',
+        type: 'CURRENT_ACCOUNT',
+        status: 'INACTIVE',
+        currentBalance: 1000,
+        name: 'Test Account',
+        financialEntity: 'Bank',
+        validateTransaction: vi.fn().mockImplementation(() => {
+          throw new Error('Transaction failed: Product is not active')
+        }),
+      }
+      vi.mocked(mockProductRepo.findById).mockResolvedValue(mockProduct as any)
+
+      await expect(
+        useCase.add(
+          {
+            userId: 'u1',
+            productId: 'p1',
+            description: 'Test',
+            date: new Date(),
+            amount: 100,
+          } as any,
+          'uuid'
+        )
+      ).rejects.toThrow('Transaction failed: Product is not active')
     })
   })
 

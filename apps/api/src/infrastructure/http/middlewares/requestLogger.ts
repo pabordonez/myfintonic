@@ -10,7 +10,7 @@ export const requestLogger = (
   res.on('finish', () => {
     const duration = Date.now() - start
 
-    // Sanitización de logs: Evitar loguear contraseñas
+    // Sanitización
     let safeBody = req.body
     if (safeBody && typeof safeBody === 'object' && !Array.isArray(safeBody)) {
       safeBody = { ...safeBody }

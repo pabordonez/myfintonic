@@ -9,20 +9,20 @@ export const createClientRoutes = (clientController: ClientController) => {
 
   clientRouter.use(authenticate)
 
-  clientRouter.get('/', isAdmin, (req, res) =>
-    clientController.getAll(req, res)
+  clientRouter.get('/', isAdmin, (req, res, next) =>
+    clientController.getAll(req, res, next)
   )
 
-  clientRouter.get('/:id', clientOwnershipMiddleware, (req, res) =>
-    clientController.getById(req, res)
+  clientRouter.get('/:id', clientOwnershipMiddleware, (req, res, next) =>
+    clientController.getById(req, res, next)
   )
-  clientRouter.put('/:id', clientOwnershipMiddleware, (req, res) =>
-    clientController.update(req, res)
+  clientRouter.put('/:id', clientOwnershipMiddleware, (req, res, next) =>
+    clientController.update(req, res, next)
   )
   clientRouter.put(
     '/:id/change-password',
     clientOwnershipMiddleware,
-    (req, res) => clientController.changePassword(req, res)
+    (req, res, next) => clientController.changePassword(req, res, next)
   )
   return clientRouter
 }

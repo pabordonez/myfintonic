@@ -1,13 +1,14 @@
-import { IClientFinancialEntity } from '@domain/entities/IClientFinancialEntity'
-import { CreateClientFinancialEntityDto } from '@application/dtos/clientFinancialEntityDto'
+import { ClientFinancialEntity } from '@domain/models/clientFinancialEntity'
 
 export interface IClientFinancialEntityRepository {
-  findAll(
-    filters?: Partial<IClientFinancialEntity> & { name?: string }
-  ): Promise<IClientFinancialEntity[]>
-  findById(id: string): Promise<IClientFinancialEntity | null>
-  findAllWithClients(): Promise<IClientFinancialEntity[]>
-  create(data: CreateClientFinancialEntityDto): Promise<IClientFinancialEntity>
-  update(id: string, entity: Partial<IClientFinancialEntity>): Promise<void>
+  findAll(filters?: {
+    clientId?: string
+    financialEntityId?: string
+    name?: string
+  }): Promise<ClientFinancialEntity[]>
+  findById(id: string): Promise<ClientFinancialEntity | null>
+  findAllWithClients(): Promise<ClientFinancialEntity[]>
+  create(entity: ClientFinancialEntity): Promise<ClientFinancialEntity>
+  update(entity: ClientFinancialEntity): Promise<void>
   delete(id: string): Promise<void>
 }
