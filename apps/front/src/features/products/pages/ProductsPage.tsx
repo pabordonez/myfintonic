@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import axios from 'axios'
 import { Briefcase, Trash2 } from 'lucide-react'
 import { productService } from '../services/product.service'
 import { ProfitabilityBadge } from '../../financial-entities/components/ProfitabilityBadge'
@@ -37,7 +36,7 @@ interface SortConfig {
 
 export const ProductsPage = () => {
   const navigate = useNavigate()
-  const { token, user } = useAuth()
+  const { user } = useAuth()
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -53,13 +52,12 @@ export const ProductsPage = () => {
   })
 
   useEffect(() => {
-    if (!token) {
-      navigate('/auth/login')
+    if (!user) {
       return
     }
 
     fetchData()
-  }, [navigate, token])
+  }, [navigate, user])
 
   const fetchData = async () => {
     try {
@@ -70,10 +68,6 @@ export const ProductsPage = () => {
     } catch (err) {
       console.error(err)
       setError('Error al cargar los productos.')
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-        localStorage.clear()
-        navigate('/auth/login')
-      }
     } finally {
       setLoading(false)
     }

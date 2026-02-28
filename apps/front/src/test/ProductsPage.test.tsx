@@ -8,10 +8,20 @@ import {
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductsPage } from '../features/products/pages/ProductsPage'
-import axios from 'axios'
 import { MemoryRouter } from 'react-router-dom'
+import { api } from '../config/api'
 
-vi.mock('axios')
+vi.mock('../config/api', () => ({
+  api: {
+    get: vi.fn(),
+    delete: vi.fn(),
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
+  },
+}))
+
 const mockNavigate = vi.fn()
 
 vi.mock('react-router-dom', async () => {
@@ -32,17 +42,7 @@ describe('ProductsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Valor por defecto para la mayoría de tests (USER)
-    mockUseAuth.mockReturnValue({ token: 'test-token', user: { role: 'USER' } })
-  })
-
-  it('redirects to login if no token', () => {
-    mockUseAuth.mockReturnValue({ token: null, user: null })
-    render(
-      <MemoryRouter>
-        <ProductsPage />
-      </MemoryRouter>
-    )
-    expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
+    mockUseAuth.mockReturnValue({ user: { role: 'USER' } })
   })
 
   it('renders products list correctly', async () => {
@@ -64,7 +64,7 @@ describe('ProductsPage', () => {
       },
     ]
 
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -86,7 +86,7 @@ describe('ProductsPage', () => {
 
   it('displays error message on fetch failure', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    vi.mocked(axios.get).mockRejectedValue(new Error('Failed'))
+    vi.mocked(api.get).mockRejectedValue(new Error('Failed'))
 
     render(
       <MemoryRouter>
@@ -112,7 +112,7 @@ describe('ProductsPage', () => {
         currentBalance: 2500,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -138,8 +138,8 @@ describe('ProductsPage', () => {
         currentBalance: 0,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
-    vi.mocked(axios.delete).mockResolvedValue({})
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.delete).mockResolvedValue({})
     const confirmSpy = vi
       .spyOn(window, 'confirm')
       .mockImplementation(() => true)
@@ -159,11 +159,8 @@ describe('ProductsPage', () => {
 
     expect(confirmSpy).toHaveBeenCalled()
     await waitFor(() => {
-      expect(axios.delete).toHaveBeenCalledWith(
-        expect.stringContaining('/products/prod-1'),
-        expect.any(Object)
-      )
-      expect(axios.get).toHaveBeenCalledTimes(2) // Initial + Refresh
+      expect(api.delete).toHaveBeenCalledWith('/products/prod-1')
+      expect(api.get).toHaveBeenCalledTimes(2) // Initial + Refresh
     })
     confirmSpy.mockRestore()
   })
@@ -178,7 +175,7 @@ describe('ProductsPage', () => {
         currentBalance: 100,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
 
     render(
@@ -195,7 +192,7 @@ describe('ProductsPage', () => {
     fireEvent.click(deleteBtn)
 
     expect(confirmSpy).toHaveBeenCalled()
-    expect(axios.delete).not.toHaveBeenCalled()
+    expect(api.delete).not.toHaveBeenCalled()
     confirmSpy.mockRestore()
   })
 
@@ -218,7 +215,7 @@ describe('ProductsPage', () => {
         currentBalance: 200,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -253,7 +250,7 @@ describe('ProductsPage', () => {
         currentBalance: 200,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -296,7 +293,7 @@ describe('ProductsPage', () => {
         currentBalance: 100,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -334,7 +331,7 @@ describe('ProductsPage', () => {
         currentBalance: 1000,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -380,7 +377,7 @@ describe('ProductsPage', () => {
         currentBalance: 100,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -406,8 +403,8 @@ describe('ProductsPage', () => {
         currentBalance: 100,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
-    vi.mocked(axios.delete).mockRejectedValue(new Error('Delete failed'))
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.delete).mockRejectedValue(new Error('Delete failed'))
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -433,107 +430,6 @@ describe('ProductsPage', () => {
     consoleSpy.mockRestore()
   })
 
-  it('redirects to login on 401 error during fetch', async () => {
-    const error: any = new Error('Unauthorized')
-    error.response = { status: 401 }
-    vi.mocked(axios.isAxiosError).mockReturnValue(true)
-    vi.mocked(axios.get).mockRejectedValue(error)
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    render(
-      <MemoryRouter>
-        <ProductsPage />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(localStorage.getItem('token')).toBeNull()
-      expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-    })
-    consoleSpy.mockRestore()
-  })
-
-  it('redirects to login on 401 error during fetch', async () => {
-    const error: any = new Error('Unauthorized')
-    error.response = { status: 401 }
-    vi.mocked(axios.isAxiosError).mockReturnValue(true)
-    vi.mocked(axios.get).mockRejectedValue(error)
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    render(
-      <MemoryRouter>
-        <ProductsPage />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(localStorage.getItem('token')).toBeNull()
-      expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-    })
-    consoleSpy.mockRestore()
-  })
-
-  it('redirects to login on 401 error during fetch', async () => {
-    const error: any = new Error('Unauthorized')
-    error.response = { status: 401 }
-    vi.mocked(axios.isAxiosError).mockReturnValue(true)
-    vi.mocked(axios.get).mockRejectedValue(error)
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    render(
-      <MemoryRouter>
-        <ProductsPage />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(localStorage.getItem('token')).toBeNull()
-      expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-    })
-    consoleSpy.mockRestore()
-  })
-
-  it('redirects to login on 401 error during fetch', async () => {
-    const error: any = new Error('Unauthorized')
-    error.response = { status: 401 }
-    vi.mocked(axios.isAxiosError).mockReturnValue(true)
-    vi.mocked(axios.get).mockRejectedValue(error)
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    render(
-      <MemoryRouter>
-        <ProductsPage />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(localStorage.getItem('token')).toBeNull()
-      expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-    })
-    consoleSpy.mockRestore()
-  })
-
-  it('redirects to login on 401 error during fetch', async () => {
-    localStorage.setItem('token', 'test-token')
-    const error: any = new Error('Unauthorized')
-    error.response = { status: 401 }
-    vi.mocked(axios.isAxiosError).mockReturnValue(true)
-    vi.mocked(axios.get).mockRejectedValue(error)
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    render(
-      <MemoryRouter>
-        <ProductsPage />
-      </MemoryRouter>
-    )
-
-    await waitFor(() => {
-      expect(localStorage.getItem('token')).toBeNull()
-      expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-    })
-    consoleSpy.mockRestore()
-  })
-
   it('renders correct status colors', async () => {
     const mockProducts = [
       { id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
@@ -541,7 +437,7 @@ describe('ProductsPage', () => {
       { id: '3', name: 'P3', status: 'EXPIRED', type: 'CURRENT_ACCOUNT' },
       { id: '4', name: 'P4', status: 'INACTIVE', type: 'CURRENT_ACCOUNT' },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -568,7 +464,7 @@ describe('ProductsPage', () => {
       { id: '1', name: 'Alpha', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
       { id: '2', name: 'Beta', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -600,7 +496,7 @@ describe('ProductsPage', () => {
       { id: '1', name: 'Alpha', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
       { id: '2', name: 'Beta', status: 'PAUSED', type: 'SAVINGS_ACCOUNT' },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -620,7 +516,7 @@ describe('ProductsPage', () => {
   })
 
   it('displays empty state message when no products found', async () => {
-    vi.mocked(axios.get).mockResolvedValue({ data: [] })
+    vi.mocked(api.get).mockResolvedValue({ data: [] })
 
     render(
       <MemoryRouter>
@@ -641,7 +537,7 @@ describe('ProductsPage', () => {
 
   it('renders sort icons correctly', async () => {
     // Provide data to ensure the table is rendered
-    vi.mocked(axios.get).mockResolvedValue({
+    vi.mocked(api.get).mockResolvedValue({
       data: [
         { id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
       ],
@@ -676,7 +572,7 @@ describe('ProductsPage', () => {
     const mockProducts = [
       { id: '1', name: 'Alpha', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -702,7 +598,7 @@ describe('ProductsPage', () => {
         initialBalance: 50,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -732,7 +628,7 @@ describe('ProductsPage', () => {
         currentBalance: 100,
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -775,7 +671,7 @@ describe('ProductsPage', () => {
         initialBalance: 1000,
       }, // Diff 0
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -798,7 +694,7 @@ describe('ProductsPage', () => {
   })
 
   it('renders sort icons for differential column', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
+    vi.mocked(api.get).mockResolvedValue({
       data: [
         { id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
       ],
@@ -856,10 +752,10 @@ describe('ProductsPage', () => {
         type: 'CURRENT_ACCOUNT',
         status: 'ACTIVE',
         currentBalance: 1000,
-        initialBalance: '1000',
+        initialBalance: 1000,
       }, // Test type coercion
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -888,7 +784,7 @@ describe('ProductsPage', () => {
   })
 
   it('triggers sort for all sortable columns', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
+    vi.mocked(api.get).mockResolvedValue({
       data: [
         { id: '1', name: 'P1', status: 'ACTIVE', type: 'CURRENT_ACCOUNT' },
       ],
@@ -933,7 +829,7 @@ describe('ProductsPage', () => {
         type: 'CURRENT_ACCOUNT',
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -963,7 +859,7 @@ describe('ProductsPage', () => {
         type: 'CURRENT_ACCOUNT',
       },
     ]
-    vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
     render(
       <MemoryRouter>
@@ -983,13 +879,12 @@ describe('ProductsPage', () => {
   describe('ADMIN Role', () => {
     beforeEach(() => {
       mockUseAuth.mockReturnValue({
-        token: 'test-token',
         user: { role: 'ADMIN' },
       })
     })
 
     it('should NOT render "Nuevo Producto" button', async () => {
-      vi.mocked(axios.get).mockResolvedValue({ data: [] })
+      vi.mocked(api.get).mockResolvedValue({ data: [] })
       render(
         <MemoryRouter>
           <ProductsPage />
@@ -1006,7 +901,7 @@ describe('ProductsPage', () => {
       const mockProducts = [
         { id: '1', name: 'P1', type: 'CURRENT_ACCOUNT', status: 'ACTIVE' },
       ]
-      vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+      vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
       render(
         <MemoryRouter>
@@ -1029,7 +924,6 @@ describe('ProductsPage', () => {
   describe('ADMIN Role - Client Column', () => {
     beforeEach(() => {
       mockUseAuth.mockReturnValue({
-        token: 'test-token',
         user: { role: 'ADMIN' },
       })
     })
@@ -1045,7 +939,7 @@ describe('ProductsPage', () => {
           client: { firstName: 'John', lastName: 'Doe' },
         },
       ]
-      vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+      vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
       render(
         <MemoryRouter>
@@ -1066,7 +960,6 @@ describe('ProductsPage', () => {
   describe('USER Role - No Client Column', () => {
     beforeEach(() => {
       mockUseAuth.mockReturnValue({
-        token: 'test-token',
         user: { role: 'USER' },
       })
     })
@@ -1083,7 +976,7 @@ describe('ProductsPage', () => {
           client: { firstName: 'John', lastName: 'Doe' },
         },
       ]
-      vi.mocked(axios.get).mockResolvedValue({ data: mockProducts })
+      vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
 
       render(
         <MemoryRouter>

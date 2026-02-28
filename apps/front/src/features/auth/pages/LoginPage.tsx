@@ -14,13 +14,12 @@ export const LoginPage = () => {
   const onSubmit = async (data: any) => {
     try {
       // 1. Login para obtener token
-      const { token, user: loginUser } = await authService.login(data)
+      const { user: loginUser } = await authService.login(data)
 
       // 3. Obtener datos completos del usuario
       const user = await getClientById(loginUser.id)
 
       // 4. Guardar sesión
-      localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
 
       await refreshUser()

@@ -7,7 +7,19 @@ import { clientFinancialEntityService } from '../features/client-financial-entit
 import { getClients } from '../features/profile/services/client.service'
 
 // Mock dependencies
-vi.mock('axios')
+vi.mock('axios', () => {
+  const mockAxios = {
+    get: vi.fn(),
+    post: vi.fn(),
+    create: vi.fn().mockReturnThis(),
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
+    defaults: { headers: { common: {} } },
+  }
+  return { default: mockAxios }
+})
 const mockUseAuth = vi.fn()
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
