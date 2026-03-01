@@ -11,6 +11,7 @@ import {
 import { ProductTransactionButton } from '../components/ProductTransactionButton'
 import { financialEntityService } from '../../financial-entities/services/financialEntity.service'
 import { useAuth } from '@/hooks/useAuth'
+import { ArrowLeft } from 'lucide-react'
 
 // Helper para convertir strings vacíos a undefined y números
 const optionalNumber = z.preprocess(
@@ -211,9 +212,18 @@ export const ProductFormPage = () => {
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded shadow">
-      <h1 className="text-2xl font-bold mb-6">
-        {isEditMode ? 'Editar Producto' : 'Crear Producto'}
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">
+          {isEditMode ? 'Editar Producto' : 'Crear Producto'}
+        </h1>
+        <button
+          onClick={() => navigate('/products')}
+          className="flex items-center text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="h-5 w-5 mr-1" />
+          Volver
+        </button>
+      </div>
       {error && <div className="text-red-500 mb-4">{error}</div>}
       {success && <div className="text-green-500 mb-4">{success}</div>}
 

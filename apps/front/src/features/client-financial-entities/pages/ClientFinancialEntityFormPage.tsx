@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ValueHistoryList } from '../../financial-entities/components/ValueHistoryList'
 import { financialEntityService } from '../../financial-entities/services/financialEntity.service'
 import { clientFinancialEntityService } from '../services/clientFinancialEntity.service'
+import { ArrowLeft } from 'lucide-react'
 
 export const ClientFinancialEntityFormPage = () => {
   const { id } = useParams()
@@ -85,9 +86,18 @@ export const ClientFinancialEntityFormPage = () => {
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded shadow">
-      <h1 className="text-2xl font-bold mb-6">
-        {isEditMode ? 'Editar Entidad' : 'Vincular Entidad'}
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">
+          {isEditMode ? 'Editar Entidad' : 'Vincular Entidad'}
+        </h1>
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="h-5 w-5 mr-1" />
+          Volver
+        </button>
+      </div>
 
       {error && <div className="text-red-500 mb-4">{error}</div>}
       {success && <div className="text-green-500 mb-4">{success}</div>}
@@ -128,19 +138,12 @@ export const ClientFinancialEntityFormPage = () => {
           />
         </div>
 
-        <div className="pt-4 flex justify-between">
+        <div className="pt-4">
           <button
             type="submit"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             Guardar
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/dashboard')}
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
-          >
-            Volver
           </button>
         </div>
       </form>
