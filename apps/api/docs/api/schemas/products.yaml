@@ -3,7 +3,6 @@ Product:
   required:
     - type
     - name
-    - financialEntity
     - status
     - clientId
   discriminator:
@@ -26,22 +25,42 @@ Product:
     name:
       type: string
       example: 'Cuenta Nómina Premium'
-    financialEntity:
+    financialEntityId:
       type: string
-      example: 'Banco Central'
+      format: uuid
+    financialEntityName:
+      type: string
+      description: Nombre de la entidad financiera asociada.
     status:
       $ref: './common.yaml#/ProductStatus'
     clientId:
       type: string
       format: uuid
       example: '550e8400-e29b-41d4-a716-446655440000'
+    client:
+      type: object
+      nullable: true
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
     initialBalance:
-      type: number
+      type: string
+      format: decimal
       nullable: true
     deletedAt:
       type: string
       format: date-time
       nullable: true
+      readOnly: true
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+    updatedAt:
+      type: string
+      format: date-time
       readOnly: true
     valueHistory:
       type: array
@@ -53,7 +72,7 @@ Product:
             type: string
             format: date-time
           value:
-            type: number
+            type: number # Value history might still be number or string depending on implementation, keeping number for now if JSON
           previousValue:
             type: number
             nullable: true
@@ -66,7 +85,8 @@ CurrentAccount:
         - currentBalance
       properties:
         currentBalance:
-          type: number
+          type: string
+          format: decimal
         transactions:
           type: array
           items:
@@ -89,9 +109,11 @@ SavingsAccount:
         - monthlyInterestRate
       properties:
         currentBalance:
-          type: number
+          type: string
+          format: decimal
         monthlyInterestRate:
-          type: number
+          type: string
+          format: decimal
           example: 0.02
 
 FixedTermDeposit:
@@ -106,7 +128,8 @@ FixedTermDeposit:
         - interestPaymentFreq
       properties:
         initialBalance:
-          type: number
+          type: string
+          format: decimal
         initialDate:
           type: string
           format: date-time
@@ -114,7 +137,8 @@ FixedTermDeposit:
           type: string
           format: date-time
         annualInterestRate:
-          type: number
+          type: string
+          format: decimal
         interestPaymentFreq:
           type: string
           enum: [Monthly, Quarterly, Annual, AtMaturity]
@@ -127,11 +151,14 @@ InvestmentFund:
         - currentBalance
       properties:
         currentBalance:
-          type: number
+          type: string
+          format: decimal
         numberOfUnits:
-          type: number
+          type: string
+          format: decimal
         netAssetValue:
-          type: number
+          type: string
+          format: decimal
 
 Stocks:
   allOf:
@@ -144,15 +171,20 @@ Stocks:
         - initialBalance
       properties:
         initialBalance:
-          type: number
+          type: string
+          format: decimal
         currentBalance:
-          type: number
+          type: string
+          format: decimal
         numberOfShares:
-          type: number
+          type: string
+          format: decimal
         unitPurchasePrice:
-          type: number
+          type: string
+          format: decimal
         currentMarketPrice:
-          type: number
+          type: string
+          format: decimal
 
 ProductUpdate:
   type: object
