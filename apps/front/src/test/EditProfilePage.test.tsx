@@ -23,13 +23,15 @@ vi.mock('react-router-dom', async () => {
 describe('EditProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    const user = {
+      id: '1',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@test.com',
+    }
+    localStorage.setItem('user', JSON.stringify(user))
     ;(useAuth as any).mockReturnValue({
-      user: {
-        id: '1',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@test.com',
-      },
+      user,
       refreshUser: mockRefreshUser,
     })
   })

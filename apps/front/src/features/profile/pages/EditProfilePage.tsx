@@ -30,7 +30,13 @@ export const EditProfilePage = () => {
     setSuccess(null)
 
     try {
-      await updateClientProfile(user.id, data)
+      const updatedUser = await updateClientProfile(user.id, data)
+
+      // Actualizar localStorage con los nuevos datos para que refreshUser los recoja
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+      const newUser = { ...currentUser, ...updatedUser }
+      localStorage.setItem('user', JSON.stringify(newUser))
+
       await refreshUser()
       setSuccess('Perfil actualizado correctamente')
       setTimeout(() => {

@@ -30,7 +30,7 @@ const productSchema = z.object({
   maturityDate: z.string().optional(),
   annualInterestRate: optionalNumber,
   monthlyInterestRate: optionalNumber,
-  interestPaymentFrequency: z.string().optional(),
+  interestPaymentFreq: z.string().optional(),
   numberOfShares: optionalNumber,
   numberOfUnits: optionalNumber,
   netAssetValue: optionalNumber,
@@ -80,7 +80,8 @@ export const ProductFormPage = () => {
           reset({
             name: product.name,
             type: product.type,
-            financialEntity: product.financialEntityId,
+            financialEntity:
+              product.financialEntityId || product.financialEntity,
             status: product.status,
             //TODO MEJORAR ESTO
             currentBalance: product.currentBalance ?? product.initialBalance,
@@ -94,7 +95,7 @@ export const ProductFormPage = () => {
               : '',
             annualInterestRate: product.annualInterestRate,
             monthlyInterestRate: product.monthlyInterestRate,
-            interestPaymentFrequency: product.interestPaymentFrequency,
+            interestPaymentFreq: product.interestPaymentFreq,
             numberOfShares: product.numberOfShares,
             numberOfUnits: product.numberOfUnits,
             netAssetValue: product.netAssetValue,
@@ -138,6 +139,17 @@ export const ProductFormPage = () => {
 
         if (typeToUse === 'INVESTMENT_FUND') {
           delete updateData.initialBalance
+        }
+
+        // Limpiar campos específicos de Depósito si no es ese tipo
+        if (typeToUse !== 'FIXED_TERM_DEPOSIT') {
+          delete updateData.initialDate
+          delete updateData.maturityDate
+          delete updateData.annualInterestRate
+          delete updateData.interestPaymentFreq
+        } else {
+          if (updateData.initialDate === '') delete updateData.initialDate
+          if (updateData.maturityDate === '') delete updateData.maturityDate
         }
 
         await productService.update(id as string, updateData)
@@ -369,14 +381,14 @@ export const ProductFormPage = () => {
             />
 
             <label
-              htmlFor="interestPaymentFrequency"
+              htmlFor="interestPaymentFreq"
               className="block text-sm font-medium"
             >
               Frecuencia de Pago
             </label>
             <select
-              id="interestPaymentFrequency"
-              {...register('interestPaymentFrequency')}
+              id="interestPaymentFreq"
+              {...register('interestPaymentFreq')}
               className="mt-1 block w-full border rounded p-2"
             >
               <option value="AtMaturity">Al Vencimiento</option>
