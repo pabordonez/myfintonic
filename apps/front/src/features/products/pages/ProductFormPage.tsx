@@ -11,6 +11,7 @@ import {
 import { ProductTransactionButton } from '../components/ProductTransactionButton'
 import { financialEntityService } from '../../financial-entities/services/financialEntity.service'
 import { useAuth } from '@/hooks/useAuth'
+import { ArrowLeft } from 'lucide-react'
 
 // Helper para convertir strings vacíos a undefined y números
 const optionalNumber = z.preprocess(
@@ -30,7 +31,7 @@ const productSchema = z.object({
   maturityDate: z.string().optional(),
   annualInterestRate: optionalNumber,
   monthlyInterestRate: optionalNumber,
-  interestPaymentFrequency: z.string().optional(),
+  interestPaymentFreq: z.string().optional(),
   numberOfShares: optionalNumber,
   numberOfUnits: optionalNumber,
   netAssetValue: optionalNumber,
@@ -80,7 +81,8 @@ export const ProductFormPage = () => {
           reset({
             name: product.name,
             type: product.type,
-            financialEntity: product.financialEntityId,
+            financialEntity:
+              product.financialEntityId || product.financialEntity,
             status: product.status,
             //TODO MEJORAR ESTO
             currentBalance: product.currentBalance ?? product.initialBalance,
@@ -94,7 +96,7 @@ export const ProductFormPage = () => {
               : '',
             annualInterestRate: product.annualInterestRate,
             monthlyInterestRate: product.monthlyInterestRate,
-            interestPaymentFrequency: product.interestPaymentFrequency,
+            interestPaymentFreq: product.interestPaymentFreq,
             numberOfShares: product.numberOfShares,
             numberOfUnits: product.numberOfUnits,
             netAssetValue: product.netAssetValue,
@@ -138,6 +140,17 @@ export const ProductFormPage = () => {
 
         if (typeToUse === 'INVESTMENT_FUND') {
           delete updateData.initialBalance
+        }
+
+        // Limpiar campos específicos de Depósito si no es ese tipo
+        if (typeToUse !== 'FIXED_TERM_DEPOSIT') {
+          delete updateData.initialDate
+          delete updateData.maturityDate
+          delete updateData.annualInterestRate
+          delete updateData.interestPaymentFreq
+        } else {
+          if (updateData.initialDate === '') delete updateData.initialDate
+          if (updateData.maturityDate === '') delete updateData.maturityDate
         }
 
         await productService.update(id as string, updateData)
@@ -199,9 +212,18 @@ export const ProductFormPage = () => {
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded shadow">
-      <h1 className="text-2xl font-bold mb-6">
-        {isEditMode ? 'Editar Producto' : 'Crear Producto'}
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">
+          {isEditMode ? 'Editar Producto' : 'Crear Producto'}
+        </h1>
+        <button
+          onClick={() => navigate('/products')}
+          className="flex items-center text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="h-5 w-5 mr-1" />
+          Volver
+        </button>
+      </div>
       {error && <div className="text-red-500 mb-4">{error}</div>}
       {success && <div className="text-green-500 mb-4">{success}</div>}
 
@@ -369,14 +391,14 @@ export const ProductFormPage = () => {
             />
 
             <label
-              htmlFor="interestPaymentFrequency"
+              htmlFor="interestPaymentFreq"
               className="block text-sm font-medium"
             >
               Frecuencia de Pago
             </label>
             <select
-              id="interestPaymentFrequency"
-              {...register('interestPaymentFrequency')}
+              id="interestPaymentFreq"
+              {...register('interestPaymentFreq')}
               className="mt-1 block w-full border rounded p-2"
             >
               <option value="AtMaturity">Al Vencimiento</option>

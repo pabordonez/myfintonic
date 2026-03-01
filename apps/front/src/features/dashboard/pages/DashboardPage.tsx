@@ -265,6 +265,12 @@ export const DashboardPage = () => {
                         scope="col"
                         className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider"
                       >
+                        Creado
+                      </th>
+                      <th
+                        scope="col"
+                        className="whitespace-nowrap px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider"
+                      >
                         Actualizado
                       </th>
                       {user.role !== 'ADMIN' && (
@@ -281,7 +287,7 @@ export const DashboardPage = () => {
                     {processedItems.length === 0 && (
                       <tr>
                         <td
-                          colSpan={5}
+                          colSpan={6}
                           className="px-6 py-4 text-center text-sm text-gray-500"
                         >
                           {items.length === 0
@@ -333,6 +339,11 @@ export const DashboardPage = () => {
                               currency: 'EUR',
                             }).format(item.balance)}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                          {item.createdAt
+                            ? new Date(item.createdAt).toLocaleDateString()
+                            : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                           {item.updatedAt

@@ -21,6 +21,7 @@ const ProductSchema = z.object({
   name: z.string(),
   type: z.string(),
   financialEntityId: z.string().optional().nullable(),
+  financialEntity: z.string().optional().nullable(),
   financialEntityName: z.string().optional().nullable(),
   status: z.string().optional(),
   currentBalance: CoercedNullableNumber,
@@ -35,7 +36,7 @@ const ProductSchema = z.object({
   maturityDate: z.string().or(z.date()).optional(),
   annualInterestRate: CoercedOptionalNumber,
   monthlyInterestRate: CoercedOptionalNumber,
-  interestPaymentFrequency: z.string().optional(),
+  interestPaymentFreq: z.string().optional(),
   // Relaciones
   clientId: z.string().optional().nullable(),
   client: z

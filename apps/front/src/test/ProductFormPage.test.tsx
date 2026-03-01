@@ -250,7 +250,7 @@ describe('ProductFormPage', () => {
       initialDate: '2023-01-01T00:00:00Z',
       maturityDate: '2024-01-01T00:00:00Z',
       annualInterestRate: 0.05,
-      interestPaymentFrequency: 'Annual',
+      interestPaymentFreq: 'Annual',
     }
 
     vi.mocked(api.get).mockImplementation((url) => {
@@ -1141,7 +1141,7 @@ describe('ProductFormPage', () => {
       initialDate: '2023-01-01T00:00:00Z',
       maturityDate: '2024-01-01T00:00:00Z',
       annualInterestRate: 0.05,
-      interestPaymentFrequency: 'Annual',
+      interestPaymentFreq: 'Annual',
     }
 
     vi.mocked(api.get)

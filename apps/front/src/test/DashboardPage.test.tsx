@@ -95,6 +95,7 @@ describe('DashboardPage', () => {
           initialBalance: 800,
           financialEntity: { name: 'Bank A' },
           updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
         },
         {
           id: '2',
@@ -102,6 +103,7 @@ describe('DashboardPage', () => {
           initialBalance: 600,
           financialEntity: { name: 'Bank B' },
           updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
         },
       ]
       mockUseAuth.mockReturnValue({
@@ -398,6 +400,7 @@ describe('DashboardPage', () => {
             email: 'john@test.com',
           },
           updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
         },
       ]
 
