@@ -77,7 +77,9 @@ describe('ProductsPage', () => {
       expect(screen.getAllByText('Banco Santander').length).toBeGreaterThan(0)
       expect(screen.getAllByText('Cuenta Corriente').length).toBeGreaterThan(0)
       expect(screen.getByText('ACTIVE')).toBeInTheDocument()
-      expect(screen.getByText(/2\.?500,00\s*€/)).toBeInTheDocument()
+      const row = screen.getByText('Cuenta Nómina').closest('tr')
+      expect(row).toBeInTheDocument()
+      expect(within(row!).getByText(/2\.?500,00\s*€/)).toBeInTheDocument()
 
       // Por defecto solo se muestran los activos
       expect(screen.queryByText('Fondo Tecnológico')).not.toBeInTheDocument()
@@ -349,7 +351,9 @@ describe('ProductsPage', () => {
     )
     await waitFor(() => expect(screen.getByText('Low')).toBeInTheDocument())
 
-    const balanceHeader = screen.getByText(/Balance/i)
+    const balanceHeader = screen.getByRole('columnheader', {
+      name: /Balance/i,
+    })
 
     // 1. Click -> Ascendente (Menor a Mayor)
     fireEvent.click(balanceHeader)
@@ -621,7 +625,9 @@ describe('ProductsPage', () => {
     await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
 
     // Should show 50,00 € (fallback to initialBalance)
-    expect(screen.getByText(/50,00\s*€/)).toBeInTheDocument()
+    const row = screen.getByText('P1').closest('tr')
+    expect(row).toBeInTheDocument()
+    expect(within(row!).getByText(/50,00\s*€/)).toBeInTheDocument()
   })
 
   it('sorts products with equal values stably', async () => {
@@ -1012,6 +1018,86 @@ describe('ProductsPage', () => {
 
       expect(screen.queryByText('Cliente')).not.toBeInTheDocument()
       expect(screen.queryByText('John Doe')).not.toBeInTheDocument()
+    })
+  })
+
+  it('calculates and displays total balance summary', async () => {
+    const mockProducts = [
+      {
+        id: '1',
+        name: 'P1',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 1000,
+        initialBalance: 800,
+      },
+      {
+        id: '2',
+        name: 'P2',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 500,
+        initialBalance: 600,
+      },
+    ]
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
+
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
+
+    // Total Balance: 1000 + 500 = 1500
+    // Profitability: (1500 - 1400) / 1400 = 7.14%
+    const summaryLabel = screen.getByText('Balance Total')
+    const summaryContainer = summaryLabel.closest('div')
+    expect(summaryContainer).toHaveTextContent(/1\.?500,00/)
+  })
+
+  it('updates total balance summary when filtering', async () => {
+    const mockProducts = [
+      {
+        id: '1',
+        name: 'Alpha',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 1000,
+        initialBalance: 1000,
+      },
+      {
+        id: '2',
+        name: 'Beta',
+        type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
+        currentBalance: 500,
+        initialBalance: 500,
+      },
+    ]
+    vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
+
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
+    await waitFor(() => expect(screen.getByText('Alpha')).toBeInTheDocument())
+
+    // Initial Total: 1500
+    const summaryLabel = screen.getByText('Balance Total')
+    const summaryContainer = summaryLabel.closest('div')
+    expect(summaryContainer).toHaveTextContent(/1\.?500,00/)
+
+    // Filter by name "Alpha"
+    const searchInput = screen.getByPlaceholderText('Nombre...')
+    fireEvent.change(searchInput, { target: { value: 'Alpha' } })
+
+    // Should update to 1000
+    await waitFor(() => {
+      const updatedContainer = screen.getByText('Balance Total').closest('div')
+      expect(updatedContainer).toHaveTextContent(/1\.?000,00/)
     })
   })
 })
