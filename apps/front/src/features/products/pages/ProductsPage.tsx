@@ -44,7 +44,7 @@ export const ProductsPage = () => {
   // Estados de Filtros y Ordenación
   const [filterName, setFilterName] = useState('')
   const [filterType, setFilterType] = useState('')
-  const [filterStatus, setFilterStatus] = useState('')
+  const [filterStatus, setFilterStatus] = useState('ACTIVE')
   const [filterEntities, setFilterEntities] = useState<string[]>([])
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: null,

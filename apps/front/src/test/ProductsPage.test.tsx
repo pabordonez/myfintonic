@@ -79,6 +79,15 @@ describe('ProductsPage', () => {
       expect(screen.getByText('ACTIVE')).toBeInTheDocument()
       expect(screen.getByText(/2\.?500,00\s*€/)).toBeInTheDocument()
 
+      // Por defecto solo se muestran los activos
+      expect(screen.queryByText('Fondo Tecnológico')).not.toBeInTheDocument()
+    })
+
+    // Limpiar filtro para ver todos
+    fireEvent.change(screen.getByLabelText(/Estado/i), {
+      target: { value: '' },
+    })
+    await waitFor(() => {
       expect(screen.getByText('Fondo Tecnológico')).toBeInTheDocument()
       expect(screen.getByText('PAUSED')).toBeInTheDocument()
     })
@@ -445,6 +454,10 @@ describe('ProductsPage', () => {
       </MemoryRouter>
     )
     await waitFor(() => expect(screen.getByText('P1')).toBeInTheDocument())
+
+    // Limpiar filtro para ver todos los estados
+    const statusSelect = screen.getByLabelText(/Estado/i)
+    fireEvent.change(statusSelect, { target: { value: '' } })
 
     const activeBadge = screen.getByText('ACTIVE')
     expect(activeBadge).toHaveClass('bg-green-100')
@@ -836,6 +849,15 @@ describe('ProductsPage', () => {
         <ProductsPage />
       </MemoryRouter>
     )
+
+    // Esperar a que cargue y limpiar filtro (ya que UNKNOWN no es ACTIVE)
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Estado/i)).toBeInTheDocument()
+    )
+    fireEvent.change(screen.getByLabelText(/Estado/i), {
+      target: { value: '' },
+    })
+
     await waitFor(() =>
       expect(screen.getByText('UNKNOWN_STATUS')).toBeInTheDocument()
     )
@@ -851,12 +873,14 @@ describe('ProductsPage', () => {
         name: 'P1',
         financialEntityName: null,
         type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
       },
       {
         id: '2',
         name: 'P2',
         financialEntityName: 'Bank A',
         type: 'CURRENT_ACCOUNT',
+        status: 'ACTIVE',
       },
     ]
     vi.mocked(api.get).mockResolvedValue({ data: mockProducts })
