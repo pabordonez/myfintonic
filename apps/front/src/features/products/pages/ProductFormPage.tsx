@@ -20,6 +20,17 @@ const optionalNumber = z.preprocess(
   z.number().optional()
 )
 
+// Helper para porcentajes (0.01% - 100%)
+const percentageSchema = z.preprocess(
+  (val) =>
+    val === '' || val === null || val === undefined ? undefined : Number(val),
+  z
+    .number()
+    .min(0.01, 'El porcentaje debe ser mayor o igual a 0.01')
+    .max(100, 'El porcentaje no puede ser mayor a 100')
+    .optional()
+)
+
 const productSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
   type: z.string().min(1, 'El tipo es requerido'),
@@ -29,8 +40,8 @@ const productSchema = z.object({
   initialBalance: optionalNumber,
   initialDate: z.string().optional(),
   maturityDate: z.string().optional(),
-  annualInterestRate: optionalNumber,
-  monthlyInterestRate: optionalNumber,
+  annualInterestRate: percentageSchema,
+  monthlyInterestRate: percentageSchema,
   interestPaymentFreq: z.string().optional(),
   numberOfShares: optionalNumber,
   numberOfUnits: optionalNumber,
@@ -94,8 +105,14 @@ export const ProductFormPage = () => {
             maturityDate: product.maturityDate
               ? new Date(product.maturityDate).toISOString().split('T')[0]
               : '',
-            annualInterestRate: product.annualInterestRate,
-            monthlyInterestRate: product.monthlyInterestRate,
+            annualInterestRate:
+              product.annualInterestRate != null
+                ? parseFloat((product.annualInterestRate * 100).toFixed(2))
+                : undefined,
+            monthlyInterestRate:
+              product.monthlyInterestRate != null
+                ? parseFloat((product.monthlyInterestRate * 100).toFixed(2))
+                : undefined,
             interestPaymentFreq: product.interestPaymentFreq,
             numberOfShares: product.numberOfShares,
             numberOfUnits: product.numberOfUnits,
@@ -129,7 +146,17 @@ export const ProductFormPage = () => {
       setSuccess(null)
       setError(null)
       // Los datos ya vienen tipados y limpios gracias a Zod
-      const preparedData = data
+      const preparedData = { ...data }
+
+      // Transformar porcentajes a decimales para la API
+      if (preparedData.annualInterestRate !== undefined) {
+        preparedData.annualInterestRate =
+          Number(preparedData.annualInterestRate) / 100
+      }
+      if (preparedData.monthlyInterestRate !== undefined) {
+        preparedData.monthlyInterestRate =
+          Number(preparedData.monthlyInterestRate) / 100
+      }
 
       if (isEditMode) {
         const typeToUse = data.type || selectedType
@@ -385,10 +412,15 @@ export const ProductFormPage = () => {
             <input
               id="annualInterestRate"
               type="number"
-              step="0.0001"
+              step="0.01"
               {...register('annualInterestRate')}
               className="mt-1 block w-full border rounded p-2"
             />
+            {errors.annualInterestRate && (
+              <p className="text-red-500 text-xs">
+                {errors.annualInterestRate.message as string}
+              </p>
+            )}
 
             <label
               htmlFor="interestPaymentFreq"
@@ -420,10 +452,15 @@ export const ProductFormPage = () => {
             <input
               id="monthlyInterestRate"
               type="number"
-              step="0.0001"
+              step="0.01"
               {...register('monthlyInterestRate')}
               className="mt-1 block w-full border rounded p-2"
             />
+            {errors.monthlyInterestRate && (
+              <p className="text-red-500 text-xs">
+                {errors.monthlyInterestRate.message as string}
+              </p>
+            )}
           </div>
         )}
 

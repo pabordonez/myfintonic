@@ -1158,4 +1158,104 @@ describe('ProductFormPage', () => {
     )
     expect(screen.getByDisplayValue('2024-01-01')).toBeInTheDocument()
   })
+
+  it('validates percentage limits for interest rates', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      data: [{ id: 'ent-1', name: 'Banco Santander' }],
+    })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Tipo/i)).toBeInTheDocument()
+    )
+
+    // Select Fixed Term Deposit
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'FIXED_TERM_DEPOSIT' },
+    })
+
+    // Test > 100
+    const annualRateInput = screen.getByLabelText(/Tasa de Interés Anual/i)
+    fireEvent.change(annualRateInput, { target: { value: '110' } })
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('El porcentaje no puede ser mayor a 100')
+      ).toBeInTheDocument()
+    })
+
+    // Test < 0.01
+    fireEvent.change(annualRateInput, { target: { value: '0.001' } })
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('El porcentaje debe ser mayor o igual a 0.01')
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('transforms percentage to decimal on submit', async () => {
+    vi.mocked(api.get).mockImplementation((url) => {
+      if (url.includes('/financial-entities')) {
+        return Promise.resolve({
+          data: [{ id: 'ent-1', name: 'Banco Santander' }],
+        })
+      }
+      return Promise.resolve({ data: [] })
+    })
+    vi.mocked(api.post).mockResolvedValue({
+      data: { id: 'new-prod', name: 'Depo', type: 'FIXED_TERM_DEPOSIT' },
+    })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Tipo/i)).toBeInTheDocument()
+    )
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: 'Depo' },
+    })
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'FIXED_TERM_DEPOSIT' },
+    })
+    fireEvent.change(screen.getByLabelText(/Entidad/i), {
+      target: { value: 'ent-1' },
+    })
+    fireEvent.change(screen.getByLabelText(/^Balance$/i), {
+      target: { value: '1000' },
+    })
+    fireEvent.change(screen.getByLabelText(/Fecha Inicio/i), {
+      target: { value: '2023-01-01' },
+    })
+    fireEvent.change(screen.getByLabelText(/Fecha Vencimiento/i), {
+      target: { value: '2024-01-01' },
+    })
+    fireEvent.change(screen.getByLabelText(/Frecuencia de Pago/i), {
+      target: { value: 'Annual' },
+    })
+    fireEvent.change(screen.getByLabelText(/Tasa de Interés Anual/i), {
+      target: { value: '5.5' },
+    })
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith(
+        expect.stringContaining('/products'),
+        expect.objectContaining({ annualInterestRate: 0.055 })
+      )
+    })
+  })
 })
