@@ -71,6 +71,8 @@ export class PrismaProductRepository implements IProductRepository {
   async findAll(
     filters?: Partial<IFinancialProduct>
   ): Promise<FinancialProduct[]> {
+    console.log('********')
+
     const where: any = {}
 
     if (filters?.clientId) where.clientId = filters.clientId
@@ -83,13 +85,17 @@ export class PrismaProductRepository implements IProductRepository {
       where,
       include: {
         financialEntity: true,
-        valueHistory: true,
-        transactions: true,
         client: true,
       },
     })
 
-    return prismaProducts.map((p: any) => PrismaProductMapper.toDomain(p))
+    return prismaProducts.map((p: any) => {
+      const product = PrismaProductMapper.toDomain(p)
+      console.log('***', JSON.stringify(product))
+      delete product.valueHistory
+      delete (product as any).transactions
+      return product
+    })
   }
 
   async delete(id: string): Promise<void> {

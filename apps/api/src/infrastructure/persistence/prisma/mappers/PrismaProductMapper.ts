@@ -153,6 +153,29 @@ export class PrismaProductMapper {
       ...prismaProduct,
     }
 
+    // Convert Decimal fields to number to match Domain Model
+    const decimalFields = [
+      'currentBalance',
+      'monthlyInterestRate',
+      'initialBalance',
+      'annualInterestRate',
+      'numberOfUnits',
+      'netAssetValue',
+      'numberOfShares',
+      'unitPurchasePrice',
+      'currentMarketPrice',
+    ]
+
+    decimalFields.forEach((field) => {
+      if (
+        specificFields[field] &&
+        typeof specificFields[field] === 'object' &&
+        'toNumber' in specificFields[field]
+      ) {
+        specificFields[field] = specificFields[field].toNumber()
+      }
+    })
+
     return FinancialProductFactory.fromPrimitives({
       ...specificFields,
       ...base,

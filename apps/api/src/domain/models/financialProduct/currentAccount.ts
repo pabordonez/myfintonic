@@ -1,8 +1,9 @@
 import { FinancialProduct } from '@domain/models/financialProduct'
+import { ProductTransaction } from '@domain/models/productTransaction'
 
 export class CurrentAccount extends FinancialProduct {
   public currentBalance!: number
-  public transactions!: any[]
+  public transactions!: ProductTransaction[]
 
   private constructor(data: any) {
     super(data)

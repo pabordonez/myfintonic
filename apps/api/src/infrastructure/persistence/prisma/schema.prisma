@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums basados en tu diseño
+// Enums 
 enum ProductStatus {
   ACTIVE
   INACTIVE
