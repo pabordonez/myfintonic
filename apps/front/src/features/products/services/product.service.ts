@@ -75,11 +75,4 @@ export const productService = {
   delete: async (id: string) => {
     await api.delete(`/products/${id}`)
   },
-  patch: async (id: string, data: any) => {
-    const response = await api.patch(`/products/${id}`, data)
-    if (response.data) {
-      return ProductSchema.parse(response.data)
-    }
-    return response.data
-  },
 }

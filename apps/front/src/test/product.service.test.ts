@@ -8,7 +8,6 @@ vi.mock('../config/api', () => ({
     post: vi.fn(),
     put: vi.fn(),
     delete: vi.fn(),
-    patch: vi.fn(),
     interceptors: {
       request: { use: vi.fn(), eject: vi.fn() },
       response: { use: vi.fn(), eject: vi.fn() },
@@ -57,13 +56,5 @@ describe('product.service', () => {
     vi.mocked(api.delete).mockResolvedValue({ data: {} })
     await productService.delete('1')
     expect(api.delete).toHaveBeenCalledWith('/products/1')
-  })
-
-  it('patch calls api.patch', async () => {
-    const mockData = { id: '1', name: 'P1', type: 'TYPE', status: 'ACTIVE' }
-    vi.mocked(api.patch).mockResolvedValue({ data: mockData })
-    const result = await productService.patch('1', mockData)
-    expect(api.patch).toHaveBeenCalledWith('/products/1', mockData)
-    expect(result).toEqual(mockData)
   })
 })

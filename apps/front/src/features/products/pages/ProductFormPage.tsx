@@ -199,7 +199,7 @@ export const ProductFormPage = () => {
 
     try {
       setStatusLoading(true)
-      await productService.patch(id, { status: newStatus })
+      await productService.update(id, { status: newStatus })
     } catch (err) {
       console.error(err)
       setError('Error al actualizar el estado')

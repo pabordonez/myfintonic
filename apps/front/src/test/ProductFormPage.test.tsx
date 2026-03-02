@@ -24,7 +24,6 @@ vi.mock('../config/api', () => ({
     post: vi.fn(),
     put: vi.fn(),
     delete: vi.fn(),
-    patch: vi.fn(),
     interceptors: {
       request: { use: vi.fn(), eject: vi.fn() },
       response: { use: vi.fn(), eject: vi.fn() },
@@ -638,7 +637,7 @@ describe('ProductFormPage', () => {
     expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
   })
 
-  it('calls PATCH when status is changed in edit mode', async () => {
+  it('calls PUT when status is changed in edit mode', async () => {
     mockUseParams.mockReturnValue({ id: 'prod-1' })
     const mockProduct = {
       id: 'prod-1',
@@ -655,7 +654,7 @@ describe('ProductFormPage', () => {
       })
       .mockResolvedValueOnce({ data: mockProduct })
 
-    vi.mocked(api.patch).mockResolvedValue({})
+    vi.mocked(api.put).mockResolvedValue({})
     const confirmSpy = vi
       .spyOn(window, 'confirm')
       .mockImplementation(() => true)
@@ -676,7 +675,7 @@ describe('ProductFormPage', () => {
 
     expect(confirmSpy).toHaveBeenCalled()
     await waitFor(() => {
-      expect(api.patch).toHaveBeenCalledWith(
+      expect(api.put).toHaveBeenCalledWith(
         expect.stringContaining('/products/prod-1'),
         { status: 'PAUSED' }
       )
@@ -1007,7 +1006,7 @@ describe('ProductFormPage', () => {
 
     expect(confirmSpy).toHaveBeenCalled()
     expect(preventDefaultSpy).toHaveBeenCalled()
-    expect(api.patch).not.toHaveBeenCalled()
+    expect(api.put).not.toHaveBeenCalled()
     confirmSpy.mockRestore()
   })
 
@@ -1023,7 +1022,7 @@ describe('ProductFormPage', () => {
     vi.mocked(api.get)
       .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
       .mockResolvedValueOnce({ data: mockProduct })
-    vi.mocked(api.patch).mockRejectedValue(new Error('Patch failed'))
+    vi.mocked(api.put).mockRejectedValue(new Error('Put failed'))
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
