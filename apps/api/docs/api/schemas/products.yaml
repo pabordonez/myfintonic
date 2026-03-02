@@ -45,6 +45,9 @@ Product:
           type: string
         lastName:
           type: string
+        email:
+          type: string
+          format: email
     initialBalance:
       type: string
       format: decimal
