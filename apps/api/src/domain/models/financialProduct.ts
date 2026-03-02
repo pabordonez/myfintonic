@@ -9,6 +9,11 @@ export interface IFinancialProduct {
   financialEntityName?: string
   status: ProductStatus
   clientId: string
+  client?: {
+    firstName: string
+    lastName: string
+    email: string
+  }
   createdAt: Date
   updatedAt: Date
   valueHistory?: ValueHistory[]
@@ -22,6 +27,11 @@ export abstract class FinancialProduct implements IFinancialProduct {
   public financialEntityName?: string
   public status!: ProductStatus
   public clientId!: string
+  public client?: {
+    firstName: string
+    lastName: string
+    email: string
+  }
   public createdAt!: Date
   public updatedAt!: Date
   public valueHistory?: ValueHistory[]
@@ -34,6 +44,7 @@ export abstract class FinancialProduct implements IFinancialProduct {
     this.financialEntityName = data.financialEntityName
     this.status = data.status!
     this.clientId = data.clientId!
+    this.client = data.client
     this.createdAt = data.createdAt || new Date()
     this.updatedAt = data.updatedAt || new Date()
     this.valueHistory = data.valueHistory || []

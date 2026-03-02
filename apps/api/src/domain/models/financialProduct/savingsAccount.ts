@@ -1,9 +1,10 @@
 import { FinancialProduct } from '@domain/models/financialProduct'
+import { ProductTransaction } from '@domain/models/productTransaction'
 
 export class SavingsAccount extends FinancialProduct {
   public currentBalance!: number
   public monthlyInterestRate!: number
-  public transactions!: any[]
+  public transactions!: ProductTransaction[]
 
   private constructor(data: any) {
     super(data)

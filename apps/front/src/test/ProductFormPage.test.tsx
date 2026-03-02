@@ -24,7 +24,6 @@ vi.mock('../config/api', () => ({
     post: vi.fn(),
     put: vi.fn(),
     delete: vi.fn(),
-    patch: vi.fn(),
     interceptors: {
       request: { use: vi.fn(), eject: vi.fn() },
       response: { use: vi.fn(), eject: vi.fn() },
@@ -638,7 +637,7 @@ describe('ProductFormPage', () => {
     expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
   })
 
-  it('calls PATCH when status is changed in edit mode', async () => {
+  it('calls PUT when status is changed in edit mode', async () => {
     mockUseParams.mockReturnValue({ id: 'prod-1' })
     const mockProduct = {
       id: 'prod-1',
@@ -655,7 +654,7 @@ describe('ProductFormPage', () => {
       })
       .mockResolvedValueOnce({ data: mockProduct })
 
-    vi.mocked(api.patch).mockResolvedValue({})
+    vi.mocked(api.put).mockResolvedValue({})
     const confirmSpy = vi
       .spyOn(window, 'confirm')
       .mockImplementation(() => true)
@@ -676,7 +675,7 @@ describe('ProductFormPage', () => {
 
     expect(confirmSpy).toHaveBeenCalled()
     await waitFor(() => {
-      expect(api.patch).toHaveBeenCalledWith(
+      expect(api.put).toHaveBeenCalledWith(
         expect.stringContaining('/products/prod-1'),
         { status: 'PAUSED' }
       )
@@ -1007,7 +1006,7 @@ describe('ProductFormPage', () => {
 
     expect(confirmSpy).toHaveBeenCalled()
     expect(preventDefaultSpy).toHaveBeenCalled()
-    expect(api.patch).not.toHaveBeenCalled()
+    expect(api.put).not.toHaveBeenCalled()
     confirmSpy.mockRestore()
   })
 
@@ -1023,7 +1022,7 @@ describe('ProductFormPage', () => {
     vi.mocked(api.get)
       .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
       .mockResolvedValueOnce({ data: mockProduct })
-    vi.mocked(api.patch).mockRejectedValue(new Error('Patch failed'))
+    vi.mocked(api.put).mockRejectedValue(new Error('Put failed'))
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -1158,5 +1157,105 @@ describe('ProductFormPage', () => {
       expect(screen.getByDisplayValue('2023-01-01')).toBeInTheDocument()
     )
     expect(screen.getByDisplayValue('2024-01-01')).toBeInTheDocument()
+  })
+
+  it('validates percentage limits for interest rates', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      data: [{ id: 'ent-1', name: 'Banco Santander' }],
+    })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Tipo/i)).toBeInTheDocument()
+    )
+
+    // Select Fixed Term Deposit
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'FIXED_TERM_DEPOSIT' },
+    })
+
+    // Test > 100
+    const annualRateInput = screen.getByLabelText(/Tasa de Interés Anual/i)
+    fireEvent.change(annualRateInput, { target: { value: '110' } })
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('El porcentaje no puede ser mayor a 100')
+      ).toBeInTheDocument()
+    })
+
+    // Test < 0.01
+    fireEvent.change(annualRateInput, { target: { value: '0.001' } })
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('El porcentaje debe ser mayor o igual a 0.01')
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('transforms percentage to decimal on submit', async () => {
+    vi.mocked(api.get).mockImplementation((url) => {
+      if (url.includes('/financial-entities')) {
+        return Promise.resolve({
+          data: [{ id: 'ent-1', name: 'Banco Santander' }],
+        })
+      }
+      return Promise.resolve({ data: [] })
+    })
+    vi.mocked(api.post).mockResolvedValue({
+      data: { id: 'new-prod', name: 'Depo', type: 'FIXED_TERM_DEPOSIT' },
+    })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Tipo/i)).toBeInTheDocument()
+    )
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: 'Depo' },
+    })
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'FIXED_TERM_DEPOSIT' },
+    })
+    fireEvent.change(screen.getByLabelText(/Entidad/i), {
+      target: { value: 'ent-1' },
+    })
+    fireEvent.change(screen.getByLabelText(/^Balance$/i), {
+      target: { value: '1000' },
+    })
+    fireEvent.change(screen.getByLabelText(/Fecha Inicio/i), {
+      target: { value: '2023-01-01' },
+    })
+    fireEvent.change(screen.getByLabelText(/Fecha Vencimiento/i), {
+      target: { value: '2024-01-01' },
+    })
+    fireEvent.change(screen.getByLabelText(/Frecuencia de Pago/i), {
+      target: { value: 'Annual' },
+    })
+    fireEvent.change(screen.getByLabelText(/Tasa de Interés Anual/i), {
+      target: { value: '5.5' },
+    })
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith(
+        expect.stringContaining('/products'),
+        expect.objectContaining({ annualInterestRate: 0.055 })
+      )
+    })
   })
 })

@@ -44,7 +44,7 @@ export const ProductsPage = () => {
   // Estados de Filtros y Ordenación
   const [filterName, setFilterName] = useState('')
   const [filterType, setFilterType] = useState('')
-  const [filterStatus, setFilterStatus] = useState('')
+  const [filterStatus, setFilterStatus] = useState('ACTIVE')
   const [filterEntities, setFilterEntities] = useState<string[]>([])
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: null,
@@ -144,6 +144,15 @@ export const ProductsPage = () => {
 
     return result
   }, [data, filterName, filterType, filterStatus, filterEntities, sortConfig])
+
+  // Calcular totales para el sumatorio (basado en datos filtrados)
+  const totalCurrentBalance = useMemo(() => {
+    return processedData.reduce(
+      (acc, item) =>
+        acc + (Number(item.currentBalance ?? item.initialBalance) || 0),
+      0
+    )
+  }, [processedData])
 
   // Handlers
   const handleSort = (key: string) => {
@@ -461,6 +470,21 @@ export const ProductsPage = () => {
             </table>
           </div>
         )}
+      </div>
+
+      {/* Sumatorio Total */}
+      <div className="mt-6 bg-white overflow-hidden shadow rounded-lg">
+        <div className="px-4 py-5 sm:p-6 text-right">
+          <dt className="text-sm font-medium text-gray-500 truncate">
+            Balance Total
+          </dt>
+          <dd className="mt-1 text-3xl font-semibold text-indigo-600 flex justify-end items-center gap-3">
+            {new Intl.NumberFormat('es-ES', {
+              style: 'currency',
+              currency: 'EUR',
+            }).format(totalCurrentBalance)}
+          </dd>
+        </div>
       </div>
     </div>
   )
