@@ -1100,4 +1100,14 @@ describe('ProductsPage', () => {
       expect(updatedContainer).toHaveTextContent(/1\.?000,00/)
     })
   })
+
+  it('does not fetch data if user is null', () => {
+    mockUseAuth.mockReturnValue({ user: null })
+    render(
+      <MemoryRouter>
+        <ProductsPage />
+      </MemoryRouter>
+    )
+    expect(api.get).not.toHaveBeenCalled()
+  })
 })

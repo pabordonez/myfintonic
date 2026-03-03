@@ -57,4 +57,23 @@ describe('product.service', () => {
     await productService.delete('1')
     expect(api.delete).toHaveBeenCalledWith('/products/1')
   })
+
+  it('getAll handles string numbers and nulls correctly via Zod coercion', async () => {
+    const mockData = [
+      {
+        id: '1',
+        name: 'P1',
+        type: 'CURRENT_ACCOUNT',
+        currentBalance: '100.50', // String que debe ser convertido
+        initialBalance: null, // Null que debe mantenerse o ser undefined
+        numberOfUnits: '', // String vacío que debe ser undefined
+      },
+    ]
+    vi.mocked(api.get).mockResolvedValue({ data: mockData })
+    const result = await productService.getAll()
+
+    expect(result[0].currentBalance).toBe(100.5)
+    expect(result[0].initialBalance).toBeNull()
+    expect(result[0].numberOfUnits).toBeUndefined()
+  })
 })
