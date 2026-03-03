@@ -23,11 +23,13 @@ vi.mock('axios', () => ({
 import '../config/api'
 
 describe('API Interceptor Configuration', () => {
+  let successInterceptor: (response: any) => any
   let errorInterceptor: (error: any) => Promise<any>
 
   beforeAll(() => {
     // Recuperamos la función de error (segundo argumento) pasada a interceptors.response.use
     if (mockUse.mock.calls.length > 0) {
+      successInterceptor = mockUse.mock.calls[0][0]
       errorInterceptor = mockUse.mock.calls[0][1]
     }
   })
@@ -42,6 +44,11 @@ describe('API Interceptor Configuration', () => {
 
     // Espiamos localStorage
     vi.spyOn(Storage.prototype, 'removeItem')
+  })
+
+  it('should return response as is in success interceptor', () => {
+    const response = { data: 'test' }
+    expect(successInterceptor(response)).toBe(response)
   })
 
   it('NO debe redirigir al login si ocurre un 401 en /auth/login', async () => {
@@ -64,5 +71,25 @@ describe('API Interceptor Configuration', () => {
     await expect(errorInterceptor(error)).rejects.toEqual(error)
     expect(localStorage.removeItem).toHaveBeenCalledWith('user')
     expect(window.location.href).toBe('/auth/login')
+  })
+
+  it('NO debe redirigir si el error no tiene respuesta (error de red)', async () => {
+    const error = {
+      config: { url: '/products' },
+      // response undefined
+    }
+
+    await expect(errorInterceptor(error)).rejects.toEqual(error)
+    expect(localStorage.removeItem).not.toHaveBeenCalled()
+  })
+
+  it('NO debe redirigir si el status no es 401', async () => {
+    const error = {
+      config: { url: '/products' },
+      response: { status: 500 },
+    }
+
+    await expect(errorInterceptor(error)).rejects.toEqual(error)
+    expect(localStorage.removeItem).not.toHaveBeenCalled()
   })
 })

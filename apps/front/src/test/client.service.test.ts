@@ -101,5 +101,14 @@ describe('client.service', () => {
 
       await expect(changePassword('1', {})).rejects.toThrow('Invalid password')
     })
+
+    it('should throw default error if response has no error message', async () => {
+      vi.mocked(api.put).mockRejectedValue({
+        response: { data: {} },
+      })
+      await expect(changePassword('1', {})).rejects.toThrow(
+        'Error al cambiar la contraseña'
+      )
+    })
   })
 })

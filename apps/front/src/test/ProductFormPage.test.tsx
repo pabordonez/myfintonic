@@ -1258,4 +1258,54 @@ describe('ProductFormPage', () => {
       )
     })
   })
+
+  it('cleans up empty dates when updating FIXED_TERM_DEPOSIT', async () => {
+    mockUseParams.mockReturnValue({ id: 'dep-1' })
+    const mockDeposit = {
+      id: 'dep-1',
+      name: 'My Deposit',
+      type: 'FIXED_TERM_DEPOSIT',
+      financialEntityId: 'ent-1',
+      initialBalance: 1000,
+      initialDate: '2023-01-01T00:00:00Z',
+      maturityDate: '2024-01-01T00:00:00Z',
+      annualInterestRate: 0.05,
+      interestPaymentFreq: 'Annual',
+    }
+
+    vi.mocked(api.get).mockImplementation((url) => {
+      if (url.includes('/financial-entities'))
+        return Promise.resolve({ data: [{ id: 'ent-1', name: 'Bank' }] })
+      if (url.includes('/products/dep-1'))
+        return Promise.resolve({ data: mockDeposit })
+      return Promise.resolve({ data: [] })
+    })
+    vi.mocked(api.put).mockResolvedValue({ data: mockDeposit })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('My Deposit')).toBeInTheDocument()
+    )
+
+    // Clear dates manually
+    fireEvent.change(screen.getByLabelText(/Fecha Inicio/i), {
+      target: { value: '' },
+    })
+    fireEvent.change(screen.getByLabelText(/Fecha Vencimiento/i), {
+      target: { value: '' },
+    })
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      const putCall = vi.mocked(api.put).mock.calls[0]
+      const payload = putCall[1] as any
+      expect(payload).not.toHaveProperty('initialDate')
+      expect(payload).not.toHaveProperty('maturityDate')
+    })
+  })
 })

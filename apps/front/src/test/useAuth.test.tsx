@@ -48,6 +48,15 @@ describe('useAuth', () => {
     expect(result.current.user).toBeNull()
   })
 
+  it('should handle corrupted user data in localStorage on init', () => {
+    localStorage.setItem('user', 'invalid-json')
+
+    const { result } = renderHook(() => useAuth(), { wrapper: MemoryRouter })
+
+    expect(result.current.user).toBeNull()
+    expect(localStorage.getItem('user')).toBeNull() // Should be cleaned up
+  })
+
   it('should logout correctly', () => {
     const user = {
       id: '1',
@@ -90,5 +99,51 @@ describe('useAuth', () => {
     })
 
     expect(result.current.user).toEqual(newUser)
+  })
+
+  it('should handle corrupted user data in localStorage on refresh', async () => {
+    const user = {
+      id: '1',
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@test.com',
+      role: 'USER',
+    }
+    localStorage.setItem('user', JSON.stringify(user))
+    const { result } = renderHook(() => useAuth(), { wrapper: MemoryRouter })
+
+    localStorage.setItem('user', 'invalid-json')
+
+    await act(async () => {
+      await result.current.refreshUser()
+    })
+
+    expect(result.current.user).toBeNull()
+    expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
+  })
+
+  it('should handle storage event for logout from another tab', () => {
+    const user = {
+      id: '1',
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'test@test.com',
+      role: 'USER',
+    }
+    localStorage.setItem('user', JSON.stringify(user))
+    const { result } = renderHook(() => useAuth(), { wrapper: MemoryRouter })
+
+    act(() => {
+      // Simular evento de storage (como si ocurriera en otra pestaña)
+      const event = new StorageEvent('storage', {
+        key: 'user',
+        newValue: null,
+        storageArea: localStorage,
+      })
+      window.dispatchEvent(event)
+    })
+
+    expect(result.current.user).toBeNull()
+    expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
   })
 })

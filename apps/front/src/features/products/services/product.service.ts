@@ -4,13 +4,14 @@ import { api } from '../../../config/api'
 // Helpers para convertir strings numéricos (común en APIs que devuelven Decimal/BigInt como string)
 const CoercedNullableNumber = z.preprocess((val) => {
   if (val === null) return null
-  if (typeof val === 'string' && val.trim() !== '') return Number(val)
+  if (typeof val === 'string') return val.trim() === '' ? null : Number(val)
   return val
 }, z.number().nullable().optional())
 
 const CoercedOptionalNumber = z.preprocess((val) => {
   if (val === null) return undefined
-  if (typeof val === 'string' && val.trim() !== '') return Number(val)
+  if (typeof val === 'string')
+    return val.trim() === '' ? undefined : Number(val)
   return val
 }, z.number().optional())
 

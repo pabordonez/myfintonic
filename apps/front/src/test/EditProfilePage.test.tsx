@@ -153,4 +153,29 @@ describe('EditProfilePage', () => {
       '/clients/1/change-password'
     )
   })
+
+  it('handles missing localStorage data gracefully during update', async () => {
+    vi.mocked(updateClientProfile).mockResolvedValue({
+      id: '1',
+      firstName: 'Jane',
+      lastName: 'Doe',
+    })
+
+    const { container } = render(
+      <BrowserRouter>
+        <EditProfilePage />
+      </BrowserRouter>
+    )
+
+    // Simular que localStorage se vació (ej. limpieza externa)
+    localStorage.removeItem('user')
+
+    fireEvent.change(container.querySelector('input[name="firstName"]')!, {
+      target: { value: 'Jane' },
+    })
+    fireEvent.click(screen.getByText('Guardar Cambios'))
+
+    await waitFor(() => expect(updateClientProfile).toHaveBeenCalled())
+    // Si no falla, significa que el fallback || '{}' funcionó
+  })
 })
