@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { IClientRepository } from '@domain/repository/IClientRepository'
-import { env } from '@config/env'
+import { env } from '@infrastructure/config/env'
 
 export class AuthUseCases {
   constructor(private readonly clientRepository: IClientRepository) {}

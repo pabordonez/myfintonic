@@ -3,11 +3,11 @@ import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { authenticate } from '../src/infrastructure/http/middlewares/authenticate'
 import { isAdmin } from '../src/infrastructure/http/middlewares/isAdmin'
-import { env } from '../src/config/env'
+import { env } from '../src/infrastructure/config/env'
 import { requestLogger } from '../src/infrastructure/http/middlewares/requestLogger'
 import { clientOwnershipMiddleware } from '../src/infrastructure/http/middlewares/clientOwnershipMiddleware'
 import { productOwnershipMiddleware } from '../src/infrastructure/http/middlewares/ownershipMiddleware'
-import prismaMock from '../src/infrastructure/persistence/prisma/client'
+import prismaMock from '../src/infrastructure/persistence/prisma/repository/prismaClient'
 
 vi.mock('jsonwebtoken')
 
@@ -27,7 +27,6 @@ describe('Middlewares', () => {
       originalUrl: '/test',
     } as any
 
-    // Creamos el objeto mock primero para asegurar que las referencias sean circulares y correctas
     const resMock: any = {
       status: vi.fn(),
       json: vi.fn(),
@@ -35,7 +34,6 @@ describe('Middlewares', () => {
       sendStatus: vi.fn(),
       on: vi.fn(),
     }
-    // Configuramos el encadenamiento (chaining)
     resMock.status.mockReturnValue(resMock)
     resMock.json.mockReturnValue(resMock)
     resMock.send.mockReturnValue(resMock)
@@ -168,14 +166,17 @@ describe('Middlewares', () => {
   })
 
   describe('productOwnershipMiddleware', () => {
-    // Mockeamos prisma directamente ya que el middleware lo importa
-    vi.mock('../src/infrastructure/persistence/prisma/client', () => ({
-      default: {
-        financialProduct: {
-          findUnique: vi.fn(),
+    // Mock prisma directly as the middleware imports it
+    vi.mock(
+      '@infrastructure/persistence/prisma/repository/prismaClient',
+      () => ({
+        default: {
+          financialProduct: {
+            findUnique: vi.fn(),
+          },
         },
-      },
-    }))
+      })
+    )
 
     it('should allow ADMIN to bypass', async () => {
       req.user = { role: 'ADMIN', id: 'admin' }

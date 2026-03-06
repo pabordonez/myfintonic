@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { productService } from '../services/product.service'
 import {
   ValueHistoryList,
@@ -8,6 +10,46 @@ import {
 } from '../../financial-entities/components/ValueHistoryList'
 import { ProductTransactionButton } from '../components/ProductTransactionButton'
 import { financialEntityService } from '../../financial-entities/services/financialEntity.service'
+import { useAuth } from '@/hooks/useAuth'
+import { ArrowLeft } from 'lucide-react'
+
+// Helper para convertir strings vacíos a undefined y números
+const optionalNumber = z.preprocess(
+  (val) =>
+    val === '' || val === null || val === undefined ? undefined : Number(val),
+  z.number().optional()
+)
+
+// Helper para porcentajes (0.01% - 100%)
+const percentageSchema = z.preprocess(
+  (val) =>
+    val === '' || val === null || val === undefined ? undefined : Number(val),
+  z
+    .number()
+    .min(0.01, 'El porcentaje debe ser mayor o igual a 0.01')
+    .max(100, 'El porcentaje no puede ser mayor a 100')
+    .optional()
+)
+
+const productSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido'),
+  type: z.string().min(1, 'El tipo es requerido'),
+  financialEntity: z.string().min(1, 'La entidad es requerida'),
+  status: z.string().optional(),
+  currentBalance: optionalNumber,
+  initialBalance: optionalNumber,
+  initialDate: z.string().optional(),
+  maturityDate: z.string().optional(),
+  annualInterestRate: percentageSchema,
+  monthlyInterestRate: percentageSchema,
+  interestPaymentFreq: z.string().optional(),
+  numberOfShares: optionalNumber,
+  numberOfUnits: optionalNumber,
+  netAssetValue: optionalNumber,
+  unitPurchasePrice: optionalNumber,
+  currentMarketPrice: optionalNumber,
+  // clientId y id se excluyen deliberadamente para evitar Mass Assignment
+})
 
 export const ProductFormPage = () => {
   const { id } = useParams()
@@ -24,7 +66,14 @@ export const ProductFormPage = () => {
   const [success, setSuccess] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const { register, handleSubmit, watch, reset } = useForm()
+  const { user } = useAuth()
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(productSchema) })
   const selectedType = watch('type')
 
   useEffect(() => {
@@ -32,8 +81,7 @@ export const ProductFormPage = () => {
       setLoading(true)
       try {
         // Cargar catálogo de entidades
-        const userStr = localStorage.getItem('user')
-        if (!userStr) throw new Error('User not found')
+        if (!user) throw new Error('User not found')
         const entitiesData = await financialEntityService.getAll()
         setEntities(entitiesData)
 
@@ -52,14 +100,20 @@ export const ProductFormPage = () => {
             initialBalance: product.initialBalance,
             //------
             initialDate: product.initialDate
-              ? product.initialDate.split('T')[0]
+              ? new Date(product.initialDate).toISOString().split('T')[0]
               : '',
             maturityDate: product.maturityDate
-              ? product.maturityDate.split('T')[0]
+              ? new Date(product.maturityDate).toISOString().split('T')[0]
               : '',
-            annualInterestRate: product.annualInterestRate,
-            monthlyInterestRate: product.monthlyInterestRate,
-            interestPaymentFrequency: product.interestPaymentFrequency,
+            annualInterestRate:
+              product.annualInterestRate != null
+                ? parseFloat((product.annualInterestRate * 100).toFixed(2))
+                : undefined,
+            monthlyInterestRate:
+              product.monthlyInterestRate != null
+                ? parseFloat((product.monthlyInterestRate * 100).toFixed(2))
+                : undefined,
+            interestPaymentFreq: product.interestPaymentFreq,
             numberOfShares: product.numberOfShares,
             numberOfUnits: product.numberOfUnits,
             netAssetValue: product.netAssetValue,
@@ -85,58 +139,45 @@ export const ProductFormPage = () => {
       }
     }
     loadData()
-  }, [id, isEditMode, reset, refreshKey])
+  }, [id, isEditMode, reset, refreshKey, user])
 
   const onSubmit = async (data: any) => {
     try {
       setSuccess(null)
       setError(null)
-      // Preparar datos (conversión de tipos y limpieza) para ambos modos (Create/Update)
+      // Los datos ya vienen tipados y limpios gracias a Zod
       const preparedData = { ...data }
 
-      const numericFields = [
-        'annualInterestRate',
-        'monthlyInterestRate',
-        'numberOfShares',
-        'numberOfUnits',
-        'netAssetValue',
-        'unitPurchasePrice',
-        'currentMarketPrice',
-        'currentBalance',
-        'initialBalance',
-      ]
-      numericFields.forEach((field) => {
-        if (preparedData[field] !== undefined && preparedData[field] !== '') {
-          preparedData[field] = Number(preparedData[field])
-        }
-      })
-
-      Object.keys(preparedData).forEach((key) => {
-        if (preparedData[key] === '') delete preparedData[key]
-      })
+      // Transformar porcentajes a decimales para la API
+      if (preparedData.annualInterestRate !== undefined) {
+        preparedData.annualInterestRate =
+          Number(preparedData.annualInterestRate) / 100
+      }
+      if (preparedData.monthlyInterestRate !== undefined) {
+        preparedData.monthlyInterestRate =
+          Number(preparedData.monthlyInterestRate) / 100
+      }
 
       if (isEditMode) {
         const typeToUse = data.type || selectedType
 
         // Copiamos y eliminamos campos que no se deben enviar en el update
         const updateData = { ...preparedData }
-        const balanceValue = updateData.currentBalance
-
-        delete updateData.clientId
         delete updateData.type
-        delete updateData.id
-        delete updateData.currentBalance
 
-        // Re-assign balance to the correct field based on type
-        // FIXED_TERM_DEPOSIT now supports currentBalance updates for valuation tracking
-        // Only update initialBalance if it's a correction logic, but standard flow is updating current value.
-        // For now, we treat it like other variable products in edit mode.
-        {
-          updateData.currentBalance = balanceValue
-          // Fix: Backend validation fails if initialBalance is sent for INVESTMENT_FUND updates
-          if (typeToUse === 'INVESTMENT_FUND') {
-            delete updateData.initialBalance
-          }
+        if (typeToUse === 'INVESTMENT_FUND') {
+          delete updateData.initialBalance
+        }
+
+        // Limpiar campos específicos de Depósito si no es ese tipo
+        if (typeToUse !== 'FIXED_TERM_DEPOSIT') {
+          delete updateData.initialDate
+          delete updateData.maturityDate
+          delete updateData.annualInterestRate
+          delete updateData.interestPaymentFreq
+        } else {
+          if (updateData.initialDate === '') delete updateData.initialDate
+          if (updateData.maturityDate === '') delete updateData.maturityDate
         }
 
         await productService.update(id as string, updateData)
@@ -185,7 +226,7 @@ export const ProductFormPage = () => {
 
     try {
       setStatusLoading(true)
-      await productService.patch(id, { status: newStatus })
+      await productService.update(id, { status: newStatus })
     } catch (err) {
       console.error(err)
       setError('Error al actualizar el estado')
@@ -198,9 +239,18 @@ export const ProductFormPage = () => {
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded shadow">
-      <h1 className="text-2xl font-bold mb-6">
-        {isEditMode ? 'Editar Producto' : 'Crear Producto'}
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">
+          {isEditMode ? 'Editar Producto' : 'Crear Producto'}
+        </h1>
+        <button
+          onClick={() => navigate('/products')}
+          className="flex items-center text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="h-5 w-5 mr-1" />
+          Volver
+        </button>
+      </div>
       {error && <div className="text-red-500 mb-4">{error}</div>}
       {success && <div className="text-green-500 mb-4">{success}</div>}
 
@@ -214,6 +264,11 @@ export const ProductFormPage = () => {
             {...register('name')}
             className="mt-1 block w-full border rounded p-2"
           />
+          {errors.name && (
+            <p className="text-red-500 text-xs">
+              {errors.name.message as string}
+            </p>
+          )}
         </div>
 
         <div>
@@ -223,8 +278,12 @@ export const ProductFormPage = () => {
           <select
             id="type"
             {...register('type')}
-            disabled={isEditMode}
-            className="mt-1 block w-full border rounded p-2 bg-white disabled:bg-gray-100"
+            aria-disabled={isEditMode}
+            tabIndex={isEditMode ? -1 : undefined}
+            style={{ pointerEvents: isEditMode ? 'none' : 'auto' }}
+            className={`mt-1 block w-full border rounded p-2 ${
+              isEditMode ? 'bg-gray-100' : 'bg-white'
+            }`}
           >
             <option value="">Seleccione tipo</option>
             <option value="CURRENT_ACCOUNT">Cuenta Corriente</option>
@@ -279,6 +338,11 @@ export const ProductFormPage = () => {
               </option>
             ))}
           </select>
+          {errors.financialEntity && (
+            <p className="text-red-500 text-xs">
+              {errors.financialEntity.message as string}
+            </p>
+          )}
         </div>
 
         {/* Campos dinámicos simplificados para el ejemplo */}
@@ -348,20 +412,25 @@ export const ProductFormPage = () => {
             <input
               id="annualInterestRate"
               type="number"
-              step="0.0001"
+              step="0.01"
               {...register('annualInterestRate')}
               className="mt-1 block w-full border rounded p-2"
             />
+            {errors.annualInterestRate && (
+              <p className="text-red-500 text-xs">
+                {errors.annualInterestRate.message as string}
+              </p>
+            )}
 
             <label
-              htmlFor="interestPaymentFrequency"
+              htmlFor="interestPaymentFreq"
               className="block text-sm font-medium"
             >
               Frecuencia de Pago
             </label>
             <select
-              id="interestPaymentFrequency"
-              {...register('interestPaymentFrequency')}
+              id="interestPaymentFreq"
+              {...register('interestPaymentFreq')}
               className="mt-1 block w-full border rounded p-2"
             >
               <option value="AtMaturity">Al Vencimiento</option>
@@ -383,10 +452,15 @@ export const ProductFormPage = () => {
             <input
               id="monthlyInterestRate"
               type="number"
-              step="0.0001"
+              step="0.01"
               {...register('monthlyInterestRate')}
               className="mt-1 block w-full border rounded p-2"
             />
+            {errors.monthlyInterestRate && (
+              <p className="text-red-500 text-xs">
+                {errors.monthlyInterestRate.message as string}
+              </p>
+            )}
           </div>
         )}
 

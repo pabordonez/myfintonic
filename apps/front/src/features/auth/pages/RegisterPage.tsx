@@ -1,10 +1,10 @@
 // apps/front/src/features/auth/pages/RegisterPage.tsx
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { API_URL } from '../../../config/api'
+import { api } from '../../../config/api'
 
 const registerSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -17,6 +17,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 
 export const RegisterPage = () => {
   const navigate = useNavigate()
+  const [success, setSuccess] = useState(false)
   const {
     register,
     handleSubmit,
@@ -28,9 +29,9 @@ export const RegisterPage = () => {
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      await axios.post(`${API_URL}/auth/register`, data)
-      alert('Registro exitoso. Por favor inicia sesión.')
-      navigate('/auth/login')
+      await api.post('/auth/register', data)
+      setSuccess(true)
+      setTimeout(() => navigate('/auth/login'), 2000)
     } catch (error) {
       console.error(error)
       setError('root', {
@@ -45,6 +46,12 @@ export const RegisterPage = () => {
         <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
           Registro MyFintonic
         </h1>
+
+        {success && (
+          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded text-center">
+            Registro exitoso. Redirigiendo al login...
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>

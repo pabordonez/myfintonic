@@ -5,7 +5,7 @@ import { ProductTransactionButton } from '../features/products/components/Produc
 import { TransactionFormPage } from '../features/products/pages/TransactionFormPage'
 import { TransactionListPage } from '../features/products/pages/TransactionListPage'
 import { ProductType } from '../features/products/types/transaction.types'
-import axios from 'axios'
+import { api } from '../config/api'
 
 const { mockNavigate, mockUseParams } = vi.hoisted(() => {
   return {
@@ -24,16 +24,16 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-vi.mock('axios', () => {
-  const mockAxios = {
+vi.mock('../config/api', () => ({
+  api: {
     get: vi.fn(),
     post: vi.fn(),
-    create: vi.fn().mockReturnThis(),
-    defaults: { headers: { common: {} } },
-    isAxiosError: vi.fn(),
-  }
-  return { default: mockAxios }
-})
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
+  },
+}))
 
 const renderWithRouter = (component: React.ReactNode) => {
   return render(<BrowserRouter>{component}</BrowserRouter>)
@@ -43,7 +43,6 @@ describe('Transaction Feature', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     mockUseParams.mockReturnValue({ id: '123' })
-    vi.mocked(axios.create).mockReturnThis()
   })
 
   // Test Case 1: Verificar visibilidad del botón
@@ -134,23 +133,18 @@ describe('Transaction Feature', () => {
 
       // Verificar llamada a API
       await waitFor(() => {
-        expect(axios.post).toHaveBeenCalledWith(
-          // Se elimina el check de headers
-          expect.stringContaining('/products/123/transactions'),
-          {
-            description: 'Salary',
-            amount: 1500.5,
-            date: expect.stringContaining(dateValue),
-          },
-          expect.any(Object)
-        )
+        expect(api.post).toHaveBeenCalledWith('/products/123/transactions', {
+          description: 'Salary',
+          amount: 1500.5,
+          date: expect.stringContaining(dateValue),
+        })
       })
     })
 
     it('maneja errores del servidor al guardar', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       mockUseParams.mockReturnValue({ id: '123' })
-      vi.mocked(axios.post).mockRejectedValue(new Error('Error de red'))
+      vi.mocked(api.post).mockRejectedValue(new Error('Error de red'))
 
       renderWithRouter(<TransactionFormPage />)
 
@@ -200,7 +194,7 @@ describe('Transaction Feature', () => {
       const saveButton = screen.getByRole('button', { name: /guardar/i })
       fireEvent.click(saveButton)
 
-      expect(axios.post).not.toHaveBeenCalled()
+      expect(api.post).not.toHaveBeenCalled()
     })
   })
 
@@ -208,7 +202,7 @@ describe('Transaction Feature', () => {
   describe('TransactionListPage', () => {
     it('muestra estado de carga inicial', () => {
       mockUseParams.mockReturnValue({ id: '123' })
-      vi.mocked(axios.get).mockImplementation(() => new Promise(() => {})) // Promesa pendiente
+      vi.mocked(api.get).mockImplementation(() => new Promise(() => {})) // Promesa pendiente
 
       renderWithRouter(<TransactionListPage />)
       expect(screen.getByText('Cargando transacciones...')).toBeInTheDocument()
@@ -217,7 +211,7 @@ describe('Transaction Feature', () => {
     it('muestra mensaje de error si falla la carga', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       mockUseParams.mockReturnValue({ id: '123' })
-      vi.mocked(axios.get).mockRejectedValue(new Error('Error'))
+      vi.mocked(api.get).mockRejectedValue(new Error('Error'))
 
       renderWithRouter(<TransactionListPage />)
 
@@ -246,7 +240,7 @@ describe('Transaction Feature', () => {
           },
         ],
       }
-      vi.mocked(axios.get).mockResolvedValue({ data: mockProduct })
+      vi.mocked(api.get).mockResolvedValue({ data: mockProduct })
 
       renderWithRouter(<TransactionListPage />)
 
@@ -265,7 +259,7 @@ describe('Transaction Feature', () => {
         type: 'SAVINGS_ACCOUNT',
         transactions: [],
       }
-      vi.mocked(axios.get).mockResolvedValue({ data: mockProduct })
+      vi.mocked(api.get).mockResolvedValue({ data: mockProduct })
 
       renderWithRouter(<TransactionListPage />)
 
@@ -284,7 +278,7 @@ describe('Transaction Feature', () => {
     it('navega a nueva transacción desde el listado', async () => {
       mockUseParams.mockReturnValue({ id: '123' })
       const mockProduct = { id: '123', name: 'Cuenta', transactions: [] }
-      vi.mocked(axios.get).mockResolvedValue({ data: mockProduct })
+      vi.mocked(api.get).mockResolvedValue({ data: mockProduct })
 
       renderWithRouter(<TransactionListPage />)
 
@@ -299,7 +293,7 @@ describe('Transaction Feature', () => {
     it('navega volver al producto desde el listado', async () => {
       mockUseParams.mockReturnValue({ id: '123' })
       const mockProduct = { id: '123', name: 'Cuenta', transactions: [] }
-      vi.mocked(axios.get).mockResolvedValue({ data: mockProduct })
+      vi.mocked(api.get).mockResolvedValue({ data: mockProduct })
 
       renderWithRouter(<TransactionListPage />)
 
@@ -312,7 +306,7 @@ describe('Transaction Feature', () => {
     it('navega a crear transacción desde el estado vacío', async () => {
       mockUseParams.mockReturnValue({ id: '123' })
       const mockProduct = { id: '123', name: 'Cuenta', transactions: [] }
-      vi.mocked(axios.get).mockResolvedValue({ data: mockProduct })
+      vi.mocked(api.get).mockResolvedValue({ data: mockProduct })
 
       renderWithRouter(<TransactionListPage />)
 

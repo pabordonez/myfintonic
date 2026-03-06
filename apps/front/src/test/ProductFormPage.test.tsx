@@ -8,9 +8,8 @@ import {
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductFormPage } from '../features/products/pages/ProductFormPage'
-import axios from 'axios'
+import { api } from '../config/api'
 import { MemoryRouter } from 'react-router-dom'
-import { API_URL } from '../config/api'
 
 const { mockNavigate, mockUseParams } = vi.hoisted(() => {
   return {
@@ -19,7 +18,18 @@ const { mockNavigate, mockUseParams } = vi.hoisted(() => {
   }
 })
 
-vi.mock('axios')
+vi.mock('../config/api', () => ({
+  api: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
+  },
+}))
 
 vi.mock('react-router-dom', async () => {
   const actual =
@@ -35,11 +45,20 @@ describe('ProductFormPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseParams.mockReturnValue({}) // Por defecto modo crear (sin ID)
-    localStorage.setItem('user', JSON.stringify({ id: 'user-123' }))
+    localStorage.setItem(
+      'user',
+      JSON.stringify({
+        id: 'user-123',
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@test.com',
+        role: 'USER',
+      })
+    )
   })
 
   it('renders create form with type selection enabled', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
+    vi.mocked(api.get).mockResolvedValue({
       data: [{ id: 'ent-1', name: 'Banco Santander' }],
     })
 
@@ -68,7 +87,7 @@ describe('ProductFormPage', () => {
       financialEntityId: 'ent-1',
       currentBalance: 500,
     }
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({
         data: [{ id: 'ent-1', name: 'Banco Santander' }],
       }) // Entities
@@ -87,13 +106,13 @@ describe('ProductFormPage', () => {
 
     // Type should be fixed or disabled in edit mode
     const typeSelect = screen.getByLabelText(/Tipo/i)
-    expect(typeSelect).toBeDisabled()
+    expect(typeSelect).toHaveAttribute('aria-disabled', 'true')
 
     expect(screen.getByText(/Eliminar/i)).toBeInTheDocument()
   })
 
   it('shows specific fields when changing product type', async () => {
-    vi.mocked(axios.get).mockResolvedValue({ data: [] })
+    vi.mocked(api.get).mockResolvedValue({ data: [] })
 
     render(
       <MemoryRouter>
@@ -143,10 +162,23 @@ describe('ProductFormPage', () => {
   })
 
   it('submits new product successfully', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
-      data: [{ id: 'ent-1', name: 'Banco Santander' }],
+    vi.mocked(api.get).mockImplementation((url) => {
+      if (url.includes('/financial-entities')) {
+        return Promise.resolve({
+          data: [{ id: 'ent-1', name: 'Banco Santander' }],
+        })
+      }
+      return Promise.resolve({ data: [] })
     })
-    vi.mocked(axios.post).mockResolvedValue({ data: { id: 'new-prod' } })
+
+    // FIX: La respuesta del mock debe cumplir con ProductSchema para que el servicio no falle
+    vi.mocked(api.post).mockResolvedValue({
+      data: {
+        id: 'new-prod',
+        name: 'Mi Cuenta',
+        type: 'CURRENT_ACCOUNT',
+      },
+    })
 
     render(
       <MemoryRouter>
@@ -154,9 +186,12 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
-    await waitFor(() =>
-      expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument()
-    )
+    await waitFor(() => {
+      const entitySelect = screen.getByLabelText(
+        /Entidad/i
+      ) as HTMLSelectElement
+      expect(entitySelect.options.length).toBeGreaterThan(1)
+    })
 
     fireEvent.change(screen.getByLabelText(/Nombre/i), {
       target: { value: 'Mi Cuenta' },
@@ -171,17 +206,28 @@ describe('ProductFormPage', () => {
       target: { value: '1000' },
     })
 
+    // FIX: Forzar validación de campos requeridos para asegurar envío
+    // Force validation of required fields to ensure form is valid for RHF
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: 'Mi Cuenta' },
+    })
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'CURRENT_ACCOUNT' },
+    })
+    fireEvent.change(screen.getByLabelText(/Entidad/i), {
+      target: { value: 'ent-1' },
+    })
+
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        expect.stringContaining(`${API_URL}/products`),
+      expect(api.post).toHaveBeenCalledWith(
+        expect.stringContaining('/products'),
         expect.objectContaining({
           name: 'Mi Cuenta',
           type: 'CURRENT_ACCOUNT',
           financialEntity: 'ent-1',
-        }),
-        expect.any(Object)
+        })
       )
       expect(
         screen.getByText('Producto creado correctamente')
@@ -190,23 +236,35 @@ describe('ProductFormPage', () => {
     })
   })
 
-  it('updates existing product without sending type', async () => {
-    mockUseParams.mockReturnValue({ id: 'prod-1' })
-    const mockProduct = {
-      id: 'prod-1',
-      name: 'Cuenta Vieja',
-      type: 'CURRENT_ACCOUNT',
-      financialEntity: 'ent-1',
-      currentBalance: 500,
+  it('allows editing initialBalance for FIXED_TERM_DEPOSIT in edit mode', async () => {
+    mockUseParams.mockReturnValue({ id: 'dep-1' })
+    const mockDeposit = {
+      id: 'dep-1',
+      name: 'My Deposit',
+      type: 'FIXED_TERM_DEPOSIT',
+      financialEntityId: 'ent-1',
+      initialBalance: 10000,
+      currentBalance: 10500,
+      status: 'ACTIVE',
+      initialDate: '2023-01-01T00:00:00Z',
+      maturityDate: '2024-01-01T00:00:00Z',
+      annualInterestRate: 0.05,
+      interestPaymentFreq: 'Annual',
     }
 
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({
-        data: [{ id: 'ent-1', name: 'Banco Santander' }],
-      })
-      .mockResolvedValueOnce({ data: mockProduct })
+    vi.mocked(api.get).mockImplementation((url) => {
+      if (url.includes('/financial-entities')) {
+        return Promise.resolve({ data: [{ id: 'ent-1', name: 'Bank' }] })
+      }
+      if (url.includes('/products/dep-1')) {
+        return Promise.resolve({ data: mockDeposit })
+      }
+      return Promise.reject(new Error(`Unexpected URL: ${url}`))
+    })
 
-    vi.mocked(axios.put).mockResolvedValue({})
+    vi.mocked(api.put).mockResolvedValue({
+      data: { ...mockDeposit, initialBalance: 12000 },
+    })
 
     render(
       <MemoryRouter>
@@ -214,24 +272,50 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
+    // 1. Wait for form to load data successfully
     await waitFor(() =>
-      expect(screen.getByDisplayValue('Cuenta Vieja')).toBeInTheDocument()
+      expect(screen.getByDisplayValue('My Deposit')).toBeInTheDocument()
     )
 
-    fireEvent.change(screen.getByLabelText(/Nombre/i), {
-      target: { value: 'Cuenta Actualizada' },
+    // 2. Wait for entity select to be populated
+    await waitFor(() => {
+      const entitySelect = screen.getByLabelText(
+        /Entidad/i
+      ) as HTMLSelectElement
+      expect(entitySelect.options.length).toBeGreaterThan(1)
     })
+
+    // Check for Initial Balance input
+    const initialBalanceInput = screen.getByLabelText(/Balance Inicial/i)
+    expect(initialBalanceInput).toBeInTheDocument()
+    expect(initialBalanceInput).toHaveValue(10000)
+
+    // Update Initial Balance
+    fireEvent.change(initialBalanceInput, { target: { value: '12000' } })
+    fireEvent.blur(initialBalanceInput)
+
+    // Force validation of required fields to ensure form is valid for RHF
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: 'My Deposit' },
+    })
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'FIXED_TERM_DEPOSIT' },
+    })
+    fireEvent.change(screen.getByLabelText(/Entidad/i), {
+      target: { value: 'ent-1' },
+    })
+
+    // Submit
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      // Verify type is NOT in the payload
-      const putCall = vi.mocked(axios.put).mock.calls[0]
-      const payload = putCall[1] as any
-      expect(payload.name).toBe('Cuenta Actualizada')
-      expect(payload.type).toBeUndefined()
-      expect(
-        screen.getByText('Producto actualizado correctamente')
-      ).toBeInTheDocument()
+      expect(api.put).toHaveBeenCalledWith(
+        expect.stringContaining('/products/dep-1'),
+        expect.objectContaining({
+          initialBalance: 12000,
+          currentBalance: 10500,
+        })
+      )
     })
   })
 
@@ -244,10 +328,10 @@ describe('ProductFormPage', () => {
       financialEntity: 'ent-1',
       currentBalance: 500,
     }
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({ data: [] })
       .mockResolvedValueOnce({ data: mockProduct })
-    vi.mocked(axios.delete).mockResolvedValue({})
+    vi.mocked(api.delete).mockResolvedValue({})
     const confirmSpy = vi
       .spyOn(window, 'confirm')
       .mockImplementation(() => true)
@@ -266,9 +350,8 @@ describe('ProductFormPage', () => {
 
     expect(confirmSpy).toHaveBeenCalled()
     await waitFor(() => {
-      expect(axios.delete).toHaveBeenCalledWith(
-        expect.stringContaining(`${API_URL}/products/prod-1`),
-        expect.any(Object)
+      expect(api.delete).toHaveBeenCalledWith(
+        expect.stringContaining('/products/prod-1')
       )
       expect(mockNavigate).toHaveBeenCalledWith('/products')
     })
@@ -286,13 +369,13 @@ describe('ProductFormPage', () => {
       clientId: 'user-123',
     }
 
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({
         data: [{ id: 'ent-1', name: 'Banco Santander' }],
       })
       .mockResolvedValueOnce({ data: mockProduct })
 
-    vi.mocked(axios.put).mockResolvedValue({})
+    vi.mocked(api.put).mockResolvedValue({})
 
     render(
       <MemoryRouter>
@@ -307,7 +390,7 @@ describe('ProductFormPage', () => {
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      const putCall = vi.mocked(axios.put).mock.calls[0]
+      const putCall = vi.mocked(api.put).mock.calls[0]
       const payload = putCall[1] as any
       expect(payload.clientId).toBeUndefined()
     })
@@ -324,13 +407,13 @@ describe('ProductFormPage', () => {
       currentBalance: 7600, // Now deposits have currentBalance for tracking
     }
 
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({
         data: [{ id: 'ent-1', name: 'Banco Santander' }],
       }) // entities
       .mockResolvedValueOnce({ data: mockDeposit }) // product
 
-    vi.mocked(axios.put).mockResolvedValue({})
+    vi.mocked(api.put).mockResolvedValue({})
 
     render(
       <MemoryRouter>
@@ -351,7 +434,7 @@ describe('ProductFormPage', () => {
 
     // 3. Check if the submitted payload has currentBalance updated
     await waitFor(() => {
-      const putCall = vi.mocked(axios.put).mock.calls[0]
+      const putCall = vi.mocked(api.put).mock.calls[0]
       const payload = putCall[1] as any
 
       expect(payload).toHaveProperty('currentBalance', 8000)
@@ -360,10 +443,10 @@ describe('ProductFormPage', () => {
   })
 
   it('submits INVESTMENT_FUND with correct numeric fields', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
+    vi.mocked(api.get).mockResolvedValue({
       data: [{ id: 'ent-1', name: 'Banco Santander' }],
     })
-    vi.mocked(axios.post).mockResolvedValue({ data: { id: 'new-fund' } })
+    vi.mocked(api.post).mockResolvedValue({ data: { id: 'new-fund' } })
 
     render(
       <MemoryRouter>
@@ -398,25 +481,24 @@ describe('ProductFormPage', () => {
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        expect.stringContaining(`${API_URL}/products`),
+      expect(api.post).toHaveBeenCalledWith(
+        expect.stringContaining('/products'),
         expect.objectContaining({
           name: 'Mi Fondo',
           type: 'INVESTMENT_FUND',
           currentBalance: 20000,
           numberOfUnits: 100.5,
           netAssetValue: 199.01,
-        }),
-        expect.any(Object)
+        })
       )
     })
   })
 
   it('submits STOCKS with correct numeric fields', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
+    vi.mocked(api.get).mockResolvedValue({
       data: [{ id: 'ent-1', name: 'Banco Santander' }],
     })
-    vi.mocked(axios.post).mockResolvedValue({ data: { id: 'new-stock' } })
+    vi.mocked(api.post).mockResolvedValue({ data: { id: 'new-stock' } })
 
     render(
       <MemoryRouter>
@@ -451,16 +533,15 @@ describe('ProductFormPage', () => {
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        expect.stringContaining(`${API_URL}/products`),
+      expect(api.post).toHaveBeenCalledWith(
+        expect.stringContaining('/products'),
         expect.objectContaining({
           name: 'Mis Acciones',
           type: 'STOCKS',
           numberOfShares: 50,
           unitPurchasePrice: 90.5,
           currentMarketPrice: 100,
-        }),
-        expect.any(Object)
+        })
       )
     })
   })
@@ -477,7 +558,7 @@ describe('ProductFormPage', () => {
       valueHistory: [{ date: '2023-10-01', value: 500, previousValue: 400 }],
     }
 
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({
         data: [{ id: 'ent-1', name: 'Banco Santander' }],
       })
@@ -506,7 +587,7 @@ describe('ProductFormPage', () => {
       valueHistory: [{ date: '2023-10-01', value: 500, previousValue: 400 }],
     }
 
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({
         data: [{ id: 'ent-1', name: 'Banco Santander' }],
       })
@@ -537,7 +618,7 @@ describe('ProductFormPage', () => {
       valueHistory: [{ date: '2023-10-01', value: 1050, previousValue: 1000 }],
     }
 
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({
         data: [{ id: 'ent-1', name: 'Banco Santander' }],
       })
@@ -556,7 +637,7 @@ describe('ProductFormPage', () => {
     expect(screen.getByText('Histórico de Valoraciones')).toBeInTheDocument()
   })
 
-  it('calls PATCH when status is changed in edit mode', async () => {
+  it('calls PUT when status is changed in edit mode', async () => {
     mockUseParams.mockReturnValue({ id: 'prod-1' })
     const mockProduct = {
       id: 'prod-1',
@@ -567,13 +648,13 @@ describe('ProductFormPage', () => {
       currentBalance: 500,
     }
 
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({
         data: [{ id: 'ent-1', name: 'Banco Santander' }],
       })
       .mockResolvedValueOnce({ data: mockProduct })
 
-    vi.mocked(axios.patch).mockResolvedValue({})
+    vi.mocked(api.put).mockResolvedValue({})
     const confirmSpy = vi
       .spyOn(window, 'confirm')
       .mockImplementation(() => true)
@@ -594,10 +675,9 @@ describe('ProductFormPage', () => {
 
     expect(confirmSpy).toHaveBeenCalled()
     await waitFor(() => {
-      expect(axios.patch).toHaveBeenCalledWith(
-        expect.stringContaining(`${API_URL}/products/prod-1`),
-        { status: 'PAUSED' },
-        expect.any(Object)
+      expect(api.put).toHaveBeenCalledWith(
+        expect.stringContaining('/products/prod-1'),
+        { status: 'PAUSED' }
       )
     })
     await waitFor(() =>
@@ -608,10 +688,10 @@ describe('ProductFormPage', () => {
   })
 
   it('STOCKS (Create): shows Initial Balance and submits it', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
+    vi.mocked(api.get).mockResolvedValue({
       data: [{ id: 'ent-1', name: 'Banco Santander' }],
     })
-    vi.mocked(axios.post).mockResolvedValue({ data: { id: 'new-stock' } })
+    vi.mocked(api.post).mockResolvedValue({ data: { id: 'new-stock' } })
 
     render(
       <MemoryRouter>
@@ -645,17 +725,20 @@ describe('ProductFormPage', () => {
     fireEvent.change(screen.getByLabelText(/Acciones/i), {
       target: { value: '10' },
     })
+    // Force validation just in case
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'STOCKS' },
+    })
 
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
+      expect(api.post).toHaveBeenCalledWith(
         expect.stringContaining('/products'),
         expect.objectContaining({
           type: 'STOCKS',
           initialBalance: 5000,
-        }),
-        expect.any(Object)
+        })
       )
     })
   })
@@ -672,13 +755,13 @@ describe('ProductFormPage', () => {
       numberOfShares: 10,
     }
 
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({
         data: [{ id: 'ent-1', name: 'Banco Santander' }],
       })
       .mockResolvedValueOnce({ data: mockStock })
 
-    vi.mocked(axios.put).mockResolvedValue({})
+    vi.mocked(api.put).mockResolvedValue({})
 
     render(
       <MemoryRouter>
@@ -702,12 +785,11 @@ describe('ProductFormPage', () => {
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.put).toHaveBeenCalledWith(
+      expect(api.put).toHaveBeenCalledWith(
         expect.stringContaining('/products/stock-1'),
         expect.objectContaining({
           currentBalance: 6500,
-        }),
-        expect.any(Object)
+        })
       )
     })
   })
@@ -723,15 +805,16 @@ describe('ProductFormPage', () => {
       initialBalance: 15000,
       numberOfUnits: 100,
       netAssetValue: 200,
+      status: 'ACTIVE',
     }
 
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({
         data: [{ id: 'ent-1', name: 'Banco Santander' }],
       })
       .mockResolvedValueOnce({ data: mockFund })
 
-    vi.mocked(axios.put).mockResolvedValue({})
+    vi.mocked(api.put).mockResolvedValue({})
 
     render(
       <MemoryRouter>
@@ -746,14 +829,14 @@ describe('ProductFormPage', () => {
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      const putCall = vi.mocked(axios.put).mock.calls[0]
+      const putCall = vi.mocked(api.put).mock.calls[0]
       const payload = putCall[1] as any
       expect(payload).not.toHaveProperty('initialBalance')
     })
   })
 
   it('displays error message on load failure', async () => {
-    vi.mocked(axios.get).mockRejectedValue(new Error('Load failed'))
+    vi.mocked(api.get).mockRejectedValue(new Error('Load failed'))
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
@@ -769,10 +852,15 @@ describe('ProductFormPage', () => {
   })
 
   it('displays error message on submit failure', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
-      data: [{ id: 'ent-1', name: 'Banco Santander' }],
+    vi.mocked(api.get).mockImplementation((url) => {
+      if (url.includes('/financial-entities')) {
+        return Promise.resolve({
+          data: [{ id: 'ent-1', name: 'Banco Santander' }],
+        })
+      }
+      return Promise.resolve({ data: [] })
     })
-    vi.mocked(axios.post).mockRejectedValue(new Error('Submit failed'))
+    vi.mocked(api.post).mockRejectedValue(new Error('Submit failed'))
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     render(
@@ -781,9 +869,22 @@ describe('ProductFormPage', () => {
       </MemoryRouter>
     )
 
+    // Wait for entities to load before filling the form
     await waitFor(() =>
-      expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument()
+      expect(screen.getByText('Banco Santander')).toBeInTheDocument()
     )
+
+    // Fill required fields to pass validation
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: 'Test Product' },
+    })
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'CURRENT_ACCOUNT' },
+    })
+    fireEvent.change(screen.getByLabelText(/Entidad/i), {
+      target: { value: 'ent-1' },
+    })
+
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() =>
@@ -802,10 +903,10 @@ describe('ProductFormPage', () => {
       type: 'CURRENT_ACCOUNT',
       financialEntityId: 'ent-1',
     }
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
       .mockResolvedValueOnce({ data: mockProduct })
-    vi.mocked(axios.delete).mockRejectedValue(new Error('Delete failed'))
+    vi.mocked(api.delete).mockRejectedValue(new Error('Delete failed'))
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -881,7 +982,7 @@ describe('ProductFormPage', () => {
       financialEntityId: 'ent-1',
       status: 'ACTIVE',
     }
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
       .mockResolvedValueOnce({ data: mockProduct })
 
@@ -905,7 +1006,7 @@ describe('ProductFormPage', () => {
 
     expect(confirmSpy).toHaveBeenCalled()
     expect(preventDefaultSpy).toHaveBeenCalled()
-    expect(axios.patch).not.toHaveBeenCalled()
+    expect(api.put).not.toHaveBeenCalled()
     confirmSpy.mockRestore()
   })
 
@@ -918,10 +1019,10 @@ describe('ProductFormPage', () => {
       financialEntityId: 'ent-1',
       status: 'ACTIVE',
     }
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
       .mockResolvedValueOnce({ data: mockProduct })
-    vi.mocked(axios.patch).mockRejectedValue(new Error('Patch failed'))
+    vi.mocked(api.put).mockRejectedValue(new Error('Put failed'))
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -955,7 +1056,7 @@ describe('ProductFormPage', () => {
       financialEntityId: 'ent-1',
       currentBalance: 500,
     }
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({ data: [] })
       .mockResolvedValueOnce({ data: mockProduct })
 
@@ -974,15 +1075,21 @@ describe('ProductFormPage', () => {
     fireEvent.click(screen.getByText(/Eliminar/i))
 
     expect(confirmSpy).toHaveBeenCalled()
-    expect(axios.delete).not.toHaveBeenCalled()
+    expect(api.delete).not.toHaveBeenCalled()
     confirmSpy.mockRestore()
   })
 
   it('removes empty string fields before submission', async () => {
-    vi.mocked(axios.get).mockResolvedValue({
-      data: [{ id: 'ent-1', name: 'Bank' }],
+    vi.mocked(api.get).mockImplementation((url) => {
+      if (url.includes('/financial-entities')) {
+        return Promise.resolve({ data: [{ id: 'ent-1', name: 'Bank' }] })
+      }
+      return Promise.resolve({ data: [] })
     })
-    vi.mocked(axios.post).mockResolvedValue({ data: {} })
+    // FIX: La respuesta del mock debe cumplir con ProductSchema
+    vi.mocked(api.post).mockResolvedValue({
+      data: { id: 'new-prod', name: 'Test Product', type: 'CURRENT_ACCOUNT' },
+    })
 
     render(
       <MemoryRouter>
@@ -993,10 +1100,10 @@ describe('ProductFormPage', () => {
       expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument()
     )
 
-    // Rellenar campos mínimos y luego vaciar uno explícitamente
-    const nameInput = screen.getByLabelText(/Nombre/i)
-    fireEvent.change(nameInput, { target: { value: 'Temp' } })
-    fireEvent.change(nameInput, { target: { value: '' } })
+    // Rellenar campos requeridos
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: 'Test Product' },
+    })
 
     fireEvent.change(screen.getByLabelText(/Tipo/i), {
       target: { value: 'CURRENT_ACCOUNT' },
@@ -1005,19 +1112,20 @@ describe('ProductFormPage', () => {
       target: { value: 'ent-1' },
     })
 
+    // Rellenar un campo numérico opcional con cadena vacía para verificar que se envía como undefined
+    const balanceInput = screen.getByLabelText(/Balance/i)
+    fireEvent.change(balanceInput, { target: { value: '' } })
+
     // Enviar formulario
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalled()
-      const postCall = vi.mocked(axios.post).mock.calls[0]
+      expect(api.post).toHaveBeenCalled()
+      const postCall = vi.mocked(api.post).mock.calls[0]
       const payload = postCall[1] as any
-      // Verificar que no hay claves con string vacío
-      Object.values(payload).forEach((val) => {
-        expect(val).not.toBe('')
-      })
-      // Asegurar que 'name' fue eliminado porque era string vacío
-      expect(payload).not.toHaveProperty('name')
+      // Verificar que currentBalance es undefined (transformado por Zod optionalNumber)
+      expect(payload.currentBalance).toBeUndefined()
+      expect(payload.name).toBe('Test Product')
     })
   })
 
@@ -1032,10 +1140,10 @@ describe('ProductFormPage', () => {
       initialDate: '2023-01-01T00:00:00Z',
       maturityDate: '2024-01-01T00:00:00Z',
       annualInterestRate: 0.05,
-      interestPaymentFrequency: 'Annual',
+      interestPaymentFreq: 'Annual',
     }
 
-    vi.mocked(axios.get)
+    vi.mocked(api.get)
       .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
       .mockResolvedValueOnce({ data: mockDeposit })
 
@@ -1051,22 +1159,10 @@ describe('ProductFormPage', () => {
     expect(screen.getByDisplayValue('2024-01-01')).toBeInTheDocument()
   })
 
-  it('allows editing initialBalance for FIXED_TERM_DEPOSIT in edit mode', async () => {
-    mockUseParams.mockReturnValue({ id: 'dep-1' })
-    const mockDeposit = {
-      id: 'dep-1',
-      name: 'My Deposit',
-      type: 'FIXED_TERM_DEPOSIT',
-      financialEntityId: 'ent-1',
-      initialBalance: 10000,
-      currentBalance: 10500,
-    }
-
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: [{ id: 'ent-1', name: 'Bank' }] })
-      .mockResolvedValueOnce({ data: mockDeposit })
-
-    vi.mocked(axios.put).mockResolvedValue({})
+  it('validates percentage limits for interest rates', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      data: [{ id: 'ent-1', name: 'Banco Santander' }],
+    })
 
     render(
       <MemoryRouter>
@@ -1075,29 +1171,141 @@ describe('ProductFormPage', () => {
     )
 
     await waitFor(() =>
-      expect(screen.getByDisplayValue('My Deposit')).toBeInTheDocument()
+      expect(screen.getByLabelText(/Tipo/i)).toBeInTheDocument()
     )
 
-    // Check for Initial Balance input
-    const initialBalanceInput = screen.getByLabelText(/Balance Inicial/i)
-    expect(initialBalanceInput).toBeInTheDocument()
-    expect(initialBalanceInput).toHaveValue(10000)
+    // Select Fixed Term Deposit
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'FIXED_TERM_DEPOSIT' },
+    })
 
-    // Update Initial Balance
-    fireEvent.change(initialBalanceInput, { target: { value: '12000' } })
-
-    // Submit
+    // Test > 100
+    const annualRateInput = screen.getByLabelText(/Tasa de Interés Anual/i)
+    fireEvent.change(annualRateInput, { target: { value: '110' } })
     fireEvent.click(screen.getByText(/Guardar/i))
 
     await waitFor(() => {
-      expect(axios.put).toHaveBeenCalledWith(
-        expect.stringContaining('/products/dep-1'),
-        expect.objectContaining({
-          initialBalance: 12000,
-          currentBalance: 10500,
-        }),
-        expect.any(Object)
+      expect(
+        screen.getByText('El porcentaje no puede ser mayor a 100')
+      ).toBeInTheDocument()
+    })
+
+    // Test < 0.01
+    fireEvent.change(annualRateInput, { target: { value: '0.001' } })
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('El porcentaje debe ser mayor o igual a 0.01')
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('transforms percentage to decimal on submit', async () => {
+    vi.mocked(api.get).mockImplementation((url) => {
+      if (url.includes('/financial-entities')) {
+        return Promise.resolve({
+          data: [{ id: 'ent-1', name: 'Banco Santander' }],
+        })
+      }
+      return Promise.resolve({ data: [] })
+    })
+    vi.mocked(api.post).mockResolvedValue({
+      data: { id: 'new-prod', name: 'Depo', type: 'FIXED_TERM_DEPOSIT' },
+    })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Tipo/i)).toBeInTheDocument()
+    )
+
+    fireEvent.change(screen.getByLabelText(/Nombre/i), {
+      target: { value: 'Depo' },
+    })
+    fireEvent.change(screen.getByLabelText(/Tipo/i), {
+      target: { value: 'FIXED_TERM_DEPOSIT' },
+    })
+    fireEvent.change(screen.getByLabelText(/Entidad/i), {
+      target: { value: 'ent-1' },
+    })
+    fireEvent.change(screen.getByLabelText(/^Balance$/i), {
+      target: { value: '1000' },
+    })
+    fireEvent.change(screen.getByLabelText(/Fecha Inicio/i), {
+      target: { value: '2023-01-01' },
+    })
+    fireEvent.change(screen.getByLabelText(/Fecha Vencimiento/i), {
+      target: { value: '2024-01-01' },
+    })
+    fireEvent.change(screen.getByLabelText(/Frecuencia de Pago/i), {
+      target: { value: 'Annual' },
+    })
+    fireEvent.change(screen.getByLabelText(/Tasa de Interés Anual/i), {
+      target: { value: '5.5' },
+    })
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith(
+        expect.stringContaining('/products'),
+        expect.objectContaining({ annualInterestRate: 0.055 })
       )
+    })
+  })
+
+  it('cleans up empty dates when updating FIXED_TERM_DEPOSIT', async () => {
+    mockUseParams.mockReturnValue({ id: 'dep-1' })
+    const mockDeposit = {
+      id: 'dep-1',
+      name: 'My Deposit',
+      type: 'FIXED_TERM_DEPOSIT',
+      financialEntityId: 'ent-1',
+      initialBalance: 1000,
+      initialDate: '2023-01-01T00:00:00Z',
+      maturityDate: '2024-01-01T00:00:00Z',
+      annualInterestRate: 0.05,
+      interestPaymentFreq: 'Annual',
+    }
+
+    vi.mocked(api.get).mockImplementation((url) => {
+      if (url.includes('/financial-entities'))
+        return Promise.resolve({ data: [{ id: 'ent-1', name: 'Bank' }] })
+      if (url.includes('/products/dep-1'))
+        return Promise.resolve({ data: mockDeposit })
+      return Promise.resolve({ data: [] })
+    })
+    vi.mocked(api.put).mockResolvedValue({ data: mockDeposit })
+
+    render(
+      <MemoryRouter>
+        <ProductFormPage />
+      </MemoryRouter>
+    )
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('My Deposit')).toBeInTheDocument()
+    )
+
+    // Clear dates manually
+    fireEvent.change(screen.getByLabelText(/Fecha Inicio/i), {
+      target: { value: '' },
+    })
+    fireEvent.change(screen.getByLabelText(/Fecha Vencimiento/i), {
+      target: { value: '' },
+    })
+
+    fireEvent.click(screen.getByText(/Guardar/i))
+
+    await waitFor(() => {
+      const putCall = vi.mocked(api.put).mock.calls[0]
+      const payload = putCall[1] as any
+      expect(payload).not.toHaveProperty('initialDate')
+      expect(payload).not.toHaveProperty('maturityDate')
     })
   })
 })

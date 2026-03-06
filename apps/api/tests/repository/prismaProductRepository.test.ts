@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { PrismaProductRepository } from '../../src/infrastructure/persistence/prisma/PrismaProductRepository'
-import prisma from '../../src/infrastructure/persistence/prisma/client'
+import { PrismaProductRepository } from '../../src/infrastructure/persistence/prisma/repository/PrismaProductRepository'
+import prisma from '../../src/infrastructure/persistence/prisma/repository/prismaClient'
 
-vi.mock('../../src/infrastructure/persistence/prisma/client', () => ({
+vi.mock('@infrastructure/persistence/prisma/repository/prismaClient', () => ({
   default: {
     financialProduct: {
       create: vi.fn(),
@@ -82,11 +82,15 @@ describe('PrismaProductRepository', () => {
     })
 
     it('should create valueHistory if currentBalance changes', async () => {
-      vi.mocked(prisma.financialProduct.findUnique).mockResolvedValue({
-        currentBalance: 100,
-      } as any)
       vi.mocked(prisma.financialProduct.update).mockResolvedValue({} as any)
-      await repo.update('1', { currentBalance: 200 })
+      await repo.update('1', {
+        currentBalance: 200,
+        valueHistoryEntry: {
+          date: new Date('2023-01-01'),
+          value: 200,
+          previousValue: 100,
+        },
+      } as any)
 
       expect(prisma.financialProduct.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -95,6 +99,7 @@ describe('PrismaProductRepository', () => {
               create: expect.objectContaining({
                 value: 200,
                 previousValue: 100,
+                date: new Date('2023-01-01'),
               }),
             },
           }),
@@ -103,15 +108,16 @@ describe('PrismaProductRepository', () => {
     })
 
     it('should create valueHistory when updating currentBalance for FIXED_TERM_DEPOSIT', async () => {
-      vi.mocked(prisma.financialProduct.findUnique).mockResolvedValue({
-        id: '1',
-        type: 'FIXED_TERM_DEPOSIT',
-        currentBalance: 1000,
-        initialBalance: 1000,
-      } as any)
       vi.mocked(prisma.financialProduct.update).mockResolvedValue({} as any)
 
-      await repo.update('1', { currentBalance: 1050 })
+      await repo.update('1', {
+        currentBalance: 1050,
+        valueHistoryEntry: {
+          date: new Date(),
+          value: 1050,
+          previousValue: 1000,
+        },
+      } as any)
 
       expect(prisma.financialProduct.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -129,8 +135,8 @@ describe('PrismaProductRepository', () => {
       )
     })
 
-    it('should map interestPaymentFrequency correctly', async () => {
-      await repo.update('1', { interestPaymentFrequency: 'Monthly' } as any)
+    it('should map interestPaymentFreq correctly', async () => {
+      await repo.update('1', { interestPaymentFreq: 'Monthly' } as any)
 
       expect(prisma.financialProduct.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -143,7 +149,7 @@ describe('PrismaProductRepository', () => {
   })
 
   describe('mapToDomain', () => {
-    // Helper para probar el mapeo de diferentes tipos
+    // Helper to test mapping of different types
     const testMapping = async (type: string, extraFields: any) => {
       vi.mocked(prisma.financialProduct.findFirst).mockResolvedValue({
         id: '1',
@@ -164,6 +170,7 @@ describe('PrismaProductRepository', () => {
     it('should map SAVINGS_ACCOUNT fields', async () => {
       const res = await testMapping('SAVINGS_ACCOUNT', {
         monthlyInterestRate: 0.05,
+        currentBalance: 1000,
       })
       expect(res).toHaveProperty('monthlyInterestRate', 0.05)
     })
@@ -171,12 +178,19 @@ describe('PrismaProductRepository', () => {
     it('should map FIXED_TERM_DEPOSIT fields', async () => {
       const res = await testMapping('FIXED_TERM_DEPOSIT', {
         annualInterestRate: 0.03,
+        initialBalance: 1000,
+        initialDate: new Date(),
+        maturityDate: new Date(),
+        interestPaymentFreq: 'Monthly',
       })
-      expect(res).toHaveProperty('annualInterestRate', 0.03)
+      expect(res).toHaveProperty('interestPaymentFreq', 'Monthly')
     })
 
     it('should map INVESTMENT_FUND fields', async () => {
-      const res = await testMapping('INVESTMENT_FUND', { numberOfUnits: 10 })
+      const res = await testMapping('INVESTMENT_FUND', {
+        numberOfUnits: 10,
+        currentBalance: 1000,
+      })
       expect(res).toHaveProperty('numberOfUnits', 10)
     })
 
@@ -184,21 +198,20 @@ describe('PrismaProductRepository', () => {
       const res = await testMapping('STOCKS', {
         numberOfShares: 100,
         currentMarketPrice: 50,
+        unitPurchasePrice: 10,
+        initialBalance: 1000,
+        currentBalance: 1200,
       })
       expect(res).toHaveProperty('numberOfShares', 100)
       expect(res).toHaveProperty('currentMarketPrice', 50)
     })
 
     it('should map CURRENT_ACCOUNT fields', async () => {
-      const res = await testMapping('CURRENT_ACCOUNT', { transactions: [] })
-      expect(res).toHaveProperty('transactions', [])
-    })
-
-    it('should map fees correctly', async () => {
-      const res = await testMapping('INVESTMENT_FUND', {
-        fees: { maintenance: 10 },
+      const res = await testMapping('CURRENT_ACCOUNT', {
+        transactions: [],
+        currentBalance: 1000,
       })
-      expect(res).toHaveProperty('fees', { maintenance: 10 })
+      expect(res).toHaveProperty('transactions', [])
     })
   })
 

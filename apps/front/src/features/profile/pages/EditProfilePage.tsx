@@ -7,7 +7,7 @@ import { ArrowLeft, Save, Key } from 'lucide-react'
 
 export const EditProfilePage = () => {
   const navigate = useNavigate()
-  const { user, token, refreshUser } = useAuth()
+  const { user, refreshUser } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -25,12 +25,18 @@ export const EditProfilePage = () => {
   }, [user, navigate, setValue])
 
   const onSubmit = async (data: any) => {
-    if (!user || !token) return
+    if (!user) return
     setError(null)
     setSuccess(null)
 
     try {
-      await updateClientProfile(user.id, data)
+      const updatedUser = await updateClientProfile(user.id, data)
+
+      // Actualizar localStorage con los nuevos datos para que refreshUser los recoja
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+      const newUser = { ...currentUser, ...updatedUser }
+      localStorage.setItem('user', JSON.stringify(newUser))
+
       await refreshUser()
       setSuccess('Perfil actualizado correctamente')
       setTimeout(() => {

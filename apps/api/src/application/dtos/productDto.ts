@@ -1,18 +1,52 @@
-import { ProductStatus, ProductType } from '../../domain/types'
+import {
+  ProductStatus,
+  ProductType,
+  InterestPaymentFrequency,
+} from '@domain/types'
+import { IProductTransaction } from '@domain/models/productTransaction'
 
-export interface CreateProductDto {
-  type: ProductType
-  name: string
-  financialEntity: string
-  status: ProductStatus
-  clientId?: string
-  //TODO DEFINIR MAS ESPECIFICAMENTE SEGUN EL TIPO PARA HACERLO MAS SEGURO OWASP
-  [key: string]: any
+export class CreateProductDto {
+  type!: ProductType
+  name!: string
+  financialEntity!: string
+  status!: ProductStatus
+  clientId!: string
+  valueHistory?: Array<{ date: Date; value: number }>
+  transaction?: Array<IProductTransaction>
+  currentBalance?: number
+  transactions?: Array<{ date: Date; description: string; amount: number }>
+  monthlyInterestRate?: number
+  initialBalance?: number
+  initialDate?: Date
+  maturityDate?: Date
+  annualInterestRate?: number
+  interestPaymentFreq?: InterestPaymentFrequency
+  numberOfUnits?: number
+  netAssetValue?: number
+  numberOfShares?: number
+  unitPurchasePrice?: number
+  currentMarketPrice?: number
 }
 
-export interface UpdateProductDto {
+export class UpdateProductDto {
+  clientId!: string
   name?: string
   status?: ProductStatus
-  //TODO DEFINIR MAS ESPECIFICAMENTE SEGUN EL TIPO PARA HACERLO MAS SEGURO OWASP
-  [key: string]: any
+
+  valueHistory?: Array<{ date: Date; value: number }>
+  transaction?: Array<IProductTransaction>
+  currentBalance?: number
+
+  transactions?: Array<{ date: Date; description: string; amount: number }>
+  monthlyInterestRate?: number
+  initialBalance?: number
+  initialDate?: Date
+  maturityDate?: Date
+  annualInterestRate?: number
+  interestPaymentFreq?: InterestPaymentFrequency
+  numberOfUnits?: number
+  netAssetValue?: number
+  numberOfShares?: number
+  unitPurchasePrice?: number
+  currentMarketPrice?: number
 }

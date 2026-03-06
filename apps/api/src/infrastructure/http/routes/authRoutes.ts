@@ -7,8 +7,8 @@ export const createAuthRoutes = (
   clientController: ClientController
 ) => {
   const authRouter = Router()
-  authRouter.post('/register', (req, res) =>
-    clientController.register(req, res)
+  authRouter.post('/register', (req, res, next) =>
+    clientController.register(req, res, next)
   )
   authRouter.post('/login', authController.login)
   authRouter.post('/logout', authController.logout)

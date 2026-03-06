@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ClientFinancialEntityController } from '../../src/infrastructure/http/controllers/clientFinancialEntityController'
 import { ClientFinancialEntityUseCases } from '../../src/application/useCases/clientFinancialEntityUseCases'
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 
 describe('ClientFinancialEntityController', () => {
   let controller: ClientFinancialEntityController
@@ -10,6 +10,7 @@ describe('ClientFinancialEntityController', () => {
   let res: Partial<Response>
   let json: any
   let status: any
+  let next: NextFunction
 
   beforeEach(() => {
     useCases = {
@@ -24,18 +25,17 @@ describe('ClientFinancialEntityController', () => {
     json = vi.fn()
     status = vi.fn().mockReturnValue({ json, send: vi.fn() })
     res = { status, json } as unknown as Response
+    next = vi.fn() as unknown as NextFunction
   })
 
   describe('create', () => {
-    it('should return 500 on generic error', async () => {
+    it('should call next with error on generic error', async () => {
       req = { params: { clientId: 'c1' }, body: {} } as any
-      vi.mocked(useCases.createAssociation).mockRejectedValue(new Error('Boom'))
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const error = new Error('Boom')
+      vi.mocked(useCases.createAssociation).mockRejectedValue(error)
 
-      await controller.create(req as Request, res as Response)
-
-      expect(status).toHaveBeenCalledWith(500)
-      consoleSpy.mockRestore()
+      await controller.create(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
     it('should return 201 on success', async () => {
@@ -44,7 +44,7 @@ describe('ClientFinancialEntityController', () => {
         id: '1',
       } as any)
 
-      await controller.create(req as Request, res as Response)
+      await controller.create(req as Request, res as Response, next)
 
       expect(status).toHaveBeenCalledWith(201)
       expect(json).toHaveBeenCalledWith({ id: '1' })
@@ -52,31 +52,29 @@ describe('ClientFinancialEntityController', () => {
   })
 
   describe('update', () => {
-    it('should return 404 if association not found', async () => {
+    it('should call next with error if association not found', async () => {
       req = { params: { id: '1' }, body: {} } as any
-      vi.mocked(useCases.updateBalance).mockRejectedValue(
-        new Error('Association not found')
-      )
+      const error = new Error('Association not found')
+      vi.mocked(useCases.updateBalance).mockRejectedValue(error)
 
-      await controller.updateBalance(req as Request, res as Response)
-
-      expect(status).toHaveBeenCalledWith(404)
+      await controller.updateBalance(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
-    it('should return 400 on generic error', async () => {
+    it('should call next with error on generic error', async () => {
       req = { params: { id: '1' }, body: {} } as any
-      vi.mocked(useCases.updateBalance).mockRejectedValue(new Error('Boom'))
+      const error = new Error('Boom')
+      vi.mocked(useCases.updateBalance).mockRejectedValue(error)
 
-      await controller.updateBalance(req as Request, res as Response)
-
-      expect(status).toHaveBeenCalledWith(500)
+      await controller.updateBalance(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
 
     it('should return 204 on success', async () => {
       req = { params: { id: '1' }, body: {} } as any
       vi.mocked(useCases.updateBalance).mockResolvedValue()
 
-      await controller.updateBalance(req as Request, res as Response)
+      await controller.updateBalance(req as Request, res as Response, next)
 
       expect(status).toHaveBeenCalledWith(204)
     })
@@ -85,19 +83,17 @@ describe('ClientFinancialEntityController', () => {
   describe('delete', () => {
     it('should return 204 on success', async () => {
       req = { params: { id: '1' } } as any
-      await controller.delete(req as Request, res as Response)
+      await controller.delete(req as Request, res as Response, next)
       expect(status).toHaveBeenCalledWith(204)
     })
 
-    it('should return 500 on error', async () => {
+    it('should call next with error on error', async () => {
       req = { params: { id: '1' } } as any
-      vi.mocked(useCases.deleteAssociation).mockRejectedValue(new Error('Boom'))
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const error = new Error('Boom')
+      vi.mocked(useCases.deleteAssociation).mockRejectedValue(error)
 
-      await controller.delete(req as Request, res as Response)
-
-      expect(status).toHaveBeenCalledWith(500)
-      consoleSpy.mockRestore()
+      await controller.delete(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 
@@ -123,28 +119,24 @@ describe('ClientFinancialEntityController', () => {
         mockAssociations as any
       )
 
-      await controller.getAllAssociations(req as Request, res as Response)
+      await controller.getAllAssociations(req as Request, res as Response, next)
 
       expect(status).toHaveBeenCalledWith(200)
       expect(json).toHaveBeenCalledWith(mockAssociations)
     })
 
-    it('should return 500 on error', async () => {
+    it('should call next with error on error', async () => {
       req = {
         query: {},
         params: {},
         body: {},
         user: { role: 'ADMIN', id: 'admin-1' },
       } as any
-      vi.mocked(useCases.getAllAssociations).mockRejectedValue(
-        new Error('Boom')
-      )
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const error = new Error('Boom')
+      vi.mocked(useCases.getAllAssociations).mockRejectedValue(error)
 
-      await controller.getAllAssociations(req as Request, res as Response)
-
-      expect(status).toHaveBeenCalledWith(500)
-      consoleSpy.mockRestore()
+      await controller.getAllAssociations(req as Request, res as Response, next)
+      expect(next).toHaveBeenCalledWith(error)
     })
   })
 })

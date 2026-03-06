@@ -1,54 +1,36 @@
-import axios from 'axios'
-import { API_URL } from '../../../config/api'
-
-const axiosConfig = { withCredentials: true }
+import { api } from '../../../config/api'
 
 export const clientFinancialEntityService = {
   getByClientId: async (clientId: string) => {
-    const response = await axios.get(
-      `${API_URL}/clients/${clientId}/financial-entities`,
-      axiosConfig
-    )
+    const response = await api.get(`/clients/${clientId}/financial-entities`)
     return response.data
   },
 
   getById: async (clientId: string, id: string) => {
-    const response = await axios.get(
-      `${API_URL}/clients/${clientId}/financial-entities/${id}`,
-      axiosConfig
+    const response = await api.get(
+      `/clients/${clientId}/financial-entities/${id}`
     )
     return response.data
   },
 
   create: async (clientId: string, data: any) => {
-    const response = await axios.post(
-      `${API_URL}/clients/${clientId}/financial-entities`,
-      data,
-      axiosConfig
+    const response = await api.post(
+      `/clients/${clientId}/financial-entities`,
+      data
     )
     return response.data
   },
 
   update: async (clientId: string, id: string, data: any) => {
-    await axios.put(
-      `${API_URL}/clients/${clientId}/financial-entities/${id}`,
-      data,
-      axiosConfig
-    )
+    await api.put(`/clients/${clientId}/financial-entities/${id}`, data)
   },
 
   delete: async (clientId: string, id: string) => {
-    await axios.delete(
-      `${API_URL}/clients/${clientId}/financial-entities/${id}`,
-      axiosConfig
-    )
+    await api.delete(`/clients/${clientId}/financial-entities/${id}`)
   },
 
   getAllAssociations: async () => {
-    const response = await axios.get(
-      `${API_URL}/clients-financial-entities`,
-      axiosConfig
-    )
+    const response = await api.get('/clients-financial-entities')
     return response.data
   },
 }

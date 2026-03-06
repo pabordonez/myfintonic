@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  // Asumimos que authMiddleware ya se ejecutó y populó req.user
   const user = (req as any).user
 
   if (!user) {

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { env } from '@config/env'
+import { env } from '@infrastructure/config/env'
 
 const prismaBase = new PrismaClient({
   datasources: {
@@ -75,7 +75,6 @@ const prisma = prismaBase.$extends({
           'ClientFinancialEntity',
         ]
         if (softDeleteModels.includes(model)) {
-          // Convertimos findUnique a findFirst para poder inyectar el filtro deletedAt: null
           return (prismaBase as any)[model].findFirst({
             where: { ...args.where, deletedAt: null },
           })

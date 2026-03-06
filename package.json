@@ -36,9 +36,9 @@
     "docker:prod": "docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up -d --build"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
+    "eslint": "^10.0.1",
     "prettier": "^3.4.2",
-    "eslint": "^9.17.0",
+    "turbo": "^2.0.0",
     "typescript": "^5.9.3"
   },
   "packageManager": "npm@10.8.1",
@@ -61,5 +61,8 @@
     "*.{json,css,md,yml}": [
       "prettier --write"
     ]
+  },
+  "overrides": {
+    "minimatch": "^10.2.1"
   }
 }

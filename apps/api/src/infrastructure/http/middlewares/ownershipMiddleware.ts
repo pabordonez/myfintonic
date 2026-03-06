@@ -1,10 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import prisma from '@infrastructure/persistence/prisma/client'
+import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
 
-/**
- * Verifica si el usuario es dueño del recurso.
- * El ADMIN siempre tiene acceso (bypass).
- */
 export const productOwnershipMiddleware = async (
   req: Request,
   res: Response,
@@ -31,7 +27,7 @@ export const productOwnershipMiddleware = async (
     })
 
     if (!product || product.clientId !== userId) {
-      res.status(404).json({ error: 'Product not found' }) // 404 por seguridad (evitar enumeración)
+      res.status(404).json({ error: 'Product not found' })
       return
     }
 

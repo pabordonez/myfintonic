@@ -23,14 +23,15 @@ vi.mock('react-router-dom', async () => {
 describe('EditProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    const user = {
+      id: '1',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@test.com',
+    }
+    localStorage.setItem('user', JSON.stringify(user))
     ;(useAuth as any).mockReturnValue({
-      user: {
-        id: '1',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@test.com',
-      },
-      token: 'token',
+      user,
       refreshUser: mockRefreshUser,
     })
   })
@@ -113,7 +114,6 @@ describe('EditProfilePage', () => {
   it('redirects to login if user is missing', async () => {
     ;(useAuth as any).mockReturnValue({
       user: null,
-      token: null, // Aseguramos que ambos sean null
       refreshUser: mockRefreshUser,
     })
 
@@ -125,31 +125,6 @@ describe('EditProfilePage', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/auth/login')
-    })
-  })
-
-  it('does not submit if token is missing', async () => {
-    ;(useAuth as any).mockReturnValue({
-      user: {
-        id: '1',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@test.com',
-      },
-      token: null,
-      refreshUser: mockRefreshUser,
-    })
-
-    render(
-      <BrowserRouter>
-        <EditProfilePage />
-      </BrowserRouter>
-    )
-
-    fireEvent.click(screen.getByText('Guardar Cambios'))
-
-    await waitFor(() => {
-      expect(updateClientProfile).not.toHaveBeenCalled()
     })
   })
 
@@ -177,5 +152,30 @@ describe('EditProfilePage', () => {
       'href',
       '/clients/1/change-password'
     )
+  })
+
+  it('handles missing localStorage data gracefully during update', async () => {
+    vi.mocked(updateClientProfile).mockResolvedValue({
+      id: '1',
+      firstName: 'Jane',
+      lastName: 'Doe',
+    })
+
+    const { container } = render(
+      <BrowserRouter>
+        <EditProfilePage />
+      </BrowserRouter>
+    )
+
+    // Simular que localStorage se vació (ej. limpieza externa)
+    localStorage.removeItem('user')
+
+    fireEvent.change(container.querySelector('input[name="firstName"]')!, {
+      target: { value: 'Jane' },
+    })
+    fireEvent.click(screen.getByText('Guardar Cambios'))
+
+    await waitFor(() => expect(updateClientProfile).toHaveBeenCalled())
+    // Si no falla, significa que el fallback || '{}' funcionó
   })
 })

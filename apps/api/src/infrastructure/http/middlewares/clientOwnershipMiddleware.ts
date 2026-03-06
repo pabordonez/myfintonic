@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
 
 /**
- * Verifica que el usuario autenticado coincida con el clientId de la ruta.
- * Ejemplo: /clients/:clientId/financial-entities
+ * Verifies that the authenticated user matches the route's clientId.
+ * Example: /clients/:clientId/financial-entities
  */
 export const clientOwnershipMiddleware = (
   req: Request,

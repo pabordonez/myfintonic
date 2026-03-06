@@ -1,5 +1,8 @@
-import { IFinancialProduct } from '@domain/entities/IFinancialProduct'
-import { IProductFactory } from '@domain/factories/productFactory'
+import {
+  IFinancialProduct,
+  FinancialProduct,
+} from '@domain/models/financialProduct'
+import { FinancialProductFactory } from '@domain/factories/financialProductFactory'
 import { IProductRepository } from '@domain/repository/IProductRepository'
 import {
   CreateProductDto,
@@ -7,18 +10,15 @@ import {
 } from '@application/dtos/productDto'
 
 export class ProductUseCases {
-  constructor(
-    private productRepository: IProductRepository,
-    private productFactory: IProductFactory
-  ) {}
+  constructor(private productRepository: IProductRepository) {}
 
   async getProducts(
     filters: Partial<IFinancialProduct>
-  ): Promise<IFinancialProduct[]> {
+  ): Promise<FinancialProduct[]> {
     return this.productRepository.findAll(filters)
   }
 
-  async getProductById(id: string): Promise<IFinancialProduct | null> {
+  async getProductById(id: string): Promise<FinancialProduct | null> {
     return this.productRepository.findById(id)
   }
 
@@ -33,17 +33,10 @@ export class ProductUseCases {
   }
 
   async createProduct(
-    productData: CreateProductDto
-  ): Promise<IFinancialProduct> {
-    if (
-      !productData.name ||
-      !productData.type ||
-      !productData.financialEntity ||
-      !productData.status
-    ) {
-      throw new Error('Missing required fields')
-    }
-    const product = this.productFactory.create(productData)
+    productData: CreateProductDto,
+    uuid: any
+  ): Promise<FinancialProduct> {
+    const product = FinancialProductFactory.create(productData, uuid)
     return this.productRepository.create(product)
   }
 
@@ -55,9 +48,29 @@ export class ProductUseCases {
     if (!existingProduct) {
       throw new Error('Product not found')
     }
-    this.productFactory.validateUpdate(existingProduct.type, productData)
 
-    await this.productRepository.update(id, productData)
+    const productEntity =
+      existingProduct instanceof FinancialProduct
+        ? existingProduct
+        : FinancialProductFactory.fromPrimitives(existingProduct)
+
+    const currentBalance = (existingProduct as any).currentBalance
+
+    productEntity.update(productData)
+
+    const updatePayload: any = { ...productData }
+
+    const newBalance = productData.currentBalance
+
+    if (newBalance !== undefined && newBalance !== currentBalance) {
+      updatePayload.valueHistoryEntry = {
+        date: new Date(),
+        value: newBalance,
+        previousValue: currentBalance ?? null,
+      }
+    }
+
+    await this.productRepository.update(id, updatePayload)
   }
 
   async deleteProduct(id: string): Promise<void> {

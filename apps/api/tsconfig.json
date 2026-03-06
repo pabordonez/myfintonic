@@ -12,13 +12,19 @@
     "paths": {
       "@domain/*": ["domain/*"],
       "@application/*": ["application/*"],
-      "@infrastructure/*": ["infrastructure/*"],
-      "@config/*": ["config/*"]
+      "@infrastructure/*": ["infrastructure/*"]
     },
-    //TODO:REVIEW
     "noImplicitAny": false,
     "types": ["node"]
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*",
+    "tests/errorHandler.test.ts",
+    "tests/entities/clientFinancialEntity.test.ts",
+    "tests/entities/financialEntity.test.ts",
+    "tests/entities/financialProductFactory.test.ts",
+    "tests/entities/financialProducts.test.ts",
+    "tests/entities/productTransactionEntity.test.ts"
+  ],
   "exclude": ["node_modules", "tests"]
 }

@@ -1,34 +1,26 @@
-import { IClientFinancialEntity } from '@domain/entities/IClientFinancialEntity'
 import { IClientFinancialEntityRepository } from '@domain/repository/IClientFinancialEntityRepository'
-import { CreateClientFinancialEntityDto } from '@application/dtos/clientFinancialEntityDto'
-import prisma from '@infrastructure/persistence/prisma/client'
+import prisma from '@infrastructure/persistence/prisma/repository/prismaClient'
+import { ClientFinancialEntity } from '@domain/models/clientFinancialEntity'
+import { ClientFinancialEntityValueHistory } from '@domain/models/clientFinancialEntityValueHistory'
 
 export class PrismaClientFinancialEntityRepository implements IClientFinancialEntityRepository {
-  async create(
-    dto: CreateClientFinancialEntityDto
-  ): Promise<IClientFinancialEntity> {
+  async create(entity: ClientFinancialEntity): Promise<ClientFinancialEntity> {
     try {
-      // Construimos el objeto data dinámicamente para evitar pasar 'undefined' en relaciones
       const data: any = {
-        clientId: dto.clientId,
-        financialEntityId: dto.financialEntityId,
-        balance:
-          dto.balance !== null && dto.balance !== undefined
-            ? dto.balance
-            : null,
-        initialBalance:
-          dto.initialBalance !== null && dto.initialBalance !== undefined
-            ? dto.initialBalance
-            : dto.balance !== null && dto.balance !== undefined
-              ? dto.balance
-              : null,
+        id: entity.id,
+        clientId: entity.clientId,
+        financialEntityId: entity.financialEntityId,
+        balance: entity.balance,
+        initialBalance: entity.initialBalance ?? entity.balance,
+        createdAt: entity.createdAt,
+        updatedAt: entity.updatedAt,
       }
 
-      if (dto.balance !== null && dto.balance !== undefined) {
+      if (entity.balance !== undefined) {
         data.valueHistory = {
           create: {
             date: new Date(),
-            value: dto.balance,
+            value: entity.balance,
           },
         }
       }
@@ -36,8 +28,9 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
       const created = await prisma.clientFinancialEntity.create({
         data: data,
         include: {
-          financialEntity: true,
           valueHistory: true,
+          client: true,
+          financialEntity: true,
         },
       })
 
@@ -45,28 +38,32 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     } catch (error: any) {
       // Si ya existe (activo o borrado), lo reactivamos y actualizamos
       if (error.code === 'P2002') {
-        // 1. Verificar si existe y está ACTIVO
-        // Usamos findFirst para evitar problemas con la extensión soft-delete y claves compuestas
+        const { clientId, financialEntityId } = entity
+        if (!clientId || !financialEntityId) {
+          throw error
+        }
+
+        // 1. Verify if exist and ACTIVE
         const existingActive = await prisma.clientFinancialEntity.findFirst({
           where: {
-            clientId: dto.clientId,
-            financialEntityId: dto.financialEntityId,
+            clientId,
+            financialEntityId,
           },
         })
 
-        if (existingActive) throw error // Está activo -> Dejar que falle con 409
+        if (existingActive) throw error
 
-        // 2. Si llegamos aquí, existe pero está borrado -> RESTAURAR
+        // 2. If we reach here, it exists but is deleted -> RESTORE
         const updateData: any = {
           deletedAt: null,
         }
 
-        if (dto.balance !== null && dto.balance !== undefined) {
-          updateData.balance = dto.balance
+        if (entity.balance !== undefined) {
+          updateData.balance = entity.balance
           updateData.valueHistory = {
             create: {
               date: new Date(),
-              value: dto.balance,
+              value: entity.balance,
             },
           }
         }
@@ -74,14 +71,15 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
         const updated = await prisma.clientFinancialEntity.update({
           where: {
             clientId_financialEntityId: {
-              clientId: dto.clientId,
-              financialEntityId: dto.financialEntityId,
+              clientId,
+              financialEntityId,
             },
           },
           data: updateData,
           include: {
             financialEntity: true,
             valueHistory: true,
+            client: true,
           },
         })
 
@@ -91,21 +89,17 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     }
   }
 
-  async update(
-    id: string,
-    entity: Partial<IClientFinancialEntity>
-  ): Promise<void> {
+  async update(entity: ClientFinancialEntity): Promise<void> {
     const data: any = {}
 
     if (entity.balance !== undefined) {
-      // Obtener el valor anterior para el histórico
       const currentEntity = await prisma.clientFinancialEntity.findUnique({
-        where: { id },
+        where: { id: entity.id },
       })
       const previousValue = currentEntity?.balance
 
-      data.balance = entity.balance !== null ? entity.balance : null
-      if (entity.balance !== null && entity.balance !== undefined) {
+      data.balance = entity.balance
+      if (entity.balance !== undefined) {
         data.valueHistory = {
           create: {
             date: new Date(),
@@ -117,21 +111,25 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     }
 
     await prisma.clientFinancialEntity.update({
-      where: { id },
+      where: { id: entity.id },
       data,
     })
   }
 
-  async findById(id: string): Promise<IClientFinancialEntity | null> {
+  async findById(id: string): Promise<ClientFinancialEntity | null> {
     const entity = await prisma.clientFinancialEntity.findFirst({
       where: { id },
-      include: { valueHistory: true, financialEntity: true },
+      include: {
+        valueHistory: true,
+        financialEntity: true,
+        client: true,
+      },
     })
     if (!entity) return null
     return this.mapToDomain(entity)
   }
 
-  async findAllWithClients(): Promise<IClientFinancialEntity[]> {
+  async findAllWithClients(): Promise<ClientFinancialEntity[]> {
     const entities = await prisma.clientFinancialEntity.findMany({
       include: {
         financialEntity: true,
@@ -141,9 +139,11 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     return entities.map((e: any) => this.mapToDomain(e))
   }
 
-  async findAll(
-    filters?: Partial<IClientFinancialEntity> & { name?: string }
-  ): Promise<IClientFinancialEntity[]> {
+  async findAll(filters?: {
+    clientId?: string
+    financialEntityId?: string
+    name?: string
+  }): Promise<ClientFinancialEntity[]> {
     const where: any = {}
     if (filters?.clientId) where.clientId = filters.clientId
     if (filters?.financialEntityId)
@@ -161,9 +161,8 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
     await prisma.clientFinancialEntity.delete({ where: { id } })
   }
 
-  private mapToDomain(prismaEntity: any): IClientFinancialEntity {
-    //TODO MEJORAR PARA SEGMENTARLO MEJOR EN DISTINTOS TIPOS
-    return {
+  private mapToDomain(prismaEntity: any): ClientFinancialEntity {
+    return ClientFinancialEntity.fromPrimitives({
       id: prismaEntity.id,
       balance: prismaEntity.balance ? Number(prismaEntity.balance) : 0,
       initialBalance: prismaEntity.initialBalance
@@ -176,6 +175,7 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
             firstName: prismaEntity.client.firstName,
             lastName: prismaEntity.client.lastName,
             email: prismaEntity.client.email,
+            nickname: prismaEntity.client.nickname,
           }
         : undefined,
       financialEntityId: prismaEntity.financialEntityId,
@@ -190,13 +190,17 @@ export class PrismaClientFinancialEntityRepository implements IClientFinancialEn
       createdAt: prismaEntity.createdAt,
       updatedAt: prismaEntity.updatedAt,
       valueHistory:
-        prismaEntity.valueHistory?.map((h: any) => ({
-          id: h.id,
-          date: h.date,
-          value: Number(h.value),
-          previousValue: h.previousValue ? Number(h.previousValue) : undefined,
-          clientFinancialEntityId: h.clientFinancialEntityId,
-        })) || [],
-    }
+        prismaEntity.valueHistory?.map((h: any) =>
+          ClientFinancialEntityValueHistory.fromPrimitives({
+            id: h.id,
+            date: h.date,
+            value: Number(h.value),
+            previousValue: h.previousValue
+              ? Number(h.previousValue)
+              : undefined,
+            clientFinancialEntityId: h.clientFinancialEntityId,
+          })
+        ) || [],
+    })
   }
 }

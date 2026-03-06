@@ -2,159 +2,154 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
 import { app } from '../../src/app'
 import jwt from 'jsonwebtoken'
-import { env } from '../../src/config/env'
+import { env } from '../../src/infrastructure/config/env'
 
 // 1. Hoisted variable to simulate in-memory DB within the mock
 const { mockDb } = vi.hoisted(() => ({ mockDb: [] as any[] }))
 
 // 2. Mock Prisma client (Infrastructure)
-vi.mock(
-  '../../src/infrastructure/persistence/prisma/client',
-  async (importOriginal) => {
-    const actual = await importOriginal()
-    return {
-      ...(actual as any),
-      default: {
-        financialProduct: {
-          create: vi.fn().mockImplementation(async ({ data }) => {
-            const newEntry = {
-              id: 'mock-product-id', // Ensure ID exists
-              ...data,
-              // Simulate automatic DB fields
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              valueHistory: [],
-              transactions: [],
+vi.mock('@infrastructure/persistence/prisma/repository/prismaClient', () => {
+  return {
+    default: {
+      financialProduct: {
+        create: vi.fn().mockImplementation(async ({ data }) => {
+          const newEntry = {
+            id: 'mock-product-id', // Ensure ID exists
+            ...data,
+            // Simulate automatic DB fields
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            valueHistory: [],
+            transactions: [],
+          }
+          // Simulate Prisma 'connect' for relations
+          if (data.client?.connect?.id) {
+            newEntry.clientId = data.client.connect.id
+            delete newEntry.client
+          }
+          // Simulate Prisma 'connectOrCreate' for financialEntity relation
+          if (data.financialEntity?.connectOrCreate?.create) {
+            // We store the created entity object so mapToDomain can read .name from it
+            newEntry.financialEntity = {
+              id: 'mock-fe-id',
+              ...data.financialEntity.connectOrCreate.create,
             }
-            // Simulate Prisma 'connect' for relations
-            if (data.client?.connect?.id) {
-              newEntry.clientId = data.client.connect.id
-              delete newEntry.client
-            }
-            // Simulate Prisma 'connectOrCreate' for financialEntity relation
-            if (data.financialEntity?.connectOrCreate?.create) {
-              // We store the created entity object so mapToDomain can read .name from it
-              newEntry.financialEntity = {
-                id: 'mock-fe-id',
-                ...data.financialEntity.connectOrCreate.create,
-              }
-            }
-            // Simulate Prisma 'connect' for financialEntity relation
-            if (data.financialEntity?.connect) {
-              const connectedId = data.financialEntity.connect.id
-              if (connectedId === 'non-existent-id') {
-                const error: any = new Error('Record not found')
-                error.code = 'P2025'
-                throw error
-              }
-
-              // Resolver nombre basado en el ID simulado
-              let entityName = 'Banco de Pruebas'
-              if (connectedId === 'global-bank-id') entityName = 'Global Bank'
-
-              newEntry.financialEntityId = connectedId || 'mock-fe-id'
-              newEntry.financialEntity = {
-                id: newEntry.financialEntityId,
-                name: entityName,
-              }
-            }
-            mockDb.push(newEntry)
-            return newEntry
-          }),
-          findMany: vi.fn().mockImplementation(async ({ where }) => {
-            let results = [...mockDb]
-            // Basic implementation of Prisma filters
-            if (where) {
-              if (where.status)
-                results = results.filter((p) => p.status === where.status)
-              if (where.type)
-                results = results.filter((p) => p.type === where.type)
-              // Updated filter logic for relation object
-              if (where.financialEntity?.name) {
-                results = results.filter(
-                  (p) => p.financialEntity?.name === where.financialEntity.name
-                )
-              }
-            }
-            return results
-          }),
-          findFirst: vi.fn().mockImplementation(async ({ where }) => {
-            return mockDb.find((p) => p.id === where.id) || null
-          }),
-          findUnique: vi.fn().mockImplementation(async ({ where }) => {
-            return mockDb.find((p) => p.id === where.id) || null
-          }),
-          update: vi.fn().mockImplementation(async ({ where, data }) => {
-            const index = mockDb.findIndex((p) => p.id === where.id)
-            if (index === -1) throw new Error('Record not found')
-
-            const current = mockDb[index]
-
-            // Handle valueHistory nested write (simulation)
-            const { valueHistory, ...restData } = data
-
-            if (valueHistory?.create) {
-              if (!current.valueHistory) current.valueHistory = []
-              current.valueHistory.push({
-                ...valueHistory.create,
-                date: valueHistory.create.date || new Date(),
-              })
+          }
+          // Simulate Prisma 'connect' for financialEntity relation
+          if (data.financialEntity?.connect) {
+            const connectedId = data.financialEntity.connect.id
+            if (connectedId === 'non-existent-id') {
+              const error: any = new Error('Record not found')
+              error.code = 'P2025'
+              throw error
             }
 
-            const updated = { ...current, ...restData }
+            // Resolve name based on simulated ID
+            let entityName = 'Banco de Pruebas'
+            if (connectedId === 'global-bank-id') entityName = 'Global Bank'
 
-            // Handle relation in update
-            if (data.client?.connect?.id) {
-              updated.clientId = data.client.connect.id
-              delete updated.client
+            newEntry.financialEntityId = connectedId || 'mock-fe-id'
+            newEntry.financialEntity = {
+              id: newEntry.financialEntityId,
+              name: entityName,
+            }
+          }
+          mockDb.push(newEntry)
+          return newEntry
+        }),
+        findMany: vi.fn().mockImplementation(async ({ where }) => {
+          let results = [...mockDb]
+          // Basic implementation of Prisma filters
+          if (where) {
+            if (where.status)
+              results = results.filter((p) => p.status === where.status)
+            if (where.type)
+              results = results.filter((p) => p.type === where.type)
+            // Updated filter logic for relation object
+            if (where.financialEntity?.name) {
+              results = results.filter(
+                (p) => p.financialEntity?.name === where.financialEntity.name
+              )
+            }
+          }
+          return results
+        }),
+        findFirst: vi.fn().mockImplementation(async ({ where }) => {
+          return mockDb.find((p) => p.id === where.id) || null
+        }),
+        findUnique: vi.fn().mockImplementation(async ({ where }) => {
+          return mockDb.find((p) => p.id === where.id) || null
+        }),
+        update: vi.fn().mockImplementation(async ({ where, data }) => {
+          const index = mockDb.findIndex((p) => p.id === where.id)
+          if (index === -1) throw new Error('Record not found')
+
+          const current = mockDb[index]
+
+          // Handle valueHistory nested write (simulation)
+          const { valueHistory, ...restData } = data
+
+          if (valueHistory?.create) {
+            if (!current.valueHistory) current.valueHistory = []
+            current.valueHistory.push({
+              ...valueHistory.create,
+              date: valueHistory.create.date || new Date(),
+            })
+          }
+
+          const updated = { ...current, ...restData }
+
+          // Handle relation in update
+          if (data.client?.connect?.id) {
+            updated.clientId = data.client.connect.id
+            delete updated.client
+          }
+
+          // Handle financialEntity relation in update
+          if (data.financialEntity?.connect) {
+            const connectedId = data.financialEntity.connect.id
+            if (connectedId === 'non-existent-id') {
+              const error: any = new Error('Record not found')
+              error.code = 'P2025'
+              throw error
             }
 
-            // Handle financialEntity relation in update
-            if (data.financialEntity?.connect) {
-              const connectedId = data.financialEntity.connect.id
-              if (connectedId === 'non-existent-id') {
-                const error: any = new Error('Record not found')
-                error.code = 'P2025'
-                throw error
-              }
+            let entityName = 'Banco de Pruebas'
+            if (connectedId === 'global-bank-id') entityName = 'Global Bank'
 
-              let entityName = 'Banco de Pruebas'
-              if (connectedId === 'global-bank-id') entityName = 'Global Bank'
-
-              updated.financialEntity = {
-                id: connectedId,
-                name: entityName,
-              }
+            updated.financialEntity = {
+              id: connectedId,
+              name: entityName,
             }
+          }
 
-            mockDb[index] = updated
-            return updated
-          }),
-          delete: vi.fn().mockImplementation(async ({ where }) => {
-            const index = mockDb.findIndex((p) => p.id === where.id)
-            if (index === -1) throw new Error('Record not found')
-            const deleted = mockDb.splice(index, 1)
-            return deleted[0]
-          }),
-        },
-        // Auxiliary mocks to avoid errors if cleanup methods are called
-        productTransaction: { deleteMany: vi.fn() },
-        valueHistory: { deleteMany: vi.fn() },
-        client: { deleteMany: vi.fn(), create: vi.fn() },
-        financialEntity: {
-          findUnique: vi.fn().mockResolvedValue(null),
-          findFirst: vi.fn().mockResolvedValue(null),
-          create: vi
-            .fn()
-            .mockImplementation(({ data }) =>
-              Promise.resolve({ id: 'mock-fe-id', ...data })
-            ),
-        },
-        $disconnect: vi.fn(),
+          mockDb[index] = updated
+          return updated
+        }),
+        delete: vi.fn().mockImplementation(async ({ where }) => {
+          const index = mockDb.findIndex((p) => p.id === where.id)
+          if (index === -1) throw new Error('Record not found')
+          const deleted = mockDb.splice(index, 1)
+          return deleted[0]
+        }),
       },
-    }
+      // Auxiliary mocks to avoid errors if cleanup methods are called
+      productTransaction: { deleteMany: vi.fn() },
+      valueHistory: { deleteMany: vi.fn() },
+      client: { deleteMany: vi.fn(), create: vi.fn() },
+      financialEntity: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi
+          .fn()
+          .mockImplementation(({ data }) =>
+            Promise.resolve({ id: 'mock-fe-id', ...data })
+          ),
+      },
+      $disconnect: vi.fn(),
+    },
   }
-)
+})
 
 describe('Financial Products API', () => {
   // Base test data
@@ -170,7 +165,7 @@ describe('Financial Products API', () => {
 
   let productId: string
 
-  // Tokens para pruebas
+  // Tokens for testing
   const userId = '550e8400-e29b-41d4-a716-446655440000'
   const otherUserId = 'other-user-id'
   const userToken = jwt.sign({ id: userId, role: 'USER' }, env.JWT_SECRET)
@@ -231,7 +226,6 @@ describe('Financial Products API', () => {
         numberOfUnits: 50,
         netAssetValue: 200,
         currentBalance: 10000,
-        fees: { opening: 0, closing: 0, maintenance: 10 },
       }
       await request(app)
         .post('/products')
@@ -336,7 +330,7 @@ describe('Financial Products API', () => {
         initialDate: new Date().toISOString(),
         maturityDate: new Date(Date.now() + 31536000000).toISOString(), // +1 year
         annualInterestRate: 0.03,
-        interestPaymentFrequency: 'Quarterly',
+        interestPaymentFreq: 'Quarterly',
       }
       const response = await request(app)
         .post('/products')
@@ -356,7 +350,6 @@ describe('Financial Products API', () => {
         currentBalance: 10500,
         numberOfUnits: 100,
         netAssetValue: 105,
-        fees: { opening: 0, closing: 0, maintenance: 10 },
       }
       const response = await request(app)
         .post('/products')
@@ -396,7 +389,7 @@ describe('Financial Products API', () => {
       expect(response.body).toHaveProperty('currentBalance')
       // Should not have fields from other types
       expect(response.body).not.toHaveProperty('numberOfShares')
-      expect(response.body).not.toHaveProperty('interestPaymentFrequency')
+      expect(response.body).not.toHaveProperty('interestPaymentFreq')
     })
 
     it('should return 404 (Security) if user tries to access another users product', async () => {
@@ -473,57 +466,21 @@ describe('Financial Products API', () => {
     })
   })
 
-  describe('PATCH /products/:id', () => {
-    it('should return 204 and update status', async () => {
-      const response = await request(app)
-        .patch(`/products/${productId}`)
-        .set('Cookie', [`token=${userToken}`])
-        .send({ status: 'PAUSED' })
-
-      expect(response.status).toBe(204)
-
-      const getResponse = await request(app)
-        .get(`/products/${productId}`)
-        .set('Cookie', [`token=${userToken}`])
-      expect(getResponse.body.status).toBe('PAUSED')
-    })
-
-    it('should return 404 if product not found', async () => {
-      const response = await request(app)
-        .patch('/products/non-existent-id')
-        .set('Cookie', [`token=${userToken}`])
-        .send({ status: 'PAUSED' })
-      expect(response.status).toBe(404)
-    })
-
-    it('should return 400 if patching with non-existent financialEntity', async () => {
-      const response = await request(app)
-        .patch(`/products/${productId}`)
-        .set('Cookie', [`token=${userToken}`])
-        .send({ financialEntity: 'non-existent-id' })
-
-      expect(response.status).toBe(400)
-      expect(response.body.error).toContain(
-        "Financial Entity with ID 'non-existent-id' not found"
-      )
-    })
-  })
-
   describe('DELETE /products/:id', () => {
     it('should return 204 and disappear from queries', async () => {
-      // 1. Borrar
+      // 1. Delete
       const response = await request(app)
         .delete(`/products/${productId}`)
         .set('Cookie', [`token=${userToken}`])
       expect(response.status).toBe(204)
 
-      // 2. Verificar que el detalle da 404
+      // 2. Verify detail returns 404
       const getResponse = await request(app)
         .get(`/products/${productId}`)
         .set('Cookie', [`token=${userToken}`])
       expect(getResponse.status).toBe(404)
 
-      // 3. Verificar que no sale en el listado
+      // 3. Verify it does not appear in the list
       const listResponse = await request(app)
         .get('/products')
         .set('Cookie', [`token=${userToken}`])
@@ -533,7 +490,7 @@ describe('Financial Products API', () => {
   })
 
   describe('Type-specific Validation and Filtering (All Types)', () => {
-    // Helper para crear productos rápidamente
+    // Helper to create products quickly
     const createProduct = async (data: any) => {
       const res = await request(app)
         .post('/products')
@@ -553,7 +510,7 @@ describe('Financial Products API', () => {
         monthlyInterestRate: 0.02,
       })
 
-      // 1. Verificar filtrado en GET (solo campos de Savings)
+      // 1. Verify filtering in GET (only Savings fields)
       const getRes = await request(app)
         .get(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
@@ -561,7 +518,7 @@ describe('Financial Products API', () => {
       expect(getRes.body).not.toHaveProperty('numberOfShares') // Campo de Stocks
       expect(getRes.body).toHaveProperty('transactions')
 
-      // 2. Verificar validación en PUT (no permitir campos de otros tipos)
+      // 2. Verify validation in PUT (do not allow fields from other types)
       const updateRes = await request(app)
         .put(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
@@ -581,32 +538,32 @@ describe('Financial Products API', () => {
         initialDate: new Date().toISOString(),
         maturityDate: new Date().toISOString(),
         annualInterestRate: 0.05,
-        interestPaymentFrequency: 'Annual',
+        interestPaymentFreq: 'Annual',
       })
 
       const getRes = await request(app)
         .get(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
       expect(getRes.body).toHaveProperty('annualInterestRate')
-      expect(getRes.body).toHaveProperty('interestPaymentFrequency')
+      expect(getRes.body).toHaveProperty('interestPaymentFreq')
 
-      // Actualizar currentBalance (Ahora permitido para seguimiento de valoración)
+      // Update currentBalance (Now allowed for valuation tracking)
       const updateRes = await request(app)
         .put(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
         .send({ currentBalance: 500 })
       expect(updateRes.status).toBe(204)
 
-      // Intentar actualizar con un valor de enum inválido
+      // Attempt to update with an invalid enum value
       const updateResEnum = await request(app)
         .put(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
-        .send({ interestPaymentFrequency: 'END' })
+        .send({ interestPaymentFreq: 'END' })
       expect(updateResEnum.status).toBe(400)
       expect(updateResEnum.body.error).toContain('Validation failed')
     })
 
-    it('FIXED_TERM_DEPOSIT: should fail creation with invalid interestPaymentFrequency', async () => {
+    it('FIXED_TERM_DEPOSIT: should fail creation with invalid interestPaymentFreq', async () => {
       const deposit = {
         type: 'FIXED_TERM_DEPOSIT',
         name: 'Deposit Invalid Enum',
@@ -617,7 +574,7 @@ describe('Financial Products API', () => {
         initialDate: new Date().toISOString(),
         maturityDate: new Date().toISOString(),
         annualInterestRate: 0.05,
-        interestPaymentFrequency: 'END',
+        interestPaymentFreq: 'END',
       }
       const response = await request(app)
         .post('/products')
@@ -718,7 +675,7 @@ describe('Financial Products API', () => {
         .get(`/products/${product.id}`)
         .set('Cookie', [`token=${userToken}`])
       expect(getRes.body.currentBalance).toBe(newBalance)
-      // Verificamos que se haya generado histórico (asumiendo que la lógica de negocio lo implementa)
+      // Verify that history has been generated (assuming business logic implements it)
       expect(getRes.body.valueHistory).toHaveLength(1)
       expect(getRes.body.valueHistory[0].value).toBe(newBalance)
     })

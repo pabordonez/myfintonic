@@ -6,3 +6,8 @@ export type ProductType =
   | 'INVESTMENT_FUND'
   | 'STOCKS'
 export type Role = 'ADMIN' | 'USER'
+export type InterestPaymentFrequency =
+  | 'Monthly'
+  | 'Quarterly'
+  | 'Annual'
+  | 'AtMaturity'
