@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductTransactionController } from '../../src/infrastructure/http/controllers/productTransactionController'
-import { ProductTransactionUseCases } from '../../src/application/useCases/productTransactionUseCases_tmp'
+import { ProductTransactionUseCases } from '../../src/application/useCases/productTransactionUseCases'
 import { Request, Response, NextFunction } from 'express'
 
 // Mock use case
