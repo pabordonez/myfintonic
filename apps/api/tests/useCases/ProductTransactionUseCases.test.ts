@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ProductTransactionUseCases } from '../../src/application/useCases/productTransactionUseCases'
+import { ProductTransactionUseCases } from '../../src/application/useCases/ProductTransactionUseCases_tmp'
 import { IProductTransactionRepository } from '../../src/domain/repository/IProductTransactionRepository'
 import { IProductRepository } from '../../src/domain/repository/IProductRepository'
 
