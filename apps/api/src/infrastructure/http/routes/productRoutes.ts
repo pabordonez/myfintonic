@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { ProductController } from '@infrastructure/http/controllers/productController'
-import { ProductTransactionController } from '@infrastructure/http/controllers/ProductTransactionController'
+import { ProductTransactionController } from '@infrastructure/http/controllers/productTransactionController_tmp'
 import { authenticate } from '@infrastructure/http/middlewares/authenticate'
 import { productOwnershipMiddleware } from '@infrastructure/http/middlewares/ownershipMiddleware'
 
