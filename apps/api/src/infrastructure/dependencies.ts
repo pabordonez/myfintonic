@@ -9,7 +9,7 @@ import { FinancialEntityUseCases } from '@application/useCases/financialEntityUs
 import { ClientFinancialEntityUseCases } from '@application/useCases/clientFinancialEntityUseCases'
 import { AuthUseCases } from '@application/useCases/authUseCases'
 import { ClientUseCases } from '@application/useCases/clientUseCases'
-import { ProductTransactionUseCases } from '@application/useCases/productTransactionUseCases_tmp'
+import { ProductTransactionUseCases } from '@application/useCases/productTransactionUseCases_tmp2'
 
 import { ProductController } from '@infrastructure/http/controllers/productController'
 import { FinancialEntityController } from '@infrastructure/http/controllers/financialEntityController'
