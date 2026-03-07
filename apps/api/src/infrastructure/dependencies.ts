@@ -9,7 +9,7 @@ import { FinancialEntityUseCases } from '@application/useCases/financialEntityUs
 import { ClientFinancialEntityUseCases } from '@application/useCases/clientFinancialEntityUseCases'
 import { AuthUseCases } from '@application/useCases/authUseCases'
 import { ClientUseCases } from '@application/useCases/clientUseCases'
-import { ProductTransactionUseCases } from '@application/useCases/productTransactionUseCases_tmp2'
+import { ProductTransactionUseCases } from '@application/useCases/ProductTransactionUseCases'
 
 import { ProductController } from '@infrastructure/http/controllers/productController'
 import { FinancialEntityController } from '@infrastructure/http/controllers/financialEntityController'
@@ -17,7 +17,7 @@ import { ClientFinancialEntityController } from '@infrastructure/http/controller
 import { HealthController } from '@infrastructure/http/controllers/healthController'
 import { AuthController } from '@infrastructure/http/controllers/authController'
 import { ClientController } from '@infrastructure/http/controllers/clientController'
-import { ProductTransactionController } from '@infrastructure/http/controllers/productTransactionController_tmp'
+import { ProductTransactionController } from '@infrastructure/http/controllers/ProductTransactionController'
 import { BcryptEncryptionService } from '@infrastructure/services/bcryptEncryptionService'
 
 export const productRepository = new PrismaProductRepository()
