@@ -17,7 +17,7 @@ import { ClientFinancialEntityController } from '@infrastructure/http/controller
 import { HealthController } from '@infrastructure/http/controllers/healthController'
 import { AuthController } from '@infrastructure/http/controllers/authController'
 import { ClientController } from '@infrastructure/http/controllers/clientController'
-import { ProductTransactionController } from '@infrastructure/http/controllers/ProductTransactionController'
+import { ProductTransactionController } from '@infrastructure/http/controllers/productTransactionController_tmp'
 import { BcryptEncryptionService } from '@infrastructure/services/bcryptEncryptionService'
 
 export const productRepository = new PrismaProductRepository()
