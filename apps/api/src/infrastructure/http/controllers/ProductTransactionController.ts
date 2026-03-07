@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { ProductTransactionUseCases } from '@application/useCases/ProductTransactionUseCases'
+import { ProductTransactionUseCases } from '@application/useCases/productTransactionUseCases_tmp2'
 import { AddTransactionSchema } from '@infrastructure/http/dtos/AddTransactionSchema'
 import { ProductTransactionDto } from '@application/dtos/productTransactionDto'
 import { randomUUID } from 'crypto'
