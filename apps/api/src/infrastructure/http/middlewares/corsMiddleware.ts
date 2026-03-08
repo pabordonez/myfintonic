@@ -10,13 +10,9 @@ const allowedOrigins = (
 
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like curl, Postman or server-to-server) only in development
+    // Allow requests with no origin (like curl, Postman, mobile apps or Render health checks)
     if (!origin) {
-      if (env.NODE_ENV !== 'production') {
-        return callback(null, true)
-      }
-      // In production, block requests without origin
-      return callback(new Error('Not allowed by CORS'))
+      return callback(null, true)
     }
 
     if (allowedOrigins.includes(origin)) {
