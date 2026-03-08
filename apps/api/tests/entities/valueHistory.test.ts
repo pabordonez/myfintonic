@@ -14,8 +14,31 @@ describe('ValueHistory Domain Model', () => {
       )
     })
     it('should create instance if valid', () => {
-      const vh = ValueHistory.create({ date: new Date(), value: 100 })
+      const date = new Date()
+      const value = 100
+      const productId = 'p1'
+      const vh = ValueHistory.create({ date, value, productId })
       expect(vh).toBeInstanceOf(ValueHistory)
+      expect(vh.date).toBe(date)
+      expect(vh.value).toBe(value)
+      expect(vh.productId).toBe(productId)
+    })
+  })
+
+  describe('fromPrimitives', () => {
+    it('should return instance', () => {
+      const date = new Date()
+      const vh = ValueHistory.fromPrimitives({
+        id: 1,
+        date,
+        value: 100,
+        productId: 'p1',
+      })
+      expect(vh).toBeInstanceOf(ValueHistory)
+      expect(vh.id).toBe(1)
+      expect(vh.date).toBe(date)
+      expect(vh.value).toBe(100)
+      expect(vh.productId).toBe('p1')
     })
   })
 })

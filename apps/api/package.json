@@ -7,11 +7,10 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "npx prisma generate && tsc && tsc-alias",
-    "start": "node dist/server.js",
     "test": "vitest run",
     "test:silent": "vitest run --reporter=dot --silent",
     "test:watch": "vitest",
-    "test:coverage": "vitest --coverage",
+    "test:coverage": "vitest --coverage --coverage.thresholds.lines=80 --coverage.thresholds.functions=100",
     "lint": "eslint .",
     "lint:quiet": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
