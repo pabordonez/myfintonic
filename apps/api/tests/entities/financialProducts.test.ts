@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { FinancialProductFactory } from '../../src/domain/factories/financialProductFactory'
 import { FixedTermDeposit } from '../../src/domain/models/financialProduct/fixedTermDeposit'
 import { InvestmentFund } from '../../src/domain/models/financialProduct/investmentFund'
 import { SavingsAccount } from '../../src/domain/models/financialProduct/savingsAccount'
@@ -46,6 +47,110 @@ describe('Financial Products Domain Models', () => {
       expect(() => account.update({ invalidField: 1 })).toThrow(
         "Validation failed: Field(s) 'invalidField' cannot be updated for product type CURRENT_ACCOUNT"
       )
+    })
+
+    it('should update common fields (name, status) and update timestamp', () => {
+      const account = CurrentAccount.create({
+        type: 'CURRENT_ACCOUNT',
+        currentBalance: 100,
+        status: 'ACTIVE',
+        name: 'Old Name',
+      } as any)
+
+      const originalUpdatedAt = account.updatedAt
+      const updated = account.update({ name: 'New Name', status: 'PAUSED' })
+
+      expect(updated.name).toBe('New Name')
+      expect(updated.status).toBe('PAUSED')
+      expect(updated.updatedAt).not.toBe(originalUpdatedAt)
+    })
+
+    it('should only update timestamp when update payload is empty', () => {
+      const account = CurrentAccount.create({
+        type: 'CURRENT_ACCOUNT',
+        currentBalance: 100,
+        status: 'ACTIVE',
+        name: 'Test Name',
+      } as any)
+
+      const originalUpdatedAt = account.updatedAt
+      const updated = account.update({})
+
+      expect(updated.name).toBe('Test Name')
+      expect(updated.status).toBe('ACTIVE')
+      expect(updated.updatedAt).not.toBe(originalUpdatedAt)
+    })
+
+    it('should expose all common properties via getters', () => {
+      const now = new Date()
+      const account = FinancialProductFactory.fromPrimitives({
+        id: 'id-1',
+        type: 'CURRENT_ACCOUNT',
+        currentBalance: 100,
+        status: 'ACTIVE',
+        name: 'Test Account',
+        createdAt: now,
+        updatedAt: now,
+        clientId: 'client-1',
+        financialEntity: 'fe-1',
+        valueHistory: [],
+        transactions: [],
+      })
+
+      expect(account.id).toBe('id-1')
+      expect(account.name).toBe('Test Account')
+      expect(account.status).toBe('ACTIVE')
+      expect(account.type).toBe('CURRENT_ACCOUNT')
+      expect(account.createdAt).toEqual(now)
+      expect(account.updatedAt).toEqual(now)
+      expect(account.clientId).toBe('client-1')
+      expect(account.financialEntity).toBe('fe-1')
+      expect(account.valueHistory).toEqual([])
+      expect(account.transactions).toEqual([])
+    })
+
+    it('should verify ownership correctly', () => {
+      const account = FinancialProductFactory.fromPrimitives({
+        id: 'id-1',
+        type: 'CURRENT_ACCOUNT',
+        currentBalance: 100,
+        status: 'ACTIVE',
+        name: 'Test Account',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        clientId: 'client-1',
+        financialEntity: 'fe-1',
+        valueHistory: [],
+        transactions: [],
+      })
+
+      expect(account.isOwnedBy('client-1')).toBe(true)
+      expect(account.isOwnedBy('other-client')).toBe(false)
+    })
+
+    it('should return common update fields', () => {
+      const account = FinancialProductFactory.fromPrimitives({
+        id: 'id-1',
+        type: 'CURRENT_ACCOUNT',
+        currentBalance: 100,
+        status: 'ACTIVE',
+        name: 'Test Account',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        clientId: 'client-1',
+        financialEntity: 'fe-1',
+        valueHistory: [],
+        transactions: [],
+      })
+
+      // Access protected method for testing purposes
+      const commonFields = (account as any).getCommonUpdateFields()
+      expect(commonFields).toEqual([
+        'name',
+        'status',
+        'financialEntity',
+        'clientId',
+      ])
     })
   })
 
