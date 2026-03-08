@@ -1,0 +1,46 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running Quality Gates (pre-commit)..."
+
+ # Gate 1: Lint-staged (Format & Lint staged files)
+  echo "📝 Running lint-staged..."
+  npx lint-staged || {
+    echo "❌ lint-staged failed!"
+    exit 1
+  }
+
+  # Gate 2: Unit Tests 
+  echo "🧪 Running unit tests ,.."
+  npm run test-silent || {
+    echo "❌ Tests failed!"
+    exit 1
+  }
+
+  # Gate 3: Build 
+  echo "🔧 Checking Build ..."
+  npm run build || {
+    echo "❌ Build failed!"
+    exit 1
+  }
+
+
+# Validar OpenAPI solo si hay cambios en la carpeta apps/api/docs
+# git diff --cached --name-only: lista los archivos en staging
+# grep -q "^apps/api/docs/": busca silenciosamente si alguno empieza por apps/api/docs/
+if git diff --cached --name-only | grep -q "^apps/api/docs/"; then
+  echo "🔍 Cambios detectados en la documentación API. Ejecutando validación..."
+  
+  # Ejecuta el comando de validación
+  npm run api:validate
+  
+  # Captura el resultado. Si falla (código distinto de 0), aborta el commit.
+  if [ $? -ne 0 ]; then
+    echo "❌ Error: La validación de OpenAPI ha fallado. Corrige los errores antes de hacer commit."
+    exit 1
+  fi
+fi
+
+
+
+echo "✅ All pre-commit gates passed!"
