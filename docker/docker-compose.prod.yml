@@ -9,5 +9,4 @@ services:
     build:
       target: production
     ports:
-      - '8080:80'
-    # En producción real, VITE_API_URL debería ser el dominio público de la API
+      - "8080:80"
