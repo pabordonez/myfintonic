@@ -5,9 +5,9 @@ import { PrismaClient, ProductType, ProductStatus } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Iniciando la carga de datos de demostración (Demo Seed)...')
+  console.log('🌱 Starting the demo data load (Demo Seed)...')
 
-  // 1. Limpieza inicial (opcional, coméntalo si prefieres no borrar datos previos)
+  // 1. Initial cleanup (optional, comment it out if you prefer not to delete previous data)
   await prisma.productTransaction.deleteMany()
   await prisma.valueHistory.deleteMany()
   await prisma.financialProduct.deleteMany()
@@ -16,7 +16,7 @@ async function main() {
   await prisma.financialEntity.deleteMany()
   await prisma.client.deleteMany()
 
-  // 2. Crear al usuario de prueba (Brais Moure)
+  // 2. Create the test user (Brais Moure)
   const braisId = 'usr-demo-brais-0000-0000-00000000'
   const brais = await prisma.client.upsert({
     where: { email: 'braismoure@myfintonic.com' },
@@ -33,7 +33,7 @@ async function main() {
       updatedAt: new Date(),
     },
   })
-  console.log(`✅ Usuario creado: ${brais.email}`)
+  console.log(`✅ User created: ${brais.email}`)
 
   const adminEmail = env.ADMIN_EMAIL
   const adminPassword = await bcrypt.hash(env.ADMIN_PASSWORD, 10)
@@ -50,7 +50,7 @@ async function main() {
   })
   console.log(`✅ Admin user created: ${admin.email}`)
 
-  // 3. Crear Entidades Financieras de ejemplo
+  // 3. Create example Financial Entities
   const entityBankId = 'ent-demo-bank-0000-0000-00000001'
   const entityBrokerId = 'ent-demo-brok-0000-0000-00000002'
 
@@ -59,7 +59,7 @@ async function main() {
     update: {},
     create: {
       id: entityBankId,
-      name: 'Banco Ibérico Ficticio',
+      name: 'Fictional Iberian Bank',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -75,26 +75,26 @@ async function main() {
       updatedAt: new Date(),
     },
   })
-  console.log(`✅ Entidades financieras creadas.`)
+  console.log(`✅ Financial entities created.`)
 
-  // 4. Crear Productos Financieros e Histórico de Valores
+  // 4. Create Financial Products and Value History
   const now = new Date()
   const daysAgo = (days: number) =>
     new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
 
-  // ---> Cuenta Corriente
+  // ---> Current Account
   await prisma.financialProduct.create({
     data: {
       id: 'prod-curr-demo-0000-0000-00000001',
       type: ProductType.CURRENT_ACCOUNT,
-      name: 'Cuenta Nómina Principal',
+      name: 'Main Payroll Account',
       status: ProductStatus.ACTIVE,
       clientId: braisId,
       financialEntityId: entityBankId,
       currentBalance: 4250.75,
       createdAt: now,
       updatedAt: now,
-      // Histórico de saldo de los últimos meses
+      // Balance history for the last few months
       valueHistory: {
         create: [
           { date: daysAgo(90), value: 3100.0 },
@@ -106,13 +106,13 @@ async function main() {
     },
   })
 
-  // ---> Fondo de Inversión
-  // (120 participaciones x NAV de 205.50 = 24,660.00 de balance actual)
+  // ---> Investment Fund
+  // (120 units x NAV of 205.50 = 24,660.00 current balance)
   await prisma.financialProduct.create({
     data: {
       id: 'prod-fund-demo-0000-0000-00000002',
       type: ProductType.INVESTMENT_FUND,
-      name: 'Fondo Indexado S&P 500',
+      name: 'S&P 500 Index Fund',
       status: ProductStatus.ACTIVE,
       clientId: braisId,
       financialEntityId: entityBrokerId,
@@ -133,13 +133,13 @@ async function main() {
     },
   })
 
-  // ---> Acciones
-  // (50 acciones x Precio Actual de 135.20 = 6,760.00 de balance actual. Compra a 110.00 = 5,500.00 inicial)
+  // ---> Stocks
+  // (50 shares x Current Price of 135.20 = 6,760.00 current balance. Bought at 110.00 = 5,500.00 initial)
   await prisma.financialProduct.create({
     data: {
       id: 'prod-stck-demo-0000-0000-00000003',
       type: 'STOCKS',
-      name: 'Acciones Innovatech Corp',
+      name: 'Innovatech Corp Stocks',
       status: 'ACTIVE',
       clientId: braisId,
       financialEntityId: entityBrokerId,
@@ -152,7 +152,7 @@ async function main() {
       updatedAt: now,
       valueHistory: {
         create: [
-          { date: daysAgo(150), value: 5500.0 }, // Momento de compra
+          { date: daysAgo(150), value: 5500.0 }, // Time of purchase
           { date: daysAgo(90), value: 6100.0, previousValue: 5500.0 },
           { date: daysAgo(30), value: 6450.0, previousValue: 6100.0 },
           { date: now, value: 6760.0, previousValue: 6450.0 },
@@ -162,14 +162,14 @@ async function main() {
   })
 
   console.log(
-    `✅ Productos financieros (Cuentas, Fondos, Acciones) e histórico de demostración creados.`
+    `✅ Financial products (Accounts, Funds, Stocks) and demo history created.`
   )
-  console.log('🌲 Seeding de demostración finalizado correctamente.')
+  console.log('🌲 Demo seeding finished successfully.')
 }
 
 main()
   .catch((e) => {
-    console.error('Error durante el seeding:', e)
+    console.error('Error during seeding:', e)
     process.exit(1)
   })
   .finally(async () => {
