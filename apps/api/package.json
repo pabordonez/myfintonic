@@ -5,6 +5,7 @@
   "description": "API de gestión de activos financieros personales",
   "main": "dist/server.js",
   "scripts": {
+    "postinstall": "npm run db:generate",
     "dev": "tsx watch src/server.ts",
     "build": "npx prisma generate && tsc && tsc-alias",
     "start": "node dist/server.js",
@@ -71,8 +72,5 @@
   "prisma": {
     "schema": "src/infrastructure/persistence/prisma/schema.prisma",
     "seed": "tsx src/infrastructure/persistence/prisma/seed-admin.ts"
-  },
-  "overrides": {
-    "minimatch": "^10.2.1"
   }
 }
