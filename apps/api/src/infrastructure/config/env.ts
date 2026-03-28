@@ -49,16 +49,6 @@ const envSchema = z.object({
   // Rate Limiting Specifics
   RATE_LIMIT_LOGIN_WINDOW_MS: z.coerce.number().int().positive().default(60000), // 1 minute
   RATE_LIMIT_LOGIN_MAX_REQUESTS: z.coerce.number().int().positive().default(5),
-  RATE_LIMIT_PRODUCTS_WINDOW_MS: z.coerce
-    .number()
-    .int()
-    .positive()
-    .default(900000), // 15 minutes
-  RATE_LIMIT_PRODUCTS_MAX_REQUESTS: z.coerce
-    .number()
-    .int()
-    .positive()
-    .default(1000),
 
   // Cookie Configuration
   COOKIE_MAX_AGE: z.coerce
