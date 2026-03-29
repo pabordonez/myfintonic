@@ -15,14 +15,3 @@ export const loginRateLimiter = rateLimit({
     message: 'Too many login attempts. Please try again later.',
   },
 })
-
-/**
- * Rate Limiter for Products (Scraping/Enumeration Prevention).
- * More relaxed than login, but protects against massive data extraction.
- */
-export const productsRateLimiter = rateLimit({
-  windowMs: env.RATE_LIMIT_PRODUCTS_WINDOW_MS,
-  limit: env.RATE_LIMIT_PRODUCTS_MAX_REQUESTS,
-  standardHeaders: true,
-  legacyHeaders: false,
-})
